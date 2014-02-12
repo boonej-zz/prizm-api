@@ -1,7 +1,9 @@
-/***********************************************************
- ****                Auth Model                         ****
- **********************************************************/
-
+/**
+ * Auth Models
+ *
+ * @author DJ Hayden<dj.hayden@stablekernel.com>
+ * @version 0.0.1
+ */
 var mongoose  = require('mongoose')
   , uuid      = require('node-uuid');
 
@@ -10,29 +12,28 @@ Date.prototype.addMinutes = function(minutes){
 };
 
 var clientApplicationSchema = new mongoose.Schema({
-  name            :     String,
-  description     :     String,
-  redirect_uri    :     String,
-  client_id       :     String,
-  client_secret   :     String
+  name                : {type: String, required: true},
+  description         : {type: String, required: true},
+  redirect_uri        : {type: String, required: false},
+  client_id           : {type: String},
+  client_secret       : {type: String}
 });
 
 clientApplicationSchema.pre('save', function(next){
   if (! this.client_secret && ! this.client_id){
         this.client_id = uuid.v4();
         this.client_secret = uuid.v4();
-        console.log("Client ID: " + this.client_id);
     }
   next();
 });
 
 var codeSchema = new mongoose.Schema({
-  client_id       :     String,
-  code            :     String,
-  redirect_uri    :     String,
-  scope           :     [],
-  state           :     String,
-  date_created    :     Date
+  client_id           : {type: String, required: true},
+  code                : {type: String},
+  redirect_uri        : {type: String},
+  scope               : [],
+  state               : {type: String},
+  date_created        : {type: Date}
 });
 
 codeSchema.pre('save', function(next){
@@ -42,15 +43,15 @@ codeSchema.pre('save', function(next){
 });
 
 var tokenSchema = new mongoose.Schema({
-  access_token        : String,
-  grant_type          : String,
-  token_type          : String,
-  expires_in          : Number,
-  refresh_token       : String,
-  date_created        : Date,
-  date_expires        : Date,
-  client_application  : { type: mongoose.Schema.Types.ObjectId, ref: 'ClientApplication'},
-  code                : String,
+  access_token        : {type: String, required: false},
+  grant_type          : {type: String, required: true},
+  token_type          : {type: String, required: false},
+  expires_in          : {type: Number, required: false},
+  refresh_token       : {type: String, required: false},
+  date_created        : {type: Date, required: false},
+  date_expires        : {type: Date, required: false},
+  client_application  : {type: mongoose.Schema.Types.ObjectId, ref: 'ClientApplication', required: true},
+  code                : {type: String, required: true},
   scope               : []
 });
 
@@ -72,8 +73,6 @@ tokenSchema.methods.cleanJSON = function(){
 };
 
 tokenSchema.pre('save', function(next){
-  console.log("saving token");
-
   var validFor = 10 * 60 * 1000,
       dateNow = Date.now();
 
@@ -91,5 +90,3 @@ tokenSchema.pre('save', function(next){
 exports.ClientApplication = mongoose.model('ClientApplication', clientApplicationSchema);
 exports.Code = mongoose.model('Code', codeSchema);
 exports.Token = mongoose.model('Token', tokenSchema);
-
-

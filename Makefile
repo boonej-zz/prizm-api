@@ -1,9 +1,9 @@
-SHELL				:= /bin/bash
-REPORTER			= spec
+SHELL						:= /bin/bash
+REPORTER				= spec
 MOCHA_TIMEOUT		= 5000
-PRISM_HOME			= (shell $PWD/)
-SERVER_IP			:= $(shell /sbin/ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d " " -f2)
-NODE_ENV			:= $(shell if [ "$(SERVER_IP)" = "192.168.0.108" ]; then echo "development"; else echo "local";i fi)
+PRISM_HOME			= $(shell PWD)
+SERVER_IP				:= $(shell /sbin/ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d " " -f2)
+NODE_ENV				:= $(shell if [ "$(SERVER_IP)" = "192.168.0.108" ]; then echo "development"; else echo "local"; fi)
 
 test:
 	@PRISM_HOME=$(PWD)/ \
