@@ -50,14 +50,44 @@ var credentials = function(header){
   return false;
 }
 
-var createAuthorizationToken(req, res){
+/**
+ * Checks to ensure the client is authorzied to make
+ * any token request by validating there auth header
+ * with validation against a valid client record in the db
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ * @param {Function} callback The callback function invoked
+ */
+var authorizeClientRequest = function(req, res, callback){
+  var creds = credentials(req.get('Authorization'));
+  if(creds){
+    Client.findOne({client_id: creds[0], client_secret: creds[1]}, function(error, result){
+      if(error){
+        callback(error, false, result);
+      }else{
+        callback(error, true, result);
+      }
+    });
+  }else{
+    callback('Error parsing credentials', false, null);
+  }
+}
+
+/**
+ * Constructor handler based on grant_type
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+var createAuthorizationToken = function(req, res){
   var grant_type    = req.body.grant_type
     , code          = req.body.code
     , redirect_uri  = req.body.redirect_uri
     , refresh_token = req.body.refresh_token;
 
   switch(grant_type){
-    case 'authroization_code':
+    case 'authorization_code':
       handleAuthorizationCode(req, res);
       break;
     case 'client_credentials':
@@ -72,7 +102,14 @@ var createAuthorizationToken(req, res){
   } 
 }
 
-var handleAuthorizationCode(req, res){
+/**
+ * Handles token creation logic based on `authorization_code` 
+ * auth grant_type
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+var handleAuthorizationCode = function(req, res){
   var code          = req.body.code
     , redirect_uri  = req.body.redirect_uri
   if(code && redirect_uri){
@@ -110,4 +147,65 @@ var handleAuthorizationCode(req, res){
   }else{
     res.send(400, Error.invalidRequest.error_info);
   }
+}
+
+/**
+ * Handles token creation logic based on `refresh_token` auth grant_type
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} req The response object
+ */
+var handleRefreshToken = function(req, res){
+  var creds = credentials(req.get('Authorization'));
+  Client.findOne({client_id: creds[0], client_secret: creds[1]}, function(error, client){
+    if(app){
+      refreshToken(client, req.body.refresh_token, function(result){
+        if(result){
+          res.send(201, result.cleanJSON());
+        }else{
+          res.send(401, Error.unauthorizedClient.error_info);
+        }
+      });
+    }else{
+      res.send(401, Error.unauthorizedClient.error_info);
+    }
+  });
+}
+
+//TODO: handle straight up client credentials auth -- 
+//if we even want to authenticate this way.
+//var handleClientCredentials = function(req, res){}
+
+/**
+ * Refresh token method creates a new token and removes existing one
+ * from the db
+ *
+ * @param {Object} client The ClientApplication Model object
+ * @param {String} refresh The refres_token string
+ * @param {Function} next The callback iterator invoked
+ */
+var refreshToken = function(client, refresh, next){
+  Token.findOne({refresh_token: refresh, client_application: client}, function(error, result){
+    if(error){
+      console.log(error);
+      next(false);
+    }else if(result){
+      var token = new Token({ grant_type: result.grant_type, 
+                              client_application: client,
+                              code: result.code });
+      token.save(function(error, newToken, count){
+        if(error){
+          console.log(error);
+          next(false);
+        }else{
+          Token.remove({_id: result._id}, function(error){
+            if(error) console.log(error);
+            next(newToken);
+          });
+        }
+      });
+    }else{
+      next(false);
+    }
+  });
 }
