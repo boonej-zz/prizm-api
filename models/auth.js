@@ -2,7 +2,6 @@
  * Auth Models
  *
  * @author DJ Hayden<dj.hayden@stablekernel.com>
- * @version 0.0.1
  */
 var mongoose  = require('mongoose')
   , uuid      = require('node-uuid');

@@ -12,9 +12,25 @@
 exports.invalidRequest = {
   status_code         : 400,
   error_info          : {  
-      error             : 'invalid_request',
-      error_description : 'the request was malformed or missing required data'
-    }
+    error             : 'invalid_request',
+    error_description : 'the request was malformed or missing required data'
+  }
+}
+
+exports.invalidLoginRequest = {
+  status_code         : 400,
+  error_info          : {
+    error             : 'invalid_login_request',
+    error_description : 'the login request was attempted without an email address'
+  }
+}
+
+exports.invalidLoginUserDoesNotExist = {
+  status_code         : 400,
+  error_info          : {
+    error             : 'user_does_not_exist',
+    error_description : 'no matching user email found'
+  }
 }
 
 exports.unauthorized = {
@@ -40,6 +56,14 @@ exports.accessDenied = {
       error_description : 'your credentials are not sufficient to access this' 
                              + ' resource'
     }
+}
+
+exports.accessDeniedExpiredToken = {
+  status_code         : 401,
+  error_info          : {
+    error             : 'access_denied',
+    error_description : 'access_token has expired. please re-authenticate'
+  }
 }
 
 exports.unsupportedResponseType = {

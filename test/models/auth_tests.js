@@ -12,7 +12,7 @@ var _request   = require('request')
   , Code       = require(process.env.PRISM_HOME + 'models/auth').Code
   , Client     = require(process.env.PRISM_HOME + 'models/auth').ClientApplication
   , Token      = require(process.env.PRISM_HOME + 'models/auth').Token
-  , _server	   = require(process.env.PRISM_HOME + 'server');
+  , _thisapp	 = require(process.env.PRISM_HOME + 'server');
 
 describe('Auth Model Unit Tests', function(done){
   describe('Testing ClientApplication Schema', function(done){

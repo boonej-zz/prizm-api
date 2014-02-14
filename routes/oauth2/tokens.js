@@ -1,6 +1,7 @@
 /**
- * Handles routing and token management for oauth2/token endpoint
+ * Tokens
  *
+ * Handles routing and token management for oauth2/token endpoint
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
 var _mongoose     = require('mongoose')
@@ -34,10 +35,10 @@ module.exports = function(req, res){
  * Checks for Basic Authorization header & decodes credentials
  *
  * @param {String} header The Authorization header string value
- * @return {Array} Returns an array of user:pass passed in Basic Auth Header
+ * @return {Array} Returns an array of user:pass passed by  Basic Auth headers
  */
 var credentials = function(header){
-  if(header){
+   if(header){
     var authArray = header.split(" ");
     if(authArray.length == 2 && authArray[0] == 'Basic'){
       var creds = new Buffer(authArray[1], 'base64').toString('ascii');

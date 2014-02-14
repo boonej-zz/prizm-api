@@ -57,7 +57,7 @@ describe('Authorization Token Route Unit Tests', function(done){
     it('should return a valid authorization token with valid client creds', function(done){
       var auth_header = "Basic " + (new Buffer(testClient.client_id + ':' 
                                            + testClient.client_secret).toString('base64'));
-                                           console.log(auth_header);
+                                           // console.log(auth_header);
       var request_body = {code: testCode.code, 
                           redirect_uri: testClient.redirect_uri,
                           grant_type: 'authorization_code'};

@@ -7,10 +7,11 @@
 
   "dependencies" : {
     "express"           : "3.4.8",
-    "connect"           : "2.12.0",
+    "connect"           : "*",
     "mongoose"          : "3.8.6",
     "jade"              : "*",
-    "request"           : "2.33.0",
+    "request"           : "*",
+    "serializer"        : "*",
     "node-uuid"         : "*",
     "nodemailer"        : "0.6.0",
     "passport"          : "0.2.0",
