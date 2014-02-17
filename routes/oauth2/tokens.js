@@ -9,7 +9,8 @@ var _mongoose     = require('mongoose')
   , _auth_model   = require(process.env.PRISM_HOME + 'models/auth')
   , Client        = _auth_model.ClientApplication
   , Token         = _auth_model.Token
-  , Code          = _auth_model.Code;
+  , Code          = _auth_model.Code
+  , _utils	  = require(process.env.PRISM_HOME + 'utils');
 
 /**
  * Token Route module constructor
@@ -128,7 +129,8 @@ var handleAuthorizationCode = function(req, res){
                                         code: code});
 
                   token.save(function(error, newToken, count){
-                    res.send(newToken.cleanJSON());
+                    _utils.prismResponse(res, newToken.cleanJSON(), true);
+			//res.send(newToken.cleanJSON());
                   });
                 }else{
                   res.send(401, Error.unauthorized.error_info);
@@ -158,17 +160,22 @@ var handleAuthorizationCode = function(req, res){
  */
 var handleRefreshToken = function(req, res){
   var creds = credentials(req.get('Authorization'));
+  console.log(creds);
   Client.findOne({client_id: creds[0], client_secret: creds[1]}, function(error, client){
-    if(app){
-      refreshToken(client, req.body.refresh_token, function(result){
-        if(result){
-          res.send(201, result.cleanJSON());
+    if(client){
+      refreshToken(client, req.body.code, function(result){
+        console.log("refresh token result: " + result + "refresh error: " + error);
+	if(result){
+	  _utils.prismResponse(res, result.cleanJSON(), true);
+          //res.send(201, result.cleanJSON());
         }else{
-          res.send(401, Error.unauthorizedClient.error_info);
+          _utils.prismResponse(res, null, false, Error.unauthorizedClient, Error.unauthorizedClient.status_code); 
+	 //res.send(401, Error.unauthorizedClient.error_info);
         }
       });
     }else{
-      res.send(401, Error.unauthorizedClient.error_info);
+      _utils.prismResponse(res, null, false, Error.unauthorizedClient, Error.unauthorizedClient.status_code); 
+      //res.send(401, Error.unauthorizedClient.error_info);
     }
   });
 }

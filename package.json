@@ -4,6 +4,9 @@
   "author"            : "DJ Hayden <dj.hayden@stablekernel.com>",
   "version"           : "0.0.1",
   "private"           : true,
+  "scipts"	: {
+	"start" : "make start"
+},
 
   "dependencies" : {
     "express"           : "3.4.8",
