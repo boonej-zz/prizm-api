@@ -159,8 +159,10 @@ var handleAuthorizationCode = function(req, res){
 var handleRefreshToken = function(req, res){
   var creds = credentials(req.get('Authorization'));
   Client.findOne({client_id: creds[0], client_secret: creds[1]}, function(error, client){
-    if(app){
-      refreshToken(client, req.body.refresh_token, function(result){
+    console.log("handleRefreshToken :" + JSON.stringify(client));
+    if(client){
+      console.log("body code: " + JSON.stringify(req.body));
+      refreshToken(client, req.body.code, function(result){
         if(result){
           res.send(201, result.cleanJSON());
         }else{
@@ -186,7 +188,9 @@ var handleRefreshToken = function(req, res){
  * @param {Function} next The callback iterator invoked
  */
 var refreshToken = function(client, refresh, next){
-  Token.findOne({refresh_token: refresh, client_application: client}, function(error, result){
+  console.log("client: " + client + "regresh :" + JSON.stringify(refresh));
+  Token.findOne({refresh_token: refresh, client_application: client._id}, function(error, result){
+    console.log("rrefresh token log: " + JSON.stringify(result));
     if(error){
       console.log(error);
       next(false);

@@ -20,6 +20,7 @@ var _mongoose     = require('mongoose')
 describe('Authorization Token Route Unit Tests', function(done){
   var testClient = null;
   var testCode = null;
+  var testToken = null;
   
   beforeEach(function(done){
     var test = new Client({
@@ -40,18 +41,18 @@ describe('Authorization Token Route Unit Tests', function(done){
     });
   });
   
-  afterEach(function(done){
-    Client.remove({}, function(err){
-      if(err) throw err;
-    });
-    Code.remove({}, function(err){
-      if(err) throw err;
-    });
-    Token.remove({}, function(err){
-      if(err) throw err;
-      done();
-    });
-  });
+  // afterEach(function(done){
+  //   Client.remove({}, function(err){
+  //     if(err) throw err;
+  //   });
+  //   Code.remove({}, function(err){
+  //     if(err) throw err;
+  //   });
+  //   Token.remove({}, function(err){
+  //     if(err) throw err;
+  //     done();
+  //   });
+  // });
   
   describe('Testing Fetching a Prism Authorization Token /oauth2/token', function(done){
     it('should return a valid authorization token with valid client creds', function(done){
@@ -72,6 +73,8 @@ describe('Authorization Token Route Unit Tests', function(done){
       }, function(error, result, body){
         var string = JSON.stringify(body);
         var token_result = JSON.parse(string);
+        testToken = token_result;
+        console.log(string);
         token_result.should.have.property('access_token');
         token_result.should.have.property('refresh_token');
         token_result.should.have.property('expires_in');
@@ -80,6 +83,30 @@ describe('Authorization Token Route Unit Tests', function(done){
         _expect(token_result.refresh_token).to.have.length.above(20);
         _expect(token_result.expires_in).to.be.above(100);
         _expect(token_result.token_type).to.equal('Bearer');
+        done();
+      });
+    });
+  });
+  describe('Testing fetching a Prism refresh token /oauth2/token', function(done){
+    it('should return a valid authorization token with valid client creds', function(done){
+      var auth_header = "Basic " + (new Buffer(testClient.client_id + ':' 
+                                           + testClient.client_secret).toString('base64'));
+                                           // console.log(auth_header);
+      var request_body = {code: testToken.refresh_token, 
+                          redirect_uri: testClient.redirect_uri,
+                          grant_type: 'refresh_token'};
+      var request_url = 'https://localhost:3000/oauth2/token';
+      _request({
+        method: 'POST',
+        url: request_url,
+        json: true,
+        strictSSL: false,
+        body: request_body,
+        headers: {'Authorization' : auth_header}
+      }, function(error, result, body){
+        var string = JSON.stringify(body);
+        var token_result = JSON.parse(string);
+        console.log(token_result);
         done();
       });
     });
