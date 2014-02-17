@@ -24,7 +24,11 @@ exports.login = function(req, res){
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
             _utils.prismResponse(res, result, true, null, null);
-          }
+          }else{
+	    _utils.prismResponse(res, null, false, {error_info: {
+								error: 'invalid user credentials',
+								error_description: 'User email/password does not match'}}, 401);
+	  }
         }else{
           _utils.prismResponse( res, 
                                 null,
@@ -106,6 +110,7 @@ var hashAndValidatePassword = function(user, password_to_validate){
 }
 
 var isValidLoginRequest = function(body){
+  console.log("is valid login request: (body) " + JSON.stringify(body));
   if(body.email){
     if(isSocialProvider(body)){
       return true;

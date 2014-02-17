@@ -3,25 +3,26 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
+process.env.PRISM_HOME = '/home/ec2-user/prism_api/';
 var _request   = require('request')
   , _mongoose  = require('mongoose')
   , _chai      = require('chai')
   , _expect    = _chai.expect
   , _should    = _chai.should()
   , _assert    = _chai.assert
-  , Code       = require(process.env.PRISM_HOME + 'models/auth').Code
-  , Client     = require(process.env.PRISM_HOME + 'models/auth').ClientApplication
-  , Token      = require(process.env.PRISM_HOME + 'models/auth').Token
-  , _thisapp	 = require(process.env.PRISM_HOME + 'server');
+  , Code       = require(process.env.PRISM_HOME + 'models/auth.js').Code
+  , Client     = require(process.env.PRISM_HOME + 'models/auth.js').ClientApplication
+  , Token      = require(process.env.PRISM_HOME + 'models/auth.js').Token
+  , _thisapp	 = require(process.env.PRISM_HOME + 'server.js');
 
 describe('Auth Model Unit Tests', function(done){
   describe('Testing ClientApplication Schema', function(done){
-    afterEach(function(done){
+/*    afterEach(function(done){
       Client.remove({}, function(err){
         if(err) throw err;
         done();
       })
-    })
+    })*/
     describe('Create a Client Application', function(done){
       /**
        * for right now we are not to concerned with defensive unit testing &
@@ -45,7 +46,8 @@ describe('Auth Model Unit Tests', function(done){
         }
         client = new Client(client_data)
         client.save(function(error, result){
-          _expect(error).to.be.null
+          console.log(result);
+		_expect(error).to.be.null
           _expect(result.client_id).to.have.length.above(10)
           _expect(result.client_secret).to.have.length.above(10)
           result.name.should.equal(client_data.name)

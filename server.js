@@ -3,7 +3,8 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-
+//process.env['PRISM_HOME'] = '/home/ec2-user/prism_api/';
+//process.env['NODE_ENV'] = 'development';
 var _express        = require('express')
   , _mongoose       = require('mongoose')
   , _http           = require('http')
@@ -16,7 +17,7 @@ var _express        = require('express')
   , _prism_token    = require(process.env.PRISM_HOME + 'routes/oauth2/tokens')
   , _prism_user     = require(process.env.PRISM_HOME + 'routes/users')
   , _utils          = require(process.env.PRISM_HOME + 'utils')
-  , _gateway        = require('gateway');
+  , _gateway        = require(process.env.PRISM_HOME + 'gateway');
 
 /* environment specific settings */
 var env = _app.get('env');
@@ -28,6 +29,7 @@ if( env  == 'development' || env == 'local'){
   _app.set('port', 7342);
   _mongoose.connect('mongodb://localhost/prism_test');
 }else{
+  _app.use(_express.logger('dev'));
   _mongoose.connect('mongodb://localhost/prism');
 }
 
@@ -40,7 +42,7 @@ var ssl_options = {
 	key: 				        _fs.readFileSync(process.env.PRISM_HOME + '/config/ssl/PrismApiDev.key'),
 	cert: 			        _fs.readFileSync(process.env.PRISM_HOME + '/config/ssl/PrismApiDev.crt'),
 	ca: 				        _fs.readFileSync(process.env.PRISM_HOME + '/config/ssl/stablekernel.crt'),
-	requestCert: 		    true,
+//	requestCert: 		    true,
 	rejectUnauthorized: false
 };
 
@@ -48,12 +50,11 @@ var ssl_options = {
 _httpserver.set('port', process.env.PORT || 80);
 _httpserver.get("*", function(req, res, next){
  // res.redirect("https://" + req.headers.host + ":3000/" + req.path);
-  res.redirect("https://localhost:3000" + req.path);
+  res.redirect("https://127.0.0.1:3000" + req.path);
 });
 process.on('uncaughtException', function (err) {
     console.log(err);
 }); 
-// _app.all('/*', _gateway);
 
 /********************** API ROUTES ************************/
 /* Root Endpoint */
@@ -64,7 +65,10 @@ _app.get('/', function(req,res){ res.send('Welcome to the Prism API') });
 _app.get('/oauth2/authorize', _prism_auth);
 
 /* Default Authorization Code RedirectUri Callback Endpoint - FOR PRISM MOBILE USE ONLY */
-_app.get('/callback', function(req, res){res.send({authorization_code: req.query.code});});
+_app.get('/callback', function(req, res){
+	var array = [{authorization_code: req.query.code}];
+	_utils.prismResponse( res, array, true); });
+	//res.send({authorization_code: req.query.code});});
 
 /* Token Request Endpoint */
 _app.post('/oauth2/token', _prism_token);
