@@ -161,10 +161,10 @@ var handleAuthorizationCode = function(req, res){
 var handleRefreshToken = function(req, res){
   var creds = credentials(req.get('Authorization'));
   Client.findOne({client_id: creds[0], client_secret: creds[1]}, function(error, client){
-    console.log("handleRefreshToken :" + JSON.stringify(client));
+    // console.log("handleRefreshToken :" + JSON.stringify(client));
     if(client){
       refreshToken(client, req.body.code, function(result){
-        console.log("refresh token result: " + result + "refresh error: " + error);
+        // console.log("refresh token result: " + result + "refresh error: " + error);
 	      if(result){
 	        _utils.prismResponse(res, result.cleanJSON(), true);
           //res.send(201, result.cleanJSON());
@@ -193,9 +193,9 @@ var handleRefreshToken = function(req, res){
  * @param {Function} next The callback iterator invoked
  */
 var refreshToken = function(client, refresh, next){
-  console.log("client: " + client + "regresh :" + JSON.stringify(refresh));
-  Token.findOne({refresh_token: refresh, client_application: client._id}, function(error, result){
-    console.log("rrefresh token log: " + JSON.stringify(result));
+  // console.log("client: " + client + "regresh :" + JSON.stringify(refresh));
+  Token.findOne({refresh_token: refresh, client_application: client}, function(error, result){
+    // console.log("rrefresh token log: " + JSON.stringify(result));
     if(error){
       console.log(error);
       next(false);

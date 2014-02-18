@@ -3,8 +3,9 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-//process.env['PRISM_HOME'] = '/home/ec2-user/prism_api/';
-//process.env['NODE_ENV'] = 'development';
+
+process.env["PRISM_HOME"] = process.cwd() + '/';
+
 var _express        = require('express')
   , _mongoose       = require('mongoose')
   , _http           = require('http')
@@ -13,25 +14,29 @@ var _express        = require('express')
   , _passport       = require('passport')
   , _app            = _express()
   , _httpserver     = _express()
-  , _prism_auth     = require(process.env.PRISM_HOME + 'routes/oauth2/auths')
-  , _prism_token    = require(process.env.PRISM_HOME + 'routes/oauth2/tokens')
-  , _prism_user     = require(process.env.PRISM_HOME + 'routes/users')
-  , _utils          = require(process.env.PRISM_HOME + 'utils')
-  , _gateway        = require(process.env.PRISM_HOME + 'gateway');
+  , _prism_home     = process.env.PRISM_HOME
+  , _prism_auth     = require(_prism_home + 'routes/oauth2/auths')
+  , _prism_token    = require(_prism_home + 'routes/oauth2/tokens')
+  , _prism_user     = require(_prism_home + 'routes/users')
+  , _utils          = require(_prism_home + 'utils')
+  , _gateway        = require(_prism_home + 'gateway')
+  , _config         = require('config');
+
+  console.log(_prism_home);
 
 /* environment specific settings */
 var env = _app.get('env');
 if( env  == 'development' || env == 'local'){
   _app.use(_express.errorHandler());
   _app.use(_express.logger('dev'));
-  _mongoose.connect('mongodb://localhost/prism');
-}else if( env == 'test' ){
-  _app.set('port', 7342);
-  _mongoose.connect('mongodb://localhost/prism_test');
+}else if(env == 'test'){
+  //do not load logger dev
 }else{
   _app.use(_express.logger('dev'));
-  _mongoose.connect('mongodb://localhost/prism');
 }
+
+/* configure mongo connection */
+_mongoose.connect('mongodb://' + _config.mongo.host + '/' + _config.mongo.name);
 
 //general settings */
 _app.use(_express.bodyParser());
@@ -39,9 +44,9 @@ _app.use(_express.methodOverride());
 _app.use(_app.router);
 //Set SSL options for HTTPS traffic
 var ssl_options = {
-	key: 				        _fs.readFileSync(process.env.PRISM_HOME + '/config/ssl/PrismApiDev.key'),
-	cert: 			        _fs.readFileSync(process.env.PRISM_HOME + '/config/ssl/PrismApiDev.crt'),
-	ca: 				        _fs.readFileSync(process.env.PRISM_HOME + '/config/ssl/stablekernel.crt'),
+	key: 				        _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.key'),
+	cert: 			        _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.crt'),
+	ca: 				        _fs.readFileSync(_prism_home + '/config/ssl/stablekernel.crt'),
 //	requestCert: 		    true,
 	rejectUnauthorized: false
 };
@@ -49,7 +54,6 @@ var ssl_options = {
 /* Force all http traffic to https */
 _httpserver.set('port', process.env.PORT || 80);
 _httpserver.get("*", function(req, res, next){
- // res.redirect("https://" + req.headers.host + ":3000/" + req.path);
   res.redirect("https://127.0.0.1:3000" + req.path);
 });
 process.on('uncaughtException', function (err) {
@@ -67,8 +71,8 @@ _app.get('/oauth2/authorize', _prism_auth);
 /* Default Authorization Code RedirectUri Callback Endpoint - FOR PRISM MOBILE USE ONLY */
 _app.get('/callback', function(req, res){
 	var array = [{authorization_code: req.query.code}];
-	_utils.prismResponse( res, array, true); });
-	//res.send({authorization_code: req.query.code});});
+	_utils.prismResponse( res, array, true); 
+});
 
 /* Token Request Endpoint */
 _app.post('/oauth2/token', _prism_token);
@@ -100,10 +104,10 @@ if(env  == 'test'){
 
 /* create regular http server listening on port 8080 that re-routes back to https */
 _http.createServer(_httpserver).listen(8080, function(){
-  console.log('HTTP Server listening on port ' + _httpserver.get('port'));
+  console.log('HTTP Server listening on port 8080');
 });
 
 /* create SSL Server listening on port 3000 */
-_https.createServer(ssl_options, _app).listen(3000, function(){
-  console.log("Secure Prism Api server listening on port " + _app.get('port'));
+_https.createServer(ssl_options, _app).listen(_config.env.port, function(){
+  console.log("Secure Prism Api server listening on port " + _config.env.port);
 });

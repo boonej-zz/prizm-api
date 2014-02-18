@@ -3,8 +3,8 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-process.env.PRISM_HOME = '/home/ec2-user/prism_api/';
 var _request   = require('request')
+  , _thisapp   = require(process.cwd() + '/server.js')
   , _mongoose  = require('mongoose')
   , _chai      = require('chai')
   , _expect    = _chai.expect
@@ -12,8 +12,7 @@ var _request   = require('request')
   , _assert    = _chai.assert
   , Code       = require(process.env.PRISM_HOME + 'models/auth.js').Code
   , Client     = require(process.env.PRISM_HOME + 'models/auth.js').ClientApplication
-  , Token      = require(process.env.PRISM_HOME + 'models/auth.js').Token
-  , _thisapp	 = require(process.env.PRISM_HOME + 'server.js');
+  , Token      = require(process.env.PRISM_HOME + 'models/auth.js').Token;
 
 describe('Auth Model Unit Tests', function(done){
   describe('Testing ClientApplication Schema', function(done){
@@ -46,7 +45,7 @@ describe('Auth Model Unit Tests', function(done){
         }
         client = new Client(client_data)
         client.save(function(error, result){
-          console.log(result);
+          // console.log(result);
 		_expect(error).to.be.null
           _expect(result.client_id).to.have.length.above(10)
           _expect(result.client_secret).to.have.length.above(10)

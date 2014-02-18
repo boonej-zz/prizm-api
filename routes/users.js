@@ -80,7 +80,7 @@ exports.register = function(req, res){
 }
 
 var isValidRegisterRequest = function(req){
-  console.log(req.body);
+  // console.log(req.body);
 
 
   if( typeof(req.body.first_name) == 'undefined'  ||
@@ -110,7 +110,7 @@ var hashAndValidatePassword = function(user, password_to_validate){
 }
 
 var isValidLoginRequest = function(body){
-  console.log("is valid login request: (body) " + JSON.stringify(body));
+  // console.log("is valid login request: (body) " + JSON.stringify(body));
   if(body.email){
     if(isSocialProvider(body)){
       return true;

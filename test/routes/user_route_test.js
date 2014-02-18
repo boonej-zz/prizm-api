@@ -9,8 +9,8 @@ var _mongoose     = require('mongoose')
   , _expect       = _chai.expect
   , _should       = _chai.should()
   , _assert       = _chai.assert
+  , _thisapp      = require(process.cwd() + '/server')
   , _prism_home   = process.env.PRISM_HOME
-  , _thisapp      = require(_prism_home + 'server')
   , _auth_model   = require(_prism_home + 'models/auth')
   , _user_route   = require(_prism_home + 'routes/users')
   , _t_helpers    = require(_prism_home + 'test/test_helpers')
@@ -118,7 +118,7 @@ describe('User Route Unit Tests', function(done){
         body: request_body,
         headers: { "Authorization" : auth_header }
       }, function(error, result, body){
-        console.log(JSON.stringify(body));
+        // console.log(JSON.stringify(body));
         done();
       });
     });

@@ -9,7 +9,7 @@ var _mongoose     = require('mongoose')
   , _expect       = _chai.expect
   , _should       = _chai.should()
   , _assert       = _chai.assert
-  , _thisapp      = require(process.env.PRISM_HOME + 'server')
+  , _thisapp      = require(process.cwd() + '/server')
   , _auth_route   = require(process.env.PRISM_HOME + 'routes/oauth2/auths')
   , Client        = require(process.env.PRISM_HOME + 'models/auth').ClientApplication
   , Code          = require(process.env.PRISM_HOME + 'models/auth').Code;
@@ -45,6 +45,7 @@ describe('Authorization Route Unit Tests', function(done){
       _request({url: fetch_url, json:true, strictSSL: false}, function(err, res, body){
         var result_string = JSON.stringify(body);
         var result = JSON.parse(result_string);
+        result = result.data[0];
         result.should.have.property('authorization_code');
         Code.findOne({client_id: testClient.client_id}, function(error, codeResult){
           if(error) throw error;

@@ -8,8 +8,8 @@ var _request   = require('request')
   , _expect    = _chai.expect
   , _should    = _chai.should()
   , _assert    = _chai.assert
-  , User      = require(process.env.PRISM_HOME + 'models/user.js').User
-  , _server	  = require(process.env.PRISM_HOME + 'server');
+  , _server   = require(process.cwd() + '/server')
+  , User      = require(process.env.PRISM_HOME + 'models/user.js').User;
 
 describe('User Model Unit Tests', function(done){
   
