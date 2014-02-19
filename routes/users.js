@@ -33,7 +33,7 @@ exports.login = function(req, res){
                                 error.status_code);
         }else{
           //succesful login - send back returned user object
-          _utils.prismResponse( res, result, true);
+          _utils.prismResponse( res, result.cleanUserJSON(), true);
         }
       });
     }else{
@@ -46,7 +46,7 @@ exports.login = function(req, res){
                                 Error.invalidLoginUserDoesNotExist.status_code );
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
-            _utils.prismResponse(res, result, true, null, null);
+            _utils.prismResponse(res, result.cleanUserJSON(), true, null, null);
           }else{
 	    _utils.prismResponse( res, 
                             null, 
@@ -123,12 +123,7 @@ exports.register = function(req, res){
                               Error.invalidRegisterUserExists, 
                               Error.invalidRegisterUserExists.status_code);
       }else{
-        var user = result.toObject();
-        delete user.password;
-        delete user.comments;
-        delete user.posts;
-        delete user.likes;
-        _utils.prismResponse(res, user, true);
+        _utils.prismResponse(res, result.cleanUserJSON(), true);
       }
     });
     
@@ -151,7 +146,7 @@ exports.fetchUser = function(req, res){
         console.log('Error retrieving user by id: ' + req.params.id);
         _utils.prismResponse(res, null, false, Error.invalidUserRequest, Error.invalidUserRequest.status_code);
       }else{
-        _utils.prismResponse(res, result, true);
+        _utils.prismResponse(res, result.cleanUserJSON(), true);
       }
     });
   }else{
@@ -169,7 +164,7 @@ exports.fetchUser = function(req, res){
 var isValidRegisterRequest = function(req){
   if( typeof(req.body.first_name) == 'undefined'  ||
       typeof(req.body.last_name) == 'undefined'   ||
-      typeof(req.body.email) == 'undefined'     ||
+      // typeof(req.body.email) == 'undefined'     ||
       typeof(req.body.gender) == 'undefined' ||
       typeof(req.body.zip_postal) == 'undefined' ||
       typeof(req.body.city) == 'undefined' ||
@@ -179,6 +174,11 @@ var isValidRegisterRequest = function(req){
     return false;
 
   }else{
+    if(!isSocialProvider(req.body)){
+      if(typeof(req.body.email) == 'undefined'){
+        return false;
+      }
+    }
     return true;
   }
 }

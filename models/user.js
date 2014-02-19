@@ -81,6 +81,15 @@ userSchema.methods.confirmUniqueSocialUser = function(callback){
                                       provider: this.provider }, callback);
 }
 
+userSchema.methods.cleanUserJSON = function(){
+  var user = this.toObject();
+          delete user.password;
+          delete user.comments;
+          delete user.posts;
+          delete user.likes;
+  return user;
+}
+
 userSchema.pre('save', function(next){
   //set create & modify dates
   if(!this.create_date){
