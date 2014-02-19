@@ -26,7 +26,7 @@ var userSchema = new _mongoose.Schema({
 	address	              : String,
 	city                  : String,
 	country               : String,
-	region                : String,
+	state                 : String,
 	zip_postal            : String,
 	cover_photo_url       : {type: String, default: ''},
 	picture_path          : String,
