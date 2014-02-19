@@ -42,7 +42,7 @@ var _mongoose     = require('mongoose')
 
   	describe('Authorizing A Facebook User', function(done){
   		it('should return a facebook user object with valid id & token', function(done){
-  			var fb = new Facebook(test_fb_id, test_fb_token);
+  			var fb = new Facebook(test_fb_token);
   			fb.authorizeUser(function(err, result){
   				result = result.body;
   				result.should.be.a('Object');
@@ -59,7 +59,7 @@ var _mongoose     = require('mongoose')
   			});
   		});
   		it('should return a error when given an invalid access_token and correct id', function(done){
-  			var fb = new Facebook(test_fb_id, 'adfnm3423mnmnfsdfafd');
+  			var fb = new Facebook('adfnm3423mnmnfsdfafd');
   			fb.authorizeUser(function(err, result){
   				_expect(err).to.not.be.false;
   				_expect(err).to.not.be.null;

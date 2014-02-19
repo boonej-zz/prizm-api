@@ -23,7 +23,7 @@ exports.login = function(req, res){
   if(isValidLoginRequest(req.body)){
     if(isSocialProvider(req.body)){
       handleSocialProviderLogin(req.body, function(error, result){
-        if(error || result == false){
+        if(error || result === false){
           //social login failure - user does not exist or 
           //failire to authenticate with social provider
           if(error){
@@ -105,67 +105,47 @@ exports.register = function(req, res){
     
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
-      if(isValidSocialRegisterRequest(req)){
-        if(req.body.provider == 'facebook'){
-          var fb = new Facebook(body.provider_id, body.provider_token);
-          fb.authorizeUser(function(error, response){
-            _utils.prismResponse(res, null, false, Error.serverError , Error.serverError.status_code);
-            if(response){
-              fb.isPrismUser(function(error, response){
-                if(error || response == false){
-                  //send back error that user does not exist in prism db
-                  _utils.prismResponse(res, null, false, Error.invalidSocialUser, Error.invalidSocialUser.status_code);
-                }else{
-              
-                  //return succesful object & invoke callback
-                  //valid request, add addition social fields to userobject
-                  newUser.provider = req.body.provider;
-                  newUser.provider_id = response.id;
-                  newUser.provider_token = req.body.provider_token;
-                  if(newUser.provider == 'twitter'){
-                    newUser.provider_token_secret = req.body.provider_token_secret;
-                  }
-                  newUser.save(function(error, result){
-                  if(error || !result){
-        _utils.prismResponse( res, 
-                              null, 
-                              false, 
-                              Error.invalidRegisterUserExists, 
-                              Error.invalidRegisterUserExists.status_code);
-      }else{
-        _utils.prismResponse(res, result.cleanUserJSON(), true);
-      }
-    });
-                }
-            });
+      handleSocialProviderRegistration(req.body, function(error, social){
+        if(error && social === false){
+          _utils.prismResponse( res, null, false, error, error.status_code);
+        }else if(social){
+          newUser.provider = req.body.provider;
+          newUser.provider_token = req.body.provider_token;
+          newUser.provider_id = social.id;
+          if(newUser.provider == 'twitter'){
+            newUser.provider_token_secret = req.body.provider_token_secret;
           }
-        });
+          newUser.save(function(error, result){
+            if(error || !result){
+               _utils.prismResponse( res, 
+                                null, 
+                                false, 
+                                Error.invalidRegisterUserExists, 
+                                Error.invalidRegisterUserExists.status_code);
+            }else{
+              _utils.prismResponse(res, result.cleanUserJSON(), true);
+            }
+
+          });
+        }else{
+          _utils.prismResponse( res, null, false, Error.serverError, Error.serverError.status_code);
         }
-        // //valid request, add addition social fields to userobject
-        // newUser.provider = req.body.provider;
-        // // newUser.provider_id = req.body.provider_id;
-        // newUser.provider_token = req.body.provider_token;
-        // if(newUser.provider == 'twitter'){
-        //   newUser.provider_token_secret = req.body.provider_token_secret;
-        // }
-      }else{
-        //not a valid request, return Error
-        _utils.prismResponse(res, null, false, Error.invalidRequest, Error.status_code);
-      }
+      });
+    }else{
+
+      newUser.save(function(error, result){
+        if(error || !result){
+          _utils.prismResponse( res, 
+                                null, 
+                                false, 
+                                Error.invalidRegisterUserExists, 
+                                Error.invalidRegisterUserExists.status_code);
+        }else{
+          _utils.prismResponse(res, result.cleanUserJSON(), true);
+        }
+      });
     }
 
-    newUser.save(function(error, result){
-      if(error || !result){
-        _utils.prismResponse( res, 
-                              null, 
-                              false, 
-                              Error.invalidRegisterUserExists, 
-                              Error.invalidRegisterUserExists.status_code);
-      }else{
-        _utils.prismResponse(res, result.cleanUserJSON(), true);
-      }
-    });
-    
   }else{
     _utils.prismResponse(res, null, false, Error.invalidRequest, Error.invalidRequest.status_code);
   }
@@ -300,6 +280,28 @@ var handleSocialProviderLogin = function(body, callback){
     default:
       //send error back unsupported provider.
       break;
+  }
+}
+
+var handleSocialProviderRegistration = function(body, callback){
+  switch(body.provider){
+    case 'facebook':
+      var fb = new Facebook(body.provider_token);
+      fb.authorizaUser(function(error, response){
+        if(error) callback(error, response.body);
+        if(response){
+          fb.isPrismUser(function(error, response){
+            if(error && response === false){
+              callback(error, false);
+            }else if(error && reponse){
+              callback(false, fb);
+            }else{
+              callback(Error.serverError, false);
+            }
+          });
+        }
+      });
+    break;
   }
 }
 

@@ -18,8 +18,8 @@ var _config 		= require('config')
  * @param {String} fb_id The facebook user identifier
  * @param {String} fb_access_token The facebook user accesstoken
  */
-function Facebook(fb_id, fb_access_token){
-	this.fb_id 						= fb_id;
+function Facebook(fb_access_token){
+	this.fb_id 						= null;
 	this.fb_access_token 	= fb_access_token;
 	this.fb_profile				= null;
 }
@@ -59,6 +59,7 @@ Facebook.prototype.authorizeUser = function(callback){
 					};
 					callback(fb_auth_error, response);
 				}else{
+					console.log('fb authorize good, sending callback :' + response)
 					this.fb_id = response.body.id;
 					this.fb_profile = response.body;
 					callback(false, response);
@@ -91,7 +92,7 @@ Facebook.prototype.isPrismUser = function(callback){
 				callback(false, result);
 			}else{
 				console.log("no error OR facebook user object returned.. issue server error");
-				callback(Error.serverError, false);
+				callback(Error.serverError, null);
 				throw 'No provider user found or error returned! SERVER EXCEPTION';
 			}
 		});

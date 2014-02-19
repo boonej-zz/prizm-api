@@ -76,10 +76,10 @@ userSchema.methods.findByGoogleId = function(google_id, callback){
                                       provider_id: google_id }, callback);
 }
 
-userSchema.methods.confirmUniqueSocialUser = function(callback){
-  return this.model('User').findOne({ provider_id: this.provider_id,
-                                      provider: this.provider }, callback);
-}
+// userSchema.methods.confirmUniqueSocialUser = function(callback){
+//   return this.model('User').findOne({ provider_id: this.provider_id,
+//                                       provider: this.provider }, callback);
+// }
 
 userSchema.methods.cleanUserJSON = function(){
   var user = this.toObject();
@@ -87,7 +87,7 @@ userSchema.methods.cleanUserJSON = function(){
           delete user.comments;
           delete user.posts;
           delete user.likes;
-  return user;
+  return
 }
 
 userSchema.pre('save', function(next){
@@ -97,9 +97,9 @@ userSchema.pre('save', function(next){
     
     if(this.provider_id){
 
-      this.confirmUniqueSocialUser(function(err, res){
-        if(res) next(false);
-      });
+      // this.confirmUniqueSocialUser(function(err, res){
+      //   if(res) next(false);
+      // });
     }
     if(this.password){
       if(!this.hashPassword()) next(false);
