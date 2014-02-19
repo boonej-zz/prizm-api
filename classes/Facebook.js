@@ -59,6 +59,7 @@ Facebook.prototype.authorizeUser = function(callback){
 					};
 					callback(fb_auth_error, response);
 				}else{
+					this.fb_id = response.body.id;
 					this.fb_profile = response.body;
 					callback(false, response);
 				}
@@ -81,6 +82,8 @@ Facebook.prototype.authorizeUser = function(callback){
 Facebook.prototype.isPrismUser = function(callback){
 	if(this.fb_id){
 		User.findUserByFacebookId(function(error, result){
+			console.log(error);
+			console.log(result);
 			if(error){
 				console.log("Fetching Facebook user by id failed with error: " + error);
 				callback(error, false);

@@ -23,14 +23,18 @@ exports.login = function(req, res){
   if(isValidLoginRequest(req.body)){
     if(isSocialProvider(req.body)){
       handleSocialProviderLogin(req.body, function(error, result){
-        if(error){
+        if(error || result == false){
           //social login failure - user does not exist or 
           //failire to authenticate with social provider
-          _utils.prismResponse( res,
-                                null,
-                                false,
-                                error,
-                                error.status_code);
+          if(error){
+          	_utils.prismResponse( res,
+                	                null,
+                        	        false,
+                                	error,
+                                	error.status_code);
+	  }else{
+		_utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist, Error.invalidLoginUserDoesNotExist.status_code);	
+		}
         }else{
           //succesful login - send back returned user object
           _utils.prismResponse( res, result.cleanUserJSON(), true);
