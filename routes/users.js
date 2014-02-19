@@ -104,7 +104,7 @@ exports.register = function(req, res){
       if(isValidSocialRegisterRequest(req)){
         //valid request, add addition social fields to userobject
         newUser.provider = req.body.provider;
-        newUser.provider_id = req.body.provider_id;
+        // newUser.provider_id = req.body.provider_id;
         newUser.provider_token = req.body.provider_token;
         if(newUser.provider == 'twitter'){
           newUser.provider_token_secret = req.body.provider_token_secret;
@@ -292,7 +292,7 @@ var isValidLoginRequest = function(body){
  * @return {Boolean}
  */ 
 var isSocialProvider = function(body){
-  if(body.provider && body.provider_id && body.provider_token){
+  if(body.provider && body.provider_token){
     return true;
   }
   return false;

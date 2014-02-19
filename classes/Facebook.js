@@ -34,10 +34,9 @@ function Facebook(fb_id, fb_access_token){
  * 									response object from the fb request 
  */
 Facebook.prototype.authorizeUser = function(callback){
-	if(this.fb_id && this.fb_access_token){
+	if(this.fb_access_token){
 		//construct request url
-		var url = _config.social.facebook.base_uri + '/' + this.fb_id
-							+ '?access_token=' + this.fb_access_token;
+		var url = _config.social.facebook.base_uri + '/me?access_token=' + this.fb_access_token;
 
 		//construct & execute fb user request					
 		_request({
@@ -45,6 +44,7 @@ Facebook.prototype.authorizeUser = function(callback){
 			url: url,
 			json: true
 		}, function(error, response){
+			console.log(response.body);
 			if(error){
 				console.log(error);
 				callback(error, false);
