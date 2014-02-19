@@ -33,12 +33,29 @@ exports.invalidLoginUserDoesNotExist = {
   }
 }
 
+exports.invalidUserCredentials = {
+  status_code         : 401,
+  error_info          : {
+    error             : 'invalid_user_credentials',
+    error_description : 'User email/password does not match'
+  }
+}
+
 exports.unauthorized = {
   status_code         : 401, 
   error_info          : {
       error             : 'unauthorized',
       error_description : 'invalid credentials'
     }
+}
+
+exports.invalidSocialUser = {
+  status_code         : 400,
+  error_info          : {
+    error             : 'social_authenticated_user_does_not_exit',
+    error_description : 'the socially authenticated user does not exist '
+                        + 'in Prism, user registration required'
+  }
 }
 
 exports.unauthorizedClient = {
@@ -97,3 +114,15 @@ exports.serverError = {
                           + 'If this issue persists, please contact support' 
     }
 }
+
+exports.invalidFacebookAuth = {
+  status_code         : 401,
+  error_info          : {
+    error             : 'invalid_facebook_authorization',
+    error_description : 'facebook user authorization requires both valid '
+                        + ' facebook user identifier & granted user access_token'
+  }
+}
+
+
+

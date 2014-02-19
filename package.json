@@ -5,8 +5,8 @@
   "version"           : "0.0.1",
   "private"           : true,
   "scipts"	: {
-    "start" : "make start",
-    "test"  : "make test"
+    "test"      : "make test",
+    "start"     : "make start"
 },
 
   "dependencies" : {

@@ -86,6 +86,3 @@ exports.destroyTestUser = function(callback){
 		callback();
 	});
 }
-
-
-

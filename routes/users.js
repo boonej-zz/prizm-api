@@ -7,12 +7,35 @@ var _mongoose     = require('mongoose')
   , _prism_home   = process.env.PRISM_HOME
   , _utils        = require(_prism_home + 'utils')
   , Error         = require(_prism_home + 'error')
+  , Facebook      = require(_prism_home + 'classes/Facebook')
   , User          = require(_prism_home + 'models/user').User;
 
+/**
+ * Handles authenticating user login request
+ *
+ * TODO: create session on success & add logout to destroy session
+ * 
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {User} Returns a valid user object
+ */
 exports.login = function(req, res){
   if(isValidLoginRequest(req.body)){
     if(isSocialProvider(req.body)){
-      //handle social provider
+      handleSocialProviderLogin(req.body, function(error, result){
+        if(error){
+          //social login failure - user does not exist or 
+          //failire to authenticate with social provider
+          _utils.prismResponse( res,
+                                null,
+                                false,
+                                error,
+                                error.status_code);
+        }else{
+          //succesful login - send back returned user object
+          _utils.prismResponse( res, result, true);
+        }
+      });
     }else{
       User.findOne({email: req.body.email}, function(error, result){
         if(error){
@@ -25,9 +48,11 @@ exports.login = function(req, res){
           if(hashAndValidatePassword(result, req.body.password)){
             _utils.prismResponse(res, result, true, null, null);
           }else{
-	    _utils.prismResponse(res, null, false, {error_info: {
-								error: 'invalid user credentials',
-								error_description: 'User email/password does not match'}}, 401);
+	    _utils.prismResponse( res, 
+                            null, 
+                            false,
+                            Error.invalidUserCredentials,
+                            Error.invalidUserCredentials.status_code );
 	  }
         }else{
           _utils.prismResponse( res, 
@@ -47,8 +72,16 @@ exports.login = function(req, res){
   }
 }
 
+/**
+ * Handles User creation if user does not exist
+ * 
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {User} Returns the newly created User object
+ */
 exports.register = function(req, res){
   if(isValidRegisterRequest(req)){
+    //Handle traidtional registration -- 
     var newUser = new User({
       first_name: req.body.first_name,
       last_name: req.body.last_name,
@@ -62,6 +95,22 @@ exports.register = function(req, res){
 
     if(typeof(req.body.password) != 'undefined') newUser.password = req.body.password;
     
+    //check, validate, & handle social registration
+    if(isSocialProvider(req.body)){
+      if(isValidSocialRegisterRequest(req)){
+        //valid request, add addition social fields to userobject
+        newUser.provider = req.body.provider;
+        newUser.provider_id = req.body.provider_id;
+        newUser.provider_token = req.body.provider_token;
+        if(newUser.provider == 'twitter'){
+          newUser.provider_token_secret = req.body.provider_token_secret;
+        }
+      }else{
+        //not a valid request, return Error
+        _utils.prismResponse(res, null, false, Error.invalidRequest, Error.status_code);
+      }
+    }
+
     newUser.save(function(error, result){
       if(error || !result){
         _utils.prismResponse(res, null, false, Error.serverError, Error.serverError.status_code);
@@ -73,16 +122,21 @@ exports.register = function(req, res){
         delete user.likes;
         _utils.prismResponse(res, user, true);
       }
-    })
+    });
+    
   }else{
     _utils.prismResponse(res, null, false, Error.invalidRequest, Error.invalidRequest.status_code);
   }
 }
 
+/**
+ * Validates the required User properties are present 
+ * for registration
+ * 
+ * @param  {HTTPRequest} req The request object
+ * @return {Boolean}
+ */
 var isValidRegisterRequest = function(req){
-  // console.log(req.body);
-
-
   if( typeof(req.body.first_name) == 'undefined'  ||
       typeof(req.body.last_name) == 'undefined'   ||
       typeof(req.body.email) == 'undefined'     ||
@@ -99,6 +153,37 @@ var isValidRegisterRequest = function(req){
   }
 }
 
+/**
+ * [isValidSocialRegisterRequest description]
+ * @param  {[type]}  req
+ * @return {Boolean}
+ */
+var isValidSocialRegisterRequest = function(req){
+  if(isValidRegisterRequest(req)){
+    if( typeof(req.body.provider) == 'undefined' ||
+        typeof(req.body.provider_token) == 'undefined' ||
+        typeof(req.body.provider_id) == 'undefined'){
+      return false;
+    }else{
+      if(req.body.provider == 'twitter'){
+        if(typeof(req.body.provider) == 'undefined') return false;
+      }
+
+      return true;
+    }
+  }else{
+    return false;
+  }
+}
+
+/**
+ * Takes passed plain text password & hashes it to
+ * validate it equals the stored hash password
+ * 
+ * @param  {User} user The located User object
+ * @param  {String} password_to_validate The password to validate 
+ * @return {Boolean} 
+ */
 var hashAndValidatePassword = function(user, password_to_validate){
   //create user hash
   if(user){
@@ -109,6 +194,55 @@ var hashAndValidatePassword = function(user, password_to_validate){
   return false;
 }
 
+/**
+ * [handleSocialProvider description]
+ * @param  {[type]}   body
+ * @param  {Function} callback
+ * @return {[type]}
+ */
+var handleSocialProviderLogin = function(body, callback){
+  switch(body.provider){
+    case 'facebook':
+      var fb = new Facebook(body.provider_id, body.provider_token);
+      fb.authorizeUser(function(error, response){
+        if(error) callback(error, response.body);
+        if(response){
+          fb.isPrismUser(function(error, response){
+            if(error){
+              //send back error that user does not exist in prism db
+              callback(Error.invalidSocialUser, false);
+            }else{
+              //return succesful object & invoke callback
+              callback(false, response);
+            }
+          });
+        }
+      });
+      break;
+    case 'twitter':
+      //twitter logic
+      break;
+    case 'google':
+      //google logic
+      //for the meantime send back as unsupported
+      //TODO: send back
+      callback(Error.invalidRequest, false);
+      break;
+    default:
+      //send error back unsupported provider.
+      break;
+  }
+}
+
+/**
+ * Validates the login request body has required properties to
+ * process authenticating the user. This can be in the form of 
+ * traditional authentication {username:pass} OR social authentication
+ * which requries {provider, provider_id, & provider_token}
+ * 
+ * @param  {Object}  body The request body object
+ * @return {Boolean}
+ */
 var isValidLoginRequest = function(body){
   // console.log("is valid login request: (body) " + JSON.stringify(body));
   if(body.email){
@@ -122,6 +256,12 @@ var isValidLoginRequest = function(body){
   }
 }
 
+/**
+ * Determines if the request body is/has social provider attributes
+ * 
+ * @param  {Object}  body The request body object
+ * @return {Boolean}
+ */ 
 var isSocialProvider = function(body){
   if(body.provider && body.provider_id && body.provider_token){
     return true;

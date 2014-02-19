@@ -9,34 +9,36 @@ var _mongoose   = require('mongoose')
   , _utils      = require(process.env.PRISM_HOME + 'utils');
 
 var userSchema = new _mongoose.Schema({
-	first_name          : {type: String, required: true},
-	last_name           : {type: String, required: true},
-	email               : { type: String, 
-                          required: true,
-                          index: {unique: true} },
-  password            : {type: String},
-  provider            : String,
-  provider_id         : String, 
-  provider_token      : String,
-  last_provider_auth  : Date,
-  gender              : String,
-  birthday            : String,
-	address	            : String,
-	city                : String,
-	country             : String,
-	region              : String,
-	zip_postal          : String,
-	picture_name        : String,
-	picture_path        : String,
-	picture_thumb_path  : String,
-	create_date	        : Date,
-	modify_date	        : Date,
-	delete_date	        : Date,
-  last_login_date     : Date,
-	status              : Number,
-	comments            : [],
-	posts               : [],
-	likes               : []
+	first_name            : {type: String, required: true},
+	last_name             : {type: String, required: true},
+	email                 : { type: String, 
+                            required: true,
+                            index: {unique: true} 
+                        },
+  password              : {type: String},
+  provider              : String,
+  provider_id           : {type: String},
+  provider_token        : String,
+  provider_token_secret : String,
+  last_provider_auth    : Date,
+  gender                : String,
+  birthday              : String,
+	address	              : String,
+	city                  : String,
+	country               : String,
+	region                : String,
+	zip_postal            : String,
+	picture_name          : String,
+	picture_path          : String,
+	picture_thumb_path    : String,
+	create_date	          : Date,
+	modify_date	          : Date,
+	delete_date	          : Date,
+  last_login_date       : Date,
+	status                : Number,
+	comments              : [],
+	posts                 : [],
+	likes                 : []
 },
 {
   versionKey          : false
@@ -59,17 +61,44 @@ userSchema.methods.hashPassword = function(){
   return false;
 }
 
+userSchema.methods.findByFacebookId = function(fb_id, callback){
+  return this.model('User').findOne({ provider: 'facebook', 
+                                      provider_id: fb_id }, callback);
+}
+
+userSchema.methods.findByTwitterId = function(tw_id, callback){
+  return this.model('User').findOne({ provider: 'twitter',
+                                      provider_id: tw_id }, callback);
+}
+
+userSchema.methods.findByGoogleId = function(google_id, callback){
+  return this.model('User').findOne({ provider: 'google', 
+                                      provider_id: google_id }, callback);
+}
+
+userSchema.methods.confirmUniqueSocialUser = function(callback){
+  return this.model('User').findOne({ provider_id: this.provider_id,
+                                      provider: this.provider }, callback);
+}
+
 userSchema.pre('save', function(next){
   //set create & modify dates
   if(!this.create_date){
     this.create_date = Date.now();
+    
+    if(this.provider_id){
+      this.confirmUniqueSocialUser(function(err, res){
+        if(res) next(false);
+      });
+    }
     if(this.password){
       if(!this.hashPassword()) next(false);
-      // console.log(JSON.stringify(this));
     }
+    next();
+  }else{
+    this.modify_date = Date.now();
+    next();
   }
-  this.modify_date = Date.now();
-  next();
 });
 
 exports.User = _mongoose.model('User', userSchema);
