@@ -29,7 +29,7 @@ var userSchema = new _mongoose.Schema({
 	state                 : String,
 	zip_postal            : String,
 	cover_photo_url       : {type: String, default: ''},
-	picture_path          : String,
+	profile_photo_url     : {type: String, default: ''},
 	picture_thumb_path    : String,
 	create_date	          : Date,
 	modify_date	          : Date,

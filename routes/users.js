@@ -94,6 +94,10 @@ exports.register = function(req, res){
     });
 
     if(typeof(req.body.password) != 'undefined') newUser.password = req.body.password;
+
+    if(typeof(req.body.cover_photo_url) != 'undefined') newUser.cover_photo_url = req.body.cover_photo_url;
+
+    if(typeof(req.body.profile_photo_url) != 'undefined') newUser.profile_photo_url = req.body.profile_photo_url;
     
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
