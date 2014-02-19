@@ -245,13 +245,12 @@ var handleSocialProviderLogin = function(body, callback){
  */
 var isValidLoginRequest = function(body){
   // console.log("is valid login request: (body) " + JSON.stringify(body));
-  if(body.email){
+  if(body.email && body.password){
+    return true;
+  }else{
     if(isSocialProvider(body)){
       return true;
-    }else if(body.email && body.password){
-      return true;
     }
-  }else{
     return false;
   }
 }
