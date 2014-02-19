@@ -79,9 +79,13 @@ _app.post('/oauth2/token', _prism_token);
 
 /* User Login/Authentication */
 _app.post('/oauth2/login', _gateway, _prism_user.login);
+
 /**************** Prism User Endpoints ********************/
 /* Create/Register User Route */
 _app.post('/user', _gateway, _prism_user.register);
+
+/* Fetch User */
+_app.get('/user/:id', _gateway, _prism_user.fetchUser);
 
 /* Fetch A Specific User Object */
 // _app.get('/user/:id', _prism_user);

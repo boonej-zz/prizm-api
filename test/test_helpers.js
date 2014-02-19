@@ -6,6 +6,10 @@ var _prism_home		= process.env.PRISM_HOME
   , Code 					= _auth_models.Code
   , User					= require(_prism_home + 'models/user').User;
 
+exports.fetchAuthHeader = function(id, secret){
+  return "Basic " + (new Buffer(id + ':' + secret).toString('base64'));
+}
+
 exports.createTestClient = function(callback){
 	var test = new Client({
       name: 'AuthTest',
@@ -72,7 +76,7 @@ exports.createTestUser = function(callback){
 	var testUser = new User({
 		first_name: 'DJ',
     last_name: 'Hayden',
-    email: 'dj.hayden@test.com',
+    email: 'dj.hayden' + Math.floor((Math.random()*100)+1) + '@test.com',
     password: 'testpassword'
 	}).save(function(err, result){
 		if(err) throw err;

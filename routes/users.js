@@ -130,6 +130,28 @@ exports.register = function(req, res){
 }
 
 /**
+ * Fetchs Prism user object by identifier
+ * 
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {User} Returns the valid user object to the response object
+ */
+exports.fetchUser = function(req, res){
+  if(req.params.id){
+    User.findOne({_id: req.params.id}, function(error, result){
+      if(error){
+        console.log('Error retrieving user by id: ' + req.params.id);
+        _utils.prismResponse(res, null, false, Error.invalidUserRequest, Error.invalidUserRequest.status_code);
+      }else{
+        _utils.prismResponse(res, result, true);
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, Error.invalidUserRequest, Error.invalidUserRequest.status_code);
+  }
+}
+
+/**
  * Validates the required User properties are present 
  * for registration
  * 

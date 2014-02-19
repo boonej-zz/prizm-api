@@ -41,6 +41,14 @@ exports.invalidUserCredentials = {
   }
 }
 
+exports.invalidUserRequest = {
+  status_code         : 400,
+  error_info          : {
+    error             : 'invalid_user_request',
+    error_description : 'a valid user identifier is required to request a user'
+  }
+}
+
 exports.unauthorized = {
   status_code         : 401, 
   error_info          : {
