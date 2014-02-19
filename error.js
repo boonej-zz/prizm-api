@@ -33,6 +33,14 @@ exports.invalidLoginUserDoesNotExist = {
   }
 }
 
+exports.invalidRegisterUserExists = {
+  status_code         : 400,
+  error_info          {
+    error             : 'invalid_registration',
+    error_description : 'invalid registration, user already exists'
+  }
+}
+
 exports.invalidUserCredentials = {
   status_code         : 401,
   error_info          : {

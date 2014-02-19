@@ -113,7 +113,11 @@ exports.register = function(req, res){
 
     newUser.save(function(error, result){
       if(error || !result){
-        _utils.prismResponse(res, null, false, Error.serverError, Error.serverError.status_code);
+        _utils.prismResponse( res, 
+                              null, 
+                              false, 
+                              Error.invalidRegisterUserExists, 
+                              Error.invalidRegisterUserExists.status_code);
       }else{
         var user = result.toObject();
         delete user.password;

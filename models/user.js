@@ -16,10 +16,10 @@ var userSchema = new _mongoose.Schema({
                             index: {unique: true} 
                         },
   password              : {type: String},
-  provider              : String,
+  provider              : {type: String},
   provider_id           : {type: String},
-  provider_token        : String,
-  provider_token_secret : String,
+  provider_token        : {type: String},
+  provider_token_secret : {type: String},
   last_provider_auth    : Date,
   gender                : String,
   birthday              : String,
@@ -28,7 +28,7 @@ var userSchema = new _mongoose.Schema({
 	country               : String,
 	region                : String,
 	zip_postal            : String,
-	picture_name          : String,
+	cover_photo_url       : {type: String, default: ''},
 	picture_path          : String,
 	picture_thumb_path    : String,
 	create_date	          : Date,
@@ -87,6 +87,7 @@ userSchema.pre('save', function(next){
     this.create_date = Date.now();
     
     if(this.provider_id){
+
       this.confirmUniqueSocialUser(function(err, res){
         if(res) next(false);
       });

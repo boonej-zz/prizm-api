@@ -21,6 +21,8 @@ module.exports = {
 		twitter: {
 			consumer_key: 'Ru65wMMNzljgbdZxie6okg',
 			consumer_secret: 'sJHdOEwTXQDO2y7nEjeHRdt8gX0TUhirOSNk32o',
+			dev_user_access_token: '2349321242-qfXdDvyKPWASbXydkbxIQfmHsYWKh8Bi6fVPAiw',
+			dev_user_access_token_secret: 'SWjMYzLS7AzDfnJ1grb4ApYzZEHeSoojcRv2YtohthivB',
 			callback_uri: 'https://ec2-54-200-41-62.us-west-2.compute.amazonaws.com/callback'
 		},
 		google: {
