@@ -12,36 +12,79 @@ var _express        = require('express')
   , _fs             = require('fs')
   , _https          = require('https')
   , _passport       = require('passport')
-  , _app            = _express()
-  , _httpserver     = _express()
   , _prism_home     = process.env.PRISM_HOME
   , _prism_auth     = require(_prism_home + 'routes/oauth2/auths')
   , _prism_token    = require(_prism_home + 'routes/oauth2/tokens')
   , _prism_user     = require(_prism_home + 'routes/users')
   , _utils          = require(_prism_home + 'utils')
   , _gateway        = require(_prism_home + 'gateway')
-  , _config         = require('config');
+  , _config         = require('config')
+  , _e_winston      = require('express-winston')
+  , _winston        = require('winston');
 
-  console.log(_prism_home);
+var _app            = _express();
+var _httpserver     = _express();
+
+try{
+  require(_prism_home + 'logs.js');
+}catch(e){
+  console.log('Error in requiring log.js');
+}
+
+//general settings */
+_app.use(_express.bodyParser());
+_app.use(_express.methodOverride());
 
 /* environment specific settings */
-var env = _app.get('env');
-if( env  == 'development' || env == 'local'){
-  _app.use(_express.errorHandler());
-  _app.use(_express.logger('dev'));
-}else if(env == 'test'){
-  //do not load logger dev
-}else{
-  _app.use(_express.logger('dev'));
+if (_app.get('env') != 'test') {
+  errorTransports = [
+    new _winston.transports.File({
+      filename: 'logs/prism_errors.log',
+      json: true,
+      colorize: true
+    })
+  ]
+  standardTransports = [
+    new _winston.transports.File({
+      filename: 'logs/prism_requests.log',
+      json: true,
+      colorize: true
+    })
+  ]
+}
+else {
+  errorTransports = [
+    new _winston.transports.Console({
+      json: true,
+      colorize: true,
+      prettyPrint: true
+    })
+  ]
+  standardTransports = [
+    new _winston.transports.File({
+      filename: 'logs/prism_requests.log',
+      json: true,
+      colorize: true,
+      prettyPrint: true
+    })
+  ]
 }
 
 /* configure mongo connection */
 _mongoose.connect('mongodb://' + _config.mongo.host + '/' + _config.mongo.name);
 
-//general settings */
-_app.use(_express.bodyParser());
-_app.use(_express.methodOverride());
+/* express winston logger before router */
+_app.use(_e_winston.logger({
+  transports: standardTransports
+}));
+
 _app.use(_app.router);
+
+/* express winston errorLogger after router */
+_app.use(_e_winston.errorLogger({
+  transports: errorTransports
+}));
+
 //Set SSL options for HTTPS traffic
 var ssl_options = {
 	key: 				        _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.key'),
@@ -91,7 +134,7 @@ _app.get('/user/:id', _gateway, _prism_user.fetchUser);
 // _app.get('/user/:id', _prism_user);
 
 /* Testing Endpoints only */
-if(env  == 'test'){
+if(_app.get('env')  == 'test'){
   _app.get('/testresponseformat/:id', function(req, res){
     var array = [{response: 'response1'}, {response: 'response2'}];
     var dict  = {response: 'reponse1'};
