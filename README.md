@@ -18,6 +18,7 @@ Make sure you have Node {v.0.10.25} & NPM installed.
 
 ### Deploy process
 via github hooks
+-- adding local remote origin of prismDev & post-update hook shell script in /home/$USER/app.git/hooks/post-update. it will force stop all currently running `forever` processes & restart via deploy.
 
 Authorization
 ==========================================================
