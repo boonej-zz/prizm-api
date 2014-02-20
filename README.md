@@ -2,7 +2,6 @@ Prism API
 ===========================================================
 
 ### Install
-
 Make sure you have Node {v.0.10.25} & NPM installed. 
 
 	git clone `prism_api` repo
