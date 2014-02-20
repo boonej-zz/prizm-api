@@ -17,6 +17,7 @@ Make sure you have Node {v.0.10.25} & NPM installed.
 
   make start
 
+
 Authorization
 ==========================================================
 The authorization endpoint will handle all requests for authorization codes
