@@ -16,6 +16,8 @@ Make sure you have Node {v.0.10.25} & NPM installed.
 
   make start
 
+### Deploy process
+via github hooks
 
 Authorization
 ==========================================================
