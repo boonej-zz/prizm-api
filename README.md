@@ -11,11 +11,11 @@ Make sure you have Node {v.0.10.25} & NPM installed.
 
 ### Run Tests
 	
-	npm test
+	make test
 
 ### Start Prism API Server
 
-  npm start
+  make start
 
 Authorization
 ==========================================================
