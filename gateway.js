@@ -16,18 +16,22 @@ var _mongoose     = require('mongoose')
 
 module.exports = function(req, res, next){
   var path = _utils.requestPathArray(req);
+  console.log('REQUEST BODY: ' + JSON.stringify(req.body));
+  console.log('REQUEST HEADERS' + JSON.stringify(req.headers));
   if(needsAuthorization(path)){
     validateAuthorization(req, function(valid, err){
+      console.log('validateAuthorization : ' + valid);
+      console.log('validateAuthorization errpr: ' + err);
       if(!valid && err){
         _utils.prismResponse(res,
                             null,
                             false,
                             err,
                             err.status_code);
-      }else if(!valid){
-        // next();
-      }else{
+      }else if(valid){
         next();
+      }else{
+        // next();
       }
     });
   }else{
@@ -45,10 +49,12 @@ var needsAuthorization = function(req_path){
 
 var validateAuthorization = function(req, callback){
   _utils.authorizeClientRequest(req, function(err, valid, client){
-    if(err && !valid) callback(false);
-    if(valid){
+    if(err && !valid){
+      callback(false);
+    }else if(valid){
       callback(true);
+    }else{
+      callback(false);
     }
-    callback(false);
   });
 }

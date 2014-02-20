@@ -59,9 +59,10 @@ Facebook.prototype.authorizeUser = function(callback){
 					};
 					callback(fb_auth_error, response);
 				}else{
-					console.log('fb authorize good, sending callback :' + response)
+					
 					this.fb_id = response.body.id;
 					this.fb_profile = response.body;
+					console.log('fb authorize good, sending callback :' + JSON.stringify(response.body));
 					callback(false, response);
 				}
 			}
@@ -81,8 +82,9 @@ Facebook.prototype.authorizeUser = function(callback){
  * @return {Object} The located existing user object
  */
 Facebook.prototype.isPrismUser = function(callback){
+	console.log(this.fb_id);
 	if(this.fb_id){
-		User.findUserByFacebookId(function(error, result){
+		User.findOne({provider_id: this.fb_id}, function(error, result){
 			console.log(error);
 			console.log(result);
 			if(error){

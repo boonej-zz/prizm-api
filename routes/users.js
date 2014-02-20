@@ -32,12 +32,17 @@ exports.login = function(req, res){
                         	        false,
                                 	error,
                                 	error.status_code);
-	  }else{
-		_utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist, Error.invalidLoginUserDoesNotExist.status_code);	
-		}
+      	  }else{
+      		_utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist, Error.invalidLoginUserDoesNotExist.status_code);	
+      		}
         }else{
           //succesful login - send back returned user object
-          _utils.prismResponse( res, result.cleanUserJSON(), true);
+          var user = result.toObject();
+          delete user.posts;
+          delete user.likes;
+          delete user.comments;
+          delete user.provider_token;
+          _utils.prismResponse( res, user , true);
         }
       });
     }else{
@@ -50,14 +55,14 @@ exports.login = function(req, res){
                                 Error.invalidLoginUserDoesNotExist.status_code );
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
-            _utils.prismResponse(res, result.cleanUserJSON(), true, null, null);
+            _utils.prismResponse(res, result, true, null, null);
           }else{
-	    _utils.prismResponse( res, 
-                            null, 
-                            false,
-                            Error.invalidUserCredentials,
-                            Error.invalidUserCredentials.status_code );
-	  }
+	         _utils.prismResponse( res, 
+                                 null, 
+                                false,
+                                Error.invalidUserCredentials,
+                                Error.invalidUserCredentials.status_code );
+          } 
         }else{
           _utils.prismResponse( res, 
                                 null,
@@ -106,6 +111,7 @@ exports.register = function(req, res){
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
       handleSocialProviderRegistration(req.body, function(error, social){
+        console.log('error/social returned from handle in reg' + error + social);
         if(error && social === false){
           _utils.prismResponse( res, null, false, error, error.status_code);
         }else if(social){
@@ -115,7 +121,9 @@ exports.register = function(req, res){
           if(newUser.provider == 'twitter'){
             newUser.provider_token_secret = req.body.provider_token_secret;
           }
+          console.log('saving social user: ' + JSON.stringify(newUser));
           newUser.save(function(error, result){
+
             if(error || !result){
                _utils.prismResponse( res, 
                                 null, 
@@ -123,7 +131,9 @@ exports.register = function(req, res){
                                 Error.invalidRegisterUserExists, 
                                 Error.invalidRegisterUserExists.status_code);
             }else{
-              _utils.prismResponse(res, result.cleanUserJSON(), true);
+              console.log("cleanUserJSON : " + JSON.stringify(result.cleanUserJSON()));
+              console.log('just straightup result :' + JSON.stringify(result));
+              _utils.prismResponse(res, result, true);
             }
 
           });
@@ -141,7 +151,13 @@ exports.register = function(req, res){
                                 Error.invalidRegisterUserExists, 
                                 Error.invalidRegisterUserExists.status_code);
         }else{
-          _utils.prismResponse(res, result.cleanUserJSON(), true);
+          var user = result.toObject();
+          delete user.password;
+          delete user.posts;
+          delete user.likes;
+          delete user.comments;
+
+          _utils.prismResponse(res, result, true);
         }
       });
     }
@@ -165,7 +181,14 @@ exports.fetchUser = function(req, res){
         console.log('Error retrieving user by id: ' + req.params.id);
         _utils.prismResponse(res, null, false, Error.invalidUserRequest, Error.invalidUserRequest.status_code);
       }else{
-        _utils.prismResponse(res, result.cleanUserJSON(), true);
+        var user = result.toObject();
+          if(!typeof(user.password) == 'undefined') delete user.password;
+          if(!typeof(user.provider_token) == 'undefined') delete user.provider_token;
+          delete user.posts;
+          delete user.likes;
+          delete user.comments;
+
+        _utils.prismResponse(res, user, true);
       }
     });
   }else{
@@ -210,8 +233,8 @@ var isValidRegisterRequest = function(req){
 var isValidSocialRegisterRequest = function(req){
   if(isValidRegisterRequest(req)){
     if( typeof(req.body.provider) == 'undefined' ||
-        typeof(req.body.provider_token) == 'undefined' ||
-        typeof(req.body.provider_id) == 'undefined'){
+        typeof(req.body.provider_token) == 'undefined'  ){
+        // typeof(req.body.provider_id) == 'undefined'){
       return false;
     }else{
       if(req.body.provider == 'twitter'){
@@ -252,19 +275,25 @@ var hashAndValidatePassword = function(user, password_to_validate){
 var handleSocialProviderLogin = function(body, callback){
   switch(body.provider){
     case 'facebook':
-      var fb = new Facebook(body.provider_id, body.provider_token);
+      var fb = new Facebook(body.provider_token);
       fb.authorizeUser(function(error, response){
-        if(error) callback(error, response.body);
-        if(response){
-          fb.isPrismUser(function(error, response){
+        if(error){
+          console.log('authorize on login did error: ' + error);
+          callback(error, false);
+        }else if(response){
+          console.log('authorize did have response. checking user with: ' + JSON.stringify(response.body));
+          User.findOne({provider_id: response.body.id}, function(error, response){
+            console.log('find user social provoder -- error: ' + error + ' && response: ' + JSON.stringify(response) );
             if(error){
-              //send back error that user does not exist in prism db
-              callback(Error.invalidSocialUser, false);
-            }else{
-              //return succesful object & invoke callback
+              callback(error.invalidSocialUser, false);
+            }else if(response && response._id){
               callback(false, response);
+            }else{
+              callback(Error.invalidSocialUser, false);
             }
           });
+        }else{
+          callback(Error.serverError, false);
         }
       });
       break;
@@ -287,18 +316,13 @@ var handleSocialProviderRegistration = function(body, callback){
   switch(body.provider){
     case 'facebook':
       var fb = new Facebook(body.provider_token);
-      fb.authorizaUser(function(error, response){
-        if(error) callback(error, response.body);
-        if(response){
-          fb.isPrismUser(function(error, response){
-            if(error && response === false){
-              callback(error, false);
-            }else if(error && reponse){
-              callback(false, fb);
-            }else{
-              callback(Error.serverError, false);
-            }
-          });
+      fb.authorizeUser(function(error, response){
+        if(error){
+          console.log('fbautorize error on handlereg :' + error);
+          callback(error, false);
+        }else{
+          console.log('succesful auth & callbackk with fb response body ' + JSON.stringify(response.body) );
+          callback(false, response.body);
         }
       });
     break;
@@ -334,6 +358,7 @@ var isValidLoginRequest = function(body){
  */ 
 var isSocialProvider = function(body){
   if(body.provider && body.provider_token){
+    console.log('isSocialProvider -- body:' + JSON.stringify(body));
     return true;
   }
   return false;
