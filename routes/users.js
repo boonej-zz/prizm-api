@@ -10,7 +10,8 @@ var _mongoose     = require('mongoose')
   , Error         = require(_prism_home + 'error')
   , Facebook      = require(_prism_home + 'classes/Facebook')
   , Twitter       = require(_prism_home + 'classes/Twitter')
-  , User          = require(_prism_home + 'models/user').User;
+  , User          = require(_prism_home + 'models/user').User
+  , Post          = require(_prism_home + 'models/post').Post;
 
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
@@ -209,19 +210,19 @@ exports.fetchUser = function(req, res){
 
 exports.createUserPost = function(req, res){
   if(req.params.id){
-    if(req.params.text || req.params.file_path){
+    if(req.body.text || req.body.file_path){
       var post = new Post({
         type: 'post',
-        creator: req.params.creator
+        creator: req.body.creator
       });
 
-      if(req.params.location != 'undefined'){
-        post.location.longitude = req.params.location.longitude,
-        post.location.latitude = req.params.location.latitude
+      if(req.body.location && req.body.location != 'undefined'){
+        post.location.longitude = req.body.location.longitude,
+        post.location.latitude = req.body.location.latitude
       }
 
-      if(req.params.file_path != 'undefined') post.file_path = req.params.file_path;
-      if(req.params.text != 'undefined') post.text = req.params.text;
+      if(req.body.file_path && req.body.file_path != 'undefined') post.file_path = req.body.file_path;
+      if(req.body.text && req.body.text != 'undefined') post.text = req.body.text;
 
       User.findOne({_id: req.params.id}, function(error, user){
         if(error){
@@ -234,7 +235,7 @@ exports.createUserPost = function(req, res){
             if(error){
               _logger.error('Error trying to create/save a new post',
                             { post_object: post,
-                              request_params: req.params,
+                              request_body: req.body,
                               user_object: user,
                               error: error});
               _utils.prismResponse(res, null, false, Error.invalidUserRequest,
@@ -248,7 +249,7 @@ exports.createUserPost = function(req, res){
       });
     }else{
       _logger.error('Invalid Request for create posts.' 
-                    +' Missing either text or file_path ', {request_params: req.params});
+                    +' Missing either text or file_path ', {request_body: req.body});
       _utils.prismResponse(res, null, false, Error.invalidRequest,
                                               Error.invalidRequest.status_code);
     }
