@@ -2,7 +2,7 @@
   "name"              : "prism_api",
   "description"       : "REST API for Prism mobile platform",
   "author"            : "DJ Hayden <dj.hayden@stablekernel.com>",
-  "version"           : "0.0.1",
+  "version"           : "0.0.10",
   "private"           : true,
   "scipts"	: {
     "test"      : "make test",
@@ -22,12 +22,7 @@
     "winston"           : "*",
     "express-winston"   : "*",
     "nodemailer"        : "0.6.0",
-    "passport"          : "0.2.0",
-    "passport-http"     : "0.2.2",
-    "passport-facebook" : "*",
-    "passport-twitter"  : "*",
-    "passport-yahoo"    : "*",
-    "passport-google"   : "*"
+    "passport"          : "0.2.0"
   },
 
   "devDependencies" : {

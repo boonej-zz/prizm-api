@@ -39,7 +39,8 @@ exports.login = function(req, res){
                                 	error,
                                 	error.status_code);
       	  }else{
-      		_utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist, Error.invalidLoginUserDoesNotExist.status_code);	
+      		_utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist, 
+                                                  Error.invalidLoginUserDoesNotExist.status_code);	
       		}
         }else{
           //succesful login - send back returned user object
@@ -245,7 +246,7 @@ var isValidSocialRegisterRequest = function(req){
       return false;
     }else{
       if(req.body.provider == 'twitter'){
-        if(typeof(req.body.provider) == 'undefined') return false;
+        if(typeof(req.body.provider_token_secret) == 'undefined') return false;
       }
 
       return true;
@@ -328,7 +329,7 @@ var handleSocialProviderLogin = function(body, callback){
             
             }else{
               _logger.warn('Did not find an error or result in fetching twitter user');
-              callback(Error.serverError, false);
+              callback(Error.invalidSocialUser, false);
             }
           });
 
