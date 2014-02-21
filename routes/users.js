@@ -280,14 +280,15 @@ exports.fetchUserPosts = function(req, res){
       if(req.query.feature_identifier){
 
         if(req.query.direction){
+          user.sort({'posts.create_date': -1});
           if(req.query.direction == 'older'){
 
             user.where('posts.create_date').lte(new Date(req.query.feature_identifier));
+            user.sort({'posts.create': 1});
           }else{
             user.where('posts.create_date').gte(new Date(req.query.feature_identifier));  
           }
         }
-        user.sort({'posts.create_date': -1});
         user.limit(req.query.count);
       }
     }
