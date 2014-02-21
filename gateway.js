@@ -8,7 +8,8 @@
 var _mongoose     = require('mongoose')
   , _prism_home   = process.env.PRISM_HOME
   , _auth_model   = require(_prism_home + 'models/auth')
-  , _utils        = require(_prism_home + 'utils')
+  , _utils        = require(_prism_home + 'utils')  
+  , _logger       = require('winston')
   , Code          = _auth_model.Code
   , Token         = _auth_model.Token
   , Client        = _auth_model.ClientApplication
@@ -16,12 +17,9 @@ var _mongoose     = require('mongoose')
 
 module.exports = function(req, res, next){
   var path = _utils.requestPathArray(req);
-  console.log('REQUEST BODY: ' + JSON.stringify(req.body));
-  console.log('REQUEST HEADERS' + JSON.stringify(req.headers));
   if(needsAuthorization(path)){
     validateAuthorization(req, function(valid, err){
-      console.log('validateAuthorization : ' + valid);
-      console.log('validateAuthorization errpr: ' + err);
+      if(err) _logger.error('validateAuthroization returned an error: ', {error: err});
       if(!valid && err){
         _utils.prismResponse(res,
                             null,
@@ -49,6 +47,8 @@ var needsAuthorization = function(req_path){
 
 var validateAuthorization = function(req, callback){
   _utils.authorizeClientRequest(req, function(err, valid, client){
+    if(err) _logger.log('error','Utils authorize Client Request returned an error!',
+                          {error: err, is_valid: valid, for_client: client});
     if(err && !valid){
       callback(false);
     }else if(valid){

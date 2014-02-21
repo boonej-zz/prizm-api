@@ -102,13 +102,10 @@ exports.authorizeClientRequest = function(req, callback){
       }
     });
   }else{
-    console.log(req.get('Authorization'));
     var bearerAuth = req.get('Authorization').split(" ");
     if(bearerAuth.length == 2 && bearerAuth[0] == 'Bearer'){
       Token.findOne({access_token: bearerAuth[1]}, function(error, result){
         if(error) callback(error, false, result);
-        console.log('r expires' + result.date_expires.valueOf());
-        console.log('r date now' + Date.now().valueOf());
         if(result.date_expires.valueOf() > Date.now().valueOf()){
           callback(false, true, result);
         }else{

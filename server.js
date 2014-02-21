@@ -64,8 +64,7 @@ else {
     new _winston.transports.File({
       filename: 'logs/prism_requests.log',
       json: true,
-      colorize: true,
-      prettyPrint: true
+      colorize: true
     })
   ]
 }
@@ -75,7 +74,9 @@ _mongoose.connect('mongodb://' + _config.mongo.host + '/' + _config.mongo.name);
 
 /* express winston logger before router */
 _app.use(_e_winston.logger({
-  transports: standardTransports
+  transports: standardTransports,
+  meta: true,
+  msg: "HTTP {{req.method}} {{req.url}}"
 }));
 
 _app.use(_app.router);
@@ -84,6 +85,7 @@ _app.use(_app.router);
 _app.use(_e_winston.errorLogger({
   transports: errorTransports
 }));
+
 
 //Set SSL options for HTTPS traffic
 var ssl_options = {

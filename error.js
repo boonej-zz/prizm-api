@@ -100,15 +100,27 @@ exports.accessDeniedExpiredToken = {
 }
 
 exports.unsupportedResponseType = {
-  error_info          : {
+  status_code           : 400,
+  error_info            : {
       error             : 'unsupported_response_type',
       error_description : 'the specified response type is not supported by this '
                           + 'endpoint'
     }
 }
 
+exports.unsupportedProviderType = function(type){
+  var unsuportedProvider = {
+    status_code         : 400,
+    error_info          : {
+      error             : 'unsupoprted_privder_type',
+      error_description : type + 'is not a supported provider type'
+    }
+  }
+}
+
 exports.invalidScope = {
-  error_info          : { 
+  status_code           : 403,
+  error_info            : { 
       error             : 'invalid_scope',
       error_description : 'you do not have permissions to access this resource'
     }
@@ -140,5 +152,13 @@ exports.invalidFacebookAuth = {
   }
 }
 
+exports.invalidTwitterAuth = {
+  status_code         : 401,
+  error_info          : {
+    error             : 'invalid_twitter_authorization',
+    error_description : 'twitter user authorization requires both valid '
+                        + 'access_token & access_token_secret'
+  }
+}
 
 
