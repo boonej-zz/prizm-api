@@ -6,7 +6,11 @@
 var _mongoose   = require('mongoose')
   , _serial     = require('serializer')
   , _crypt      = require('crypto')
-  , _utils      = require(process.env.PRISM_HOME + 'utils');
+  , _prism_home = process.env.PRISM_HOME
+  , _utils      = require(_prism_home + 'utils')
+  , Post        = require(_prism_home + 'models/post').Post;
+
+
 
 var userSchema = new _mongoose.Schema({
 	first_name            : {type: String, required: true},
@@ -37,7 +41,7 @@ var userSchema = new _mongoose.Schema({
   last_login_date       : Date,
 	status                : Number,
 	comments              : [],
-	posts                 : [],
+	posts                 : [Post.schema],
 	likes                 : []
 },
 {
@@ -87,6 +91,8 @@ userSchema.methods.cleanUserJSON = function(){
           delete user.comments;
           delete user.posts;
           delete user.likes;
+          delete user.provider_token;
+          delete user.provider_token_secret;
   return
 }
 

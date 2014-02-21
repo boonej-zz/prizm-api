@@ -127,13 +127,16 @@ _app.post('/oauth2/login', _gateway, _prism_user.login);
 
 /**************** Prism User Endpoints ********************/
 /* Create/Register User Route */
-_app.post('/user', _gateway, _prism_user.register);
+_app.post('/users', _gateway, _prism_user.register);
 
 /* Fetch User */
-_app.get('/user/:id', _gateway, _prism_user.fetchUser);
+_app.get('/users/:id', _gateway, _prism_user.fetchUser);
 
-/* Fetch A Specific User Object */
-// _app.get('/user/:id', _prism_user);
+/* Fetch Users Posts */
+_app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
+
+/* Add Post to User */
+_app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
 
 /* Testing Endpoints only */
 if(_app.get('env')  == 'test'){

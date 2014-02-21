@@ -187,7 +187,8 @@ exports.fetchUser = function(req, res){
     User.findOne({_id: req.params.id}, function(error, result){
       if(error){
         console.log('Error retrieving user by id: ' + req.params.id);
-        _utils.prismResponse(res, null, false, Error.invalidUserRequest, Error.invalidUserRequest.status_code);
+        _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+                                                Error.invalidUserRequest.status_code);
       }else{
         var user = result.toObject();
           if(!typeof(user.password) == 'undefined') delete user.password;
@@ -201,7 +202,87 @@ exports.fetchUser = function(req, res){
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, Error.invalidUserRequest, Error.invalidUserRequest.status_code);
+    _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+                                            Error.invalidUserRequest.status_code);
+  }
+}
+
+exports.createUserPost = function(req, res){
+  if(req.params.id){
+    if(req.params.text || req.params.file_path){
+      var post = new Post({
+        type: 'post',
+        creator: req.params.creator
+      });
+
+      if(req.params.location != 'undefined'){
+        post.location.longitude = req.params.location.longitude,
+        post.location.latitude = req.params.location.latitude
+      }
+
+      if(req.params.file_path != 'undefined') post.file_path = req.params.file_path;
+      if(req.params.text != 'undefined') post.text = req.params.text;
+
+      User.findOne({_id: req.params.id}, function(error, user){
+        if(error){
+          console.log('Error retrieving user by id: ' + req.params.id);
+          _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+                                                  Error.invalidUserRequest.status_code);
+        }else{
+          user.posts.push(post);
+          user.save(function(error, updated_user){
+            if(error){
+              _logger.error('Error trying to create/save a new post',
+                            { post_object: post,
+                              request_params: req.params,
+                              user_object: user,
+                              error: error});
+              _utils.prismResponse(res, null, false, Error.invalidUserRequest,
+                                                      Error.invalidUserRequest.status_code);
+
+            }else{
+              _utils.prismResponse(res, updated_user.posts, true);
+            }
+          });
+        }
+      });
+    }else{
+      _logger.error('Invalid Request for create posts.' 
+                    +' Missing either text or file_path ', {request_params: req.params});
+      _utils.prismResponse(res, null, false, Error.invalidRequest,
+                                              Error.invalidRequest.status_code);
+    }
+
+  }else{
+    _logger.error('Invalid request for create posts.'
+                  +' Missing user id', {request_params: req.params});
+    _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+                                            Error.invalidUserRequest.status_code);
+  }
+}
+
+/**
+ * Fetchs Prism Users posts
+ * 
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Post} Returns the User.posts subdocument array
+ */
+exports.fetchUserPosts = function(req, res){
+  _logger.info('fetch users posts params: ', req.params);
+  if(req.params.id){
+    User.findOne({_id: req.params.id}, function(error,result){
+      if(error){
+        _logger.error('Error retrieving user by id: ', req.params.id);
+        _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+                                                Error.invalidUserRequest.status_code);
+      }else{
+        _utils.prismResponse(res, result.posts, true);
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+                                            Error.invalidUserRequest.status_code);
   }
 }
 

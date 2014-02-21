@@ -101,7 +101,7 @@ describe('User Route Unit Tests', function(done){
     it('should register a user with valid post body && access_token', function(done){
       _t_helpers.destroyTestUser(function(){
         var auth_header = "Bearer " + testToken.access_token;
-        var fetch_url = 'https://localhost:3000/user';
+        var fetch_url = 'https://localhost:3000/users';
         var request_body = {
           first_name: 'Dj',
           last_name: 'Hayden',
@@ -127,13 +127,40 @@ describe('User Route Unit Tests', function(done){
       });
     });
   });
+  describe('Testing Adding Post to a User {POST} /users/:id/posts', function(done){
+    it('should allow you to create a post', function(done){
+      _t_helpers.createTestUser(function(user){
+        if(user){
+          testUser = user;
+
+          var fetch_url = 'https://localhost:3000/users/'
+                          + testUser._id + '/posts';
+          var auth_header = 'Bearer ' + testToken.access_token;
+          _request({
+            method: 'POST',
+            url: fetch_url,
+            json: true,
+            strictSSL: false,
+            headers: {"Authorization" : auth_header},
+            body: {text: 'this is a test post', creator: testUser._id}
+          }, function(error, post){
+            console.log(post.body);
+            done();
+          });
+        }else{
+          _expect(false).to.be.true;
+          done();
+        }
+      });
+    });
+  });
   describe('Testing Fetching User', function(done){
     it('should retrieve a user with a valid identifier', function(done){
       _t_helpers.createTestUser(function(user){
         if(user){
           testUser = user;
 
-          var fetch_url = 'https://localhost:3000/user/' + testUser._id;
+          var fetch_url = 'https://localhost:3000/users/' + testUser._id;
           var auth_header = 'Bearer ' + testToken.access_token; 
           _request({
             method: 'GET',
