@@ -272,8 +272,28 @@ exports.createUserPost = function(req, res){
  */
 exports.fetchUserPosts = function(req, res){
   _logger.info('fetch users posts params: ', req.params);
+  
   if(req.params.id){
-    User.findOne({_id: req.params.id}, function(error,result){
+    var user = User.findOne({_id: req.params.id});
+    user.sort({create_date: -1});
+    if(req.query && req.query.count){
+      if(req.query.feature_identifier){
+
+        if(req.query.direction){
+          if(req.query.direction == 'older'){
+
+            user.where('posts.create_date').lte(new Date(req.query.feature_identifier));
+          }else{
+            user.where('posts.create_date').gte(new Date(req.query.feature_identifier));  
+          }
+        }
+        user.sort({'posts.create_date': -1});
+        user.limit(req.query.count);
+      }
+    }
+
+    // User.findOne({_id: req.params.id}, function(error,result){
+    user.exec(function(error, result){
       if(error){
         _logger.error('Error retrieving user by id: ', req.params.id);
         _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
