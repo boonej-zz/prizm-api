@@ -219,6 +219,7 @@ exports.createUserPost = function(req, res){
       if(req.body.location && req.body.location != 'undefined'){
         post.location.longitude = req.body.location.longitude,
         post.location.latitude = req.body.location.latitude
+        post.location.name = req.body.location.name;
       }
 
       if(req.body.file_path && req.body.file_path != 'undefined') post.file_path = req.body.file_path;

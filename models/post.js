@@ -15,7 +15,7 @@ var postSchema = new _mongoose.Schema({
 	modify_date			: {type: Date, default: Date.now()},
 	delete_date			: {type: Date, default: null},
 	scope 					: {type: String, default: 'public'},
-	location 				: {longitude: Number, latitude: Number},
+	location 				: {name: String, longitude: Number, latitude: Number},
 	creator 				: {id: String, name: String},
 	status 					: {type: String, default: 'active'},
 	file_path 			: {type: String, default: ''},
