@@ -61,7 +61,6 @@ Twitter.prototype.authorizeUser = function(callback){
 																												returning_error: invalidRequest});
 		callback(invalidRequest, false);
 	}
-
 };
 
 module.exports = Twitter;

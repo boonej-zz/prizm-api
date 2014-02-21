@@ -6,9 +6,15 @@
 var _mongoose     = require('mongoose')
   , _prism_home   = process.env.PRISM_HOME
   , _utils        = require(_prism_home + 'utils')
+  , _logger       = require('winston')
   , Error         = require(_prism_home + 'error')
   , Facebook      = require(_prism_home + 'classes/Facebook')
+  , Twitter       = require(_prism_home + 'classes/Twitter')
   , User          = require(_prism_home + 'models/user').User;
+
+/**
+ * TODO: pull logging for errors out into error class (which needs refactoring)
+ */
 
 /**
  * Handles authenticating user login request
@@ -42,6 +48,7 @@ exports.login = function(req, res){
           delete user.likes;
           delete user.comments;
           delete user.provider_token;
+          if(!typeof(user.provider_token_secret) == 'undefined') delete user.provider_token_secret;
           _utils.prismResponse( res, user , true);
         }
       });
@@ -111,7 +118,7 @@ exports.register = function(req, res){
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
       handleSocialProviderRegistration(req.body, function(error, social){
-        console.log('error/social returned from handle in reg' + error + social);
+        // console.log('error/social returned from handle in reg' + error + social);
         if(error && social === false){
           _utils.prismResponse( res, null, false, error, error.status_code);
         }else if(social){
@@ -121,7 +128,7 @@ exports.register = function(req, res){
           if(newUser.provider == 'twitter'){
             newUser.provider_token_secret = req.body.provider_token_secret;
           }
-          console.log('saving social user: ' + JSON.stringify(newUser));
+          // console.log('saving social user: ' + JSON.stringify(newUser));
           newUser.save(function(error, result){
 
             if(error || !result){
@@ -131,8 +138,8 @@ exports.register = function(req, res){
                                 Error.invalidRegisterUserExists, 
                                 Error.invalidRegisterUserExists.status_code);
             }else{
-              console.log("cleanUserJSON : " + JSON.stringify(result.cleanUserJSON()));
-              console.log('just straightup result :' + JSON.stringify(result));
+              // console.log("cleanUserJSON : " + JSON.stringify(result.cleanUserJSON()));
+              // console.log('just straightup result :' + JSON.stringify(result));
               _utils.prismResponse(res, result, true);
             }
 
@@ -184,6 +191,7 @@ exports.fetchUser = function(req, res){
         var user = result.toObject();
           if(!typeof(user.password) == 'undefined') delete user.password;
           if(!typeof(user.provider_token) == 'undefined') delete user.provider_token;
+          if(!typeof(user.provider_token_secret) == 'undefined') delete user.provider_token_secret;
           delete user.posts;
           delete user.likes;
           delete user.comments;
@@ -234,7 +242,6 @@ var isValidSocialRegisterRequest = function(req){
   if(isValidRegisterRequest(req)){
     if( typeof(req.body.provider) == 'undefined' ||
         typeof(req.body.provider_token) == 'undefined'  ){
-        // typeof(req.body.provider_id) == 'undefined'){
       return false;
     }else{
       if(req.body.provider == 'twitter'){
@@ -278,14 +285,14 @@ var handleSocialProviderLogin = function(body, callback){
       var fb = new Facebook(body.provider_token);
       fb.authorizeUser(function(error, response){
         if(error){
-          console.log('authorize on login did error: ' + error);
+          // console.log('authorize on login did error: ' + error);
           callback(error, false);
         }else if(response){
-          console.log('authorize did have response. checking user with: ' + JSON.stringify(response.body));
+          // console.log('authorize did have response. checking user with: ' + JSON.stringify(response.body));
           User.findOne({provider_id: response.body.id}, function(error, response){
-            console.log('find user social provoder -- error: ' + error + ' && response: ' + JSON.stringify(response) );
+            // console.log('find user social provoder -- error: ' + error + ' && response: ' + JSON.stringify(response) );
             if(error){
-              callback(error.invalidSocialUser, false);
+              callback(Error.invalidSocialUser, false);
             }else if(response && response._id){
               callback(false, response);
             }else{
@@ -298,34 +305,95 @@ var handleSocialProviderLogin = function(body, callback){
       });
       break;
     case 'twitter':
-      //twitter logic
-      break;
-    case 'google':
-      //google logic
-      //for the meantime send back as unsupported
-      //TODO: send back
-      callback(Error.invalidRequest, false);
+      var tw = new Twitter(body.provider_token, body.provider_token_secret);
+      tw.authorizeUser(function(error, result){
+        if(error){
+          _logger.error('Error returned attempting to authorize twitter user: ', 
+                    error);
+          callback(error, false);
+
+        }else if(result){
+          _logger.info('Succesfuly returned object from authorizing twitter user: ', result);
+          _logger.log(result);
+
+          User.findOne({provider_id: result.id.toString()}, function(error, response){
+            if(error){
+              _logger.error('Error returned trying to find twitter user in prism.'
+                            +' Users does not exist.', {error: error, twitter_user: result});
+              callback(Error.invalidSocialUser, false);
+            
+            }else if(response && response._id){
+              _logger.info('Found twitter user to validate login', {user: response});
+              callback(false, response);
+            
+            }else{
+              _logger.warn('Did not find an error or result in fetching twitter user');
+              callback(Error.serverError, false);
+            }
+          });
+
+        }else{
+          _logger.error('A server error occured. No error or' 
+                      + ' result was retured from authorizing a twitter user');
+          callback(Error.serverError, false);
+        }
+      });
       break;
     default:
-      //send error back unsupported provider.
+      _logger.log('A unsupported provider type was passed to user registration ',
+                  {provider: body.provider});
+      
+      callback(Error.unsupportedProviderType(body.provider), false);
       break;
   }
 }
 
+/**
+ * [handleSocialProviderRegistration description]
+ * @param  {[type]}   body     [description]
+ * @param  {Function} callback [description]
+ * @return {[type]}            [description]
+ */
 var handleSocialProviderRegistration = function(body, callback){
   switch(body.provider){
     case 'facebook':
       var fb = new Facebook(body.provider_token);
       fb.authorizeUser(function(error, response){
         if(error){
-          console.log('fbautorize error on handlereg :' + error);
+          _logger.log('fb authorize error in handleRegistration :',
+                      {error: error});
+
           callback(error, false);
         }else{
-          console.log('succesful auth & callbackk with fb response body ' + JSON.stringify(response.body) );
+          _logger.log('succesful auth & callback with fb authorizeUSer in handleRegistration ',
+                      {fb_response_body: response.body});
+
           callback(false, response.body);
         }
       });
-    break;
+      break;
+    case 'twitter':
+      var tw = new Twitter(body.provider_token, body.provider_token_secret);
+      tw.authorizeUser(function(error, result){
+        if(error){
+          _logger.error('tw authorize error in handleRegistration: ',
+                      {error: error});
+          callback(error, false);
+        }else{
+          _logger.info('succesful auth & response with tw authorizeUser in hanldeRegistration ',
+                        {tw_response_body: result});
+          callback(false, result);
+        }
+      });
+      break;
+    default:
+      //there is no default. therefore the requested provider authorization is 
+      //not currently supported. Log & reutrn error
+      _logger.log('A unsupported provider type was passed to user registration ',
+                  {provider: body.provider});
+      
+      callback(Error.unsupportedProviderType(body.provider), false);
+      break;
   }
 }
 
