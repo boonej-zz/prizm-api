@@ -14,6 +14,7 @@ var _mongoose     = require('mongoose')
   , _auth_model   = require(_prism_home + 'models/auth')
   , _user_route   = require(_prism_home + 'routes/users')
   , _t_helpers    = require(_prism_home + 'test/test_helpers')
+  , Post          = require(_prism_home + 'models/post').Post
   , User          = require(_prism_home + 'models/user').User;
 
 describe('User Route Unit Tests', function(done){
@@ -149,6 +150,54 @@ describe('User Route Unit Tests', function(done){
           });
         }else{
           _expect(false).to.be.true;
+          done();
+        }
+      });
+    });
+    it('should allow you to page posts', function(done){
+      _t_helpers.createTestUser(function(user){
+        if(user){
+          testUser = user;
+          user.posts.push(new Post({text: 'test test tes',  type: 'posts', creator: testUser._id}));
+          user.posts.push(new Post({text: 'test test tes2', type: 'posts', creator: testUser._id, create_date: Date.now() + 10 * 60 * 100}));
+          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: Date.now() - 10 * 60 * 100}));
+          user.posts.push(new Post({text: 'test test tes3', type: 'posts', creator: testUser._id, create_date: Date.now() - 5 * 60 * 100}));
+          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: Date.now() + 20 * 60 * 100}));
+          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: Date.now() + 30 * 60 * 100}));
+          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: Date.now() + 2 * 60 * 60 * 1000}));
+          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: new Date() + 60 * 60 * 100}));
+          user.save(function(error, result){
+            if(error){
+              _expect(false).to.be.true;
+              done();
+            }else{
+
+              // User.aggregate({$project: { "posts":1}}, 
+              //   {$match: {"posts.create_date" : {$gte: (new Date())}}}, 
+              //   {$unwind: "$posts"}, 
+              //   {$sort: {"posts.create_date": -1}}, 
+              //   {$limit: 4},
+              //   function(error, result){
+              //     console.log(result);
+              //     done();
+              //   });
+              var fetch_url = 'https://localhost:3000/users/'+user._id+'/posts?count=4&feature_identifier='+Date.now()
+
+              var auth_header = 'Bearer ' + testToken.access_token;
+              _request({
+                method: 'GET',
+                url: fetch_url,
+                json: true,
+                strictSSL: false,
+                headers: {"Authorization" : auth_header}
+                
+              }, function(error, post){
+                console.log(post.body);
+                done();
+              });
+            }
+          });
+        }else{
           done();
         }
       });

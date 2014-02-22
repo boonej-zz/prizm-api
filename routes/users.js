@@ -263,6 +263,14 @@ exports.createUserPost = function(req, res){
   }
 }
 
+// var filterAndSortResults = function(data, query, cb){
+//   if(query){
+//     var count, date, sort;
+//     count = (typeof(query.count) !== 'undefined') ? query.count : 30;
+//     date = (typeof(query.feature_identifier) !== 'undefined') ? query.feature_identifier : null;
+//   }
+// }
+
 /**
  * Fetchs Prism Users posts
  * 
@@ -274,35 +282,67 @@ exports.fetchUserPosts = function(req, res){
   _logger.info('fetch users posts params: ', req.params);
   
   if(req.params.id){
-    var user = User.findOne({_id: req.params.id});
-    user.sort({create_date: -1});
-    if(req.query && req.query.count){
-      if(req.query.feature_identifier){
+    
+    if(req.query){
+      var count, feature_identifier, sort, match; 
+      var pipeline = [];
 
-        if(req.query.direction){
-          user.sort({'posts.create_date': -1});
-          if(req.query.direction == 'older'){
+      count = (req.query.count)? req.query.count : 30;
+      feature_identifier = (req.query.feature_identifier)?  feature_identifier : null;
+      sort = (req.query.sort) ? req.query.sort : null;
 
-            user.where('posts.create_date').lte(new Date(req.query.feature_identifier));
-            user.sort({'posts.create': 1});
-          }else{
-            user.where('posts.create_date').gte(new Date(req.query.feature_identifier));  
-          }
+      if(feature_identifier && sort){
+        pipeline.push({$match: {"posts.create_date" : {$lte: new Date(feature_identifier)}}});
+      }else if(feature_identifier){
+        pipeline.push({$match: {"posts.create_date" : {$gte: new Date(feature_identifier)}}});
+      }
+
+      pipeline.push(
+        {$project: {"posts":1 , "_id":0}}, 
+        {$unwind: "$posts"}, 
+        {$sort: {"posts.create_date": -1}}, 
+        {$limit: parseInt(count)}
+      );
+
+
+       User.aggregate(pipeline, function(error, result){
+                        console.log(result);
+                        if(error) _utils.serverResponse(res, null, false, Error.serverError,
+                                                                           Error.serverError.status_code);
+                        var format = [];
+                        for(posts in result){
+                          format.push(result[posts]["posts"]);
+                        }
+                        _utils.prismResponse(res, format, true);
+                      });
+
+      // if(req.query.feature_identifier){
+
+      //   if(req.query.direction){
+      //     user.sort('-posts.create_date');
+      //     if(req.query.direction == 'older'){
+
+      //       user.where('posts.create_date').lte(new Date(req.query.feature_identifier));
+      //       user.sort({'posts.create': 1});
+      //     }else{
+      //       user.where('posts.create_date').gte(new Date(req.query.feature_identifier));  
+      //     }
+      //   }
+      //   user.limit(req.query.count);
+      // }
+    }else{
+      User.findOne({_id: req.params.id}, function(error,result){
+        if(error){
+          _logger.error('Error retrieving user by id: ', req.params.id);
+          _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+                                                  Error.invalidUserRequest.status_code);
+        }else{
+
+          if(req.query && req.query.count)
+          _utils.prismResponse(res, result.posts, true);
         }
-        user.limit(req.query.count);
-      }
+      });
     }
-
-    // User.findOne({_id: req.params.id}, function(error,result){
-    user.exec(function(error, result){
-      if(error){
-        _logger.error('Error retrieving user by id: ', req.params.id);
-        _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
-                                                Error.invalidUserRequest.status_code);
-      }else{
-        _utils.prismResponse(res, result.posts, true);
-      }
-    });
   }else{
     _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
                                             Error.invalidUserRequest.status_code);
