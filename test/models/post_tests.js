@@ -16,25 +16,32 @@ var _request   = require('request')
 
 describe('Post Model Unit Tests', function(done){
 	describe('Testing creating new post record', function(done){
-		it('should create nested post record in user document', function(done){
+		it('should create post record successfully with requried fields', function(done){
 			var post = new Post({
-				title : 'test ttitle',
-				body : 'this is the body of the test post',
+				text : 'this is the body of the test post',
 				type : 'post',
+				target_id: '123sefsdfsjkj34',
 				creator : {id: '123sefsdfsjkj34', name: 'Richard Tester'}
 			});
 
-			var user = new User({
-				email: 'cesear@chavez.com',
-				first_name: 'cesear',
-				last_name: 'shavez',
-				password: 'dingdong',
-				posts: [post]
-			});
-
-			user.save(function(error, result){
-				console.log(error);
-				console.log(result);
+			post.save(function(error, result){
+				var date = Date.now();
+				_expect(result).to.have.property('text');
+				_expect(result).to.have.property('type');
+				_expect(result).to.have.property('target_id');
+				_expect(result).to.have.property('creator');
+				_expect(result).to.have.property('create_date');
+				_expect(result).to.have.property('modify_date');
+				_expect(result).to.have.property('scope');
+				_expect(result).to.have.property('status');
+				_expect(result).to.have.property('_id');
+				result.target_id.should.equal('123sefsdfsjkj34');
+				result.creator.id.should.equal('123sefsdfsjkj34');
+				result.creator.name.should.equal('Richard Tester');
+				result.create_date.valueOf().should.be.within(date.valueOf() -2, date.valueOf() +3);
+				result.modify_date.valueOf().should.be.within(date.valueOf() -2, date.valueOf() +3);
+				result.scope.should.equal('public');
+				result.status.should.equal('active');
 				done();
 			});
 		});

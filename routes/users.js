@@ -140,8 +140,6 @@ exports.register = function(req, res){
                                 Error.invalidRegisterUserExists, 
                                 Error.invalidRegisterUserExists.status_code);
             }else{
-              // console.log("cleanUserJSON : " + JSON.stringify(result.cleanUserJSON()));
-              // console.log('just straightup result :' + JSON.stringify(result));
               _utils.prismResponse(res, result, true);
             }
 
@@ -208,6 +206,12 @@ exports.fetchUser = function(req, res){
   }
 }
 
+/**
+ * [createUserPost description]
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
 exports.createUserPost = function(req, res){
   if(req.params.id){
     if(req.body.text || req.body.file_path){
@@ -228,22 +232,21 @@ exports.createUserPost = function(req, res){
       User.findOne({_id: req.params.id}, function(error, user){
         if(error){
           console.log('Error retrieving user by id: ' + req.params.id);
-          _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
-                                                  Error.invalidUserRequest.status_code);
+          _utils.prismResponse(res, null, false, Error.invalidUserRequest);
+                                                  
         }else{
-          user.posts.push(post);
-          user.save(function(error, updated_user){
+          post.target_id = user._id;
+          post.save(function(error, user_post){
             if(error){
-              _logger.error('Error trying to create/save a new post',
-                            { post_object: post,
-                              request_body: req.body,
-                              user_object: user,
-                              error: error});
-              _utils.prismResponse(res, null, false, Error.invalidUserRequest,
-                                                      Error.invalidUserRequest.status_code);
+              _logger.log('error', 'Error trying to create/save a new post',
+                          { post_object: post,
+                            request_body: req.body,
+                            user_object: user,
+                            post_error: error });
+              _utils.prismResponse(res, null, false, Error.invalidUserRequest);
 
             }else{
-              _utils.prismResponse(res, updated_user.posts, true);
+              _utils.prismResponse(res, user_post, true);
             }
           });
         }
@@ -263,14 +266,6 @@ exports.createUserPost = function(req, res){
   }
 }
 
-// var filterAndSortResults = function(data, query, cb){
-//   if(query){
-//     var count, date, sort;
-//     count = (typeof(query.count) !== 'undefined') ? query.count : 30;
-//     date = (typeof(query.feature_identifier) !== 'undefined') ? query.feature_identifier : null;
-//   }
-// }
-
 /**
  * Fetchs Prism Users posts
  * 
@@ -279,70 +274,43 @@ exports.createUserPost = function(req, res){
  * @return {Post} Returns the User.posts subdocument array
  */
 exports.fetchUserPosts = function(req, res){
+  var fetch_criteria = {};
+  var fetch_query, fetch_options;
+
   _logger.info('fetch users posts params: ', req.params);
   
   if(req.params.id){
-    
     if(req.query){
-      var count, feature_identifier, sort, match; 
-      var pipeline = [];
+      fetch_options = _utils.parsedQueryOptions(req.query);
+      if(req.query.feature_identifier){
+        debugger;
+        if(req.query.direction && req.query.direction == 'older'){
+          fetch_criteria = {target_id: req.params.id, create_date: { $lt: req.query.feature_identifier}};
+        }else{
+          fetch_criteria = {target_id: req.params.id, create_date: { $gt: req.query.feature_identifier}};
+        }
 
-      count = (req.query.count)? req.query.count : 30;
-      feature_identifier = (req.query.feature_identifier)?  feature_identifier : null;
-      sort = (req.query.sort) ? req.query.sort : null;
-
-      if(feature_identifier && sort){
-        pipeline.push({$match: {"posts.create_date" : {$lte: new Date(feature_identifier)}}});
-      }else if(feature_identifier){
-        pipeline.push({$match: {"posts.create_date" : {$gte: new Date(feature_identifier)}}});
+        fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }
 
-      pipeline.push(
-        {$project: {"posts":1 , "_id":0}}, 
-        {$unwind: "$posts"}, 
-        {$sort: {"posts.create_date": -1}}, 
-        {$limit: parseInt(count)}
-      );
-
-
-       User.aggregate(pipeline, function(error, result){
-                        console.log(result);
-                        if(error) _utils.serverResponse(res, null, false, Error.serverError,
-                                                                           Error.serverError.status_code);
-                        var format = [];
-                        for(posts in result){
-                          format.push(result[posts]["posts"]);
-                        }
-                        _utils.prismResponse(res, format, true);
-                      });
-
-      // if(req.query.feature_identifier){
-
-      //   if(req.query.direction){
-      //     user.sort('-posts.create_date');
-      //     if(req.query.direction == 'older'){
-
-      //       user.where('posts.create_date').lte(new Date(req.query.feature_identifier));
-      //       user.sort({'posts.create': 1});
-      //     }else{
-      //       user.where('posts.create_date').gte(new Date(req.query.feature_identifier));  
-      //     }
-      //   }
-      //   user.limit(req.query.count);
-      // }
     }else{
-      User.findOne({_id: req.params.id}, function(error,result){
-        if(error){
-          _logger.error('Error retrieving user by id: ', req.params.id);
-          _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
-                                                  Error.invalidUserRequest.status_code);
-        }else{
-
-          if(req.query && req.query.count)
-          _utils.prismResponse(res, result.posts, true);
-        }
-      });
+      fetch_criteria = {_id: req.params.id};
+      fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
     }
+    debugger;
+    _logger.info('logging fetch_options: ', fetch_options);
+
+    fetch_query.exec(function(error, user_posts){
+      debugger;
+
+      if(error){
+        _logger.error('error', 'Error retrieving by user_id: ', req.params.id);
+        _utils.prismResponse(res, null, false, Error.invalidUserRequest);
+
+      }else{
+        _utils.prismResponse(res, user_posts, true);
+      }
+    });
   }else{
     _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
                                             Error.invalidUserRequest.status_code);

@@ -40,7 +40,10 @@ describe('User Route Unit Tests', function(done){
       _t_helpers.destroyTestToken(function(){
         _t_helpers.destroyTestCode(function(){
           _t_helpers.destroyTestClient(function(){
-            done();
+            Post.remove({}, function(err){
+              if(err) throw err;
+              done();
+            })
           });
         });
       });
@@ -143,9 +146,12 @@ describe('User Route Unit Tests', function(done){
             json: true,
             strictSSL: false,
             headers: {"Authorization" : auth_header},
-            body: {text: 'this is a test post', creator: testUser._id}
+            body: {text: 'this is a test post', creator: {id: testUser._id, name: testUser.first_name+ ' ' +testUser.last_name} }
           }, function(error, post){
-            console.log(post.body);
+            console.log(post.body.data[0]);
+            _expect(post.body.data[0]).to.have.property('_id');
+            _expect(post.body.data[0].target_id).to.equal(testUser._id.toString());
+            _expect(post.body.data[0].creator.id).to.equal(testUser._id.toString());
             done();
           });
         }else{
@@ -157,32 +163,31 @@ describe('User Route Unit Tests', function(done){
     it('should allow you to page posts', function(done){
       _t_helpers.createTestUser(function(user){
         if(user){
-          testUser = user;
-          user.posts.push(new Post({text: 'test test tes',  type: 'posts', creator: testUser._id}));
-          user.posts.push(new Post({text: 'test test tes2', type: 'posts', creator: testUser._id, create_date: Date.now() + 10 * 60 * 100}));
-          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: Date.now() - 10 * 60 * 100}));
-          user.posts.push(new Post({text: 'test test tes3', type: 'posts', creator: testUser._id, create_date: Date.now() - 5 * 60 * 100}));
-          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: Date.now() + 20 * 60 * 100}));
-          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: Date.now() + 30 * 60 * 100}));
-          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: Date.now() + 2 * 60 * 60 * 1000}));
-          user.posts.push(new Post({text: 'test test tes3', type: 'posts',creator: testUser._id, create_date: new Date() + 60 * 60 * 100}));
-          user.save(function(error, result){
+          var posts = [
+            {text: 'test test tes1',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() - 10 * 60 * 1000},
+            {text: 'test test tes2',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() - 60 * 60 * 100},
+            {text: 'test test tes3',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 60 * 60 * 1000},
+            {text: 'test test tes4',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 1 * 60 * 60 * 1000},
+            {text: 'test test tes5',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 45 * 60 * 1000},
+            {text: 'test test tes6',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 10 * 60 * 1000},
+            {text: 'test test tes7',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 2 * 10 * 60 * 1000},
+            {text: 'test test tes8',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() - 1 * 60 * 60 * 1000},
+            {text: 'test test tes9',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 10 * 60 * 60 * 1000},
+            {text: 'test test tes10',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() - 10 * 60 * 60 * 1000},
+            {text: 'test test tes11',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 30 * 60 * 1000},
+            {text: 'test test tes12',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 15 * 60 * 1000},
+            {text: 'test test tes13',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 10 * 60 * 100}
+          ];
+
+          Post.create(posts, function(error, result){
             if(error){
               _expect(false).to.be.true;
+
               done();
             }else{
-
-              // User.aggregate({$project: { "posts":1}}, 
-              //   {$match: {"posts.create_date" : {$gte: (new Date())}}}, 
-              //   {$unwind: "$posts"}, 
-              //   {$sort: {"posts.create_date": -1}}, 
-              //   {$limit: 4},
-              //   function(error, result){
-              //     console.log(result);
-              //     done();
-              //   });
-              var fetch_url = 'https://localhost:3000/users/'+user._id+'/posts?count=4&feature_identifier='+Date.now()
-
+              var fi = new Date();
+              var fetch_url = 'https://localhost:3000/users/'+user._id+'/posts?limit=5&feature_identifier='+fi.toISOString()
+              console.log(fetch_url);
               var auth_header = 'Bearer ' + testToken.access_token;
               _request({
                 method: 'GET',
@@ -192,7 +197,11 @@ describe('User Route Unit Tests', function(done){
                 headers: {"Authorization" : auth_header}
                 
               }, function(error, post){
-                console.log(post.body);
+                _expect(error).to.be.null;
+                _expect(post.body.data).to.have.length(5);
+                post.body.data.forEach(function(apost){
+                  _expect(new Date(apost.create_date).valueOf()).to.be.above(fi.valueOf());
+                });
                 done();
               });
             }

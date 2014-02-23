@@ -42,8 +42,84 @@ exports.prismResponse = function(res, data, success, error, force_status_code){
   
   if(force_status_code){
     res.statusCode = force_status_code;
+  }else{
+    if(error && error.status_code) res.statusCode = error.status_code;
   }
+
   res.send(response);
+}
+
+/**
+ * [parsedQueryOptions description]
+ * @param  {[type]} query_params [description]
+ * @return {[type]}              [description]
+ */
+exports.parsedQueryOptions = function(query_params) {
+  var options = {};
+  var obj = {};
+
+  if(typeof(query_params) !== 'undefined'){
+    options.fields = {}
+
+    if(typeof(query_params.fields) !== 'undefined'){
+      var fields = query_params.fields.split(',');
+      for (var i = fields.length - 1; i >= 0; i--) {
+        options.fields[fields[i]] = 1;
+      }
+
+    }else{
+      query_params.fields = options.fields;
+    }
+
+    if(typeof(query_params.skip) !== 'undefined'){
+      options.skip = query_params.skip;
+
+    }else {
+      options.skip = query_params.skip;
+    }
+
+    if(typeof(query_params.sort_field) !== 'undefined'){
+      obj[query_params.sort_field] = -1;;
+      options.sort = obj;
+    
+    }else {
+      obj['create_date'] = -1;
+      options.sort = obj;
+    }
+
+    options.limit = (typeof(query_params.limit) !== 'undefined' ? query_params.limit : 30);
+    return options;
+  
+  }else {
+    return null;
+  }
+}
+
+/**
+ * [buildQueryObject description]
+ * @param  {[type]}  model              [description]
+ * @param  {[type]}  criteria           [description]
+ * @param  {[type]}  options            [description]
+ * @param  {Boolean} is_aggregate_query [description]
+ * @return {[type]}                     [description]
+ */
+exports.buildQueryObject = function(model, criteria, options, is_aggregate_query){
+  if(!is_aggregate_query){
+    var query = model.find(criteria);
+      
+    if(options !== null){
+      if(typeof(options.skip) !== 'undefined') query.skip(options.skip);
+      if(typeof(options.sort) !== 'undefined') query.sort(options.sort);
+      if(typeof(options.limit) !== 'undefined') query.limit(options.limit);
+      if(typeof(options.fields) !== 'undefined') query.select(options.fields);
+    }
+    return query;
+    
+  }else{
+    //TODO: add aggregation query builder
+    return null;
+  }
+  return null;
 }
 
 /**

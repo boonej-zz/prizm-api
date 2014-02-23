@@ -37,6 +37,12 @@ module.exports = function(req, res, next){
   }
 }
 
+/**
+ * Checks to see if the route/request needs authentication
+ * 
+ * @param  {String} req_path The request path
+ * @return {Boolean}          Returns true/false based on path
+ */
 var needsAuthorization = function(req_path){
   var path = req_path;
   if(path && path[0] == 'oauth2' ){
@@ -45,6 +51,13 @@ var needsAuthorization = function(req_path){
   return true;
 }
 
+/**
+ * Validates the authorization header
+ * 
+ * @param  {HTTPRequest}   req The request object
+ * @param  {Function} callback The callback function to be invoked
+ * @return {Boolean}           Returns true/false in callback
+ */
 var validateAuthorization = function(req, callback){
   _utils.authorizeClientRequest(req, function(err, valid, client){
     if(err) _logger.log('error','Utils authorize Client Request returned an error!',

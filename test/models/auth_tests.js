@@ -138,7 +138,7 @@ describe('Auth Model Unit Tests', function(done){
       })
       it('should set the date_expires and add an additional 10m', function(done){
         var futureDateToValidate = Date.now() + (10 * 60 * 1000);
-        currentToken.date_expires.valueOf().should.be.within(futureDateToValidate.valueOf() -2, futureDateToValidate.valueOf() +2)
+        currentToken.date_expires.valueOf().should.be.within(futureDateToValidate.valueOf() -5, futureDateToValidate.valueOf() +5)
         done()
       })
       it('should set the refresh_token when save is invoked', function(done){

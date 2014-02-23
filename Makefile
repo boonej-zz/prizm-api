@@ -7,11 +7,14 @@ NODE_ENV				:= $(shell if [ "$(SERVER_IP)" = "192.168.0.108" ]; then echo "devel
 test:
 	@NODE_ENV=test node_modules/.bin/mocha --reporter $(REPORTER) --timeout $(MOCHA_TIMEOUT) --colors --recursive
 
+test-debug:
+	@NODE_ENV=test node_modules/.bin/mocha --reporter $(REPORTER) --timeout $(MOCHA_TIMEOUT) --colors --recursive debug
+
 start:
 	@NODE_ENV=$(NODE_ENV) node server.js
 
 start-local:
 	@NODE_ENV=local node server.js
 
-.PHONY: test start
+.PHONY: test start test-debug
 

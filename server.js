@@ -11,7 +11,6 @@ var _express        = require('express')
   , _http           = require('http')
   , _fs             = require('fs')
   , _https          = require('https')
-  , _passport       = require('passport')
   , _prism_home     = process.env.PRISM_HOME
   , _prism_auth     = require(_prism_home + 'routes/oauth2/auths')
   , _prism_token    = require(_prism_home + 'routes/oauth2/tokens')
@@ -109,7 +108,6 @@ process.on('uncaughtException', function (err) {
 /* Root Endpoint */
 _app.get('/', function(req,res){ res.send('Welcome to the Prism API') });
 
-/*************** Prism Auth Endpoints *********************/
 /* Authentication Code Endpoint */
 _app.get('/oauth2/authorize', _prism_auth);
 
@@ -125,7 +123,6 @@ _app.post('/oauth2/token', _prism_token);
 /* User Login/Authentication */
 _app.post('/oauth2/login', _gateway, _prism_user.login);
 
-/**************** Prism User Endpoints ********************/
 /* Create/Register User Route */
 _app.post('/users', _gateway, _prism_user.register);
 
