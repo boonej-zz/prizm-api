@@ -50,7 +50,7 @@ exports.login = function(req, res){
           delete user.likes;
           delete user.comments;
           delete user.provider_token;
-          if(!typeof(user.provider_token_secret) == 'undefined') delete user.provider_token_secret;
+          if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
           _utils.prismResponse( res, user , true);
         }
       });
@@ -216,14 +216,14 @@ exports.createUserPost = function(req, res){
   if(req.params.id){
     if(req.body.text || req.body.file_path){
       var post = new Post({
-        type: 'post',
+        category: req.body.category,
         creator: req.body.creator
       });
 
-      if(req.body.location && req.body.location != 'undefined'){
-        post.location.longitude = req.body.location.longitude,
-        post.location.latitude = req.body.location.latitude
-        post.location.name = req.body.location.name;
+      if(req.body.location_longitude != 'undefinded' && req.body.location_latitude != 'undefined'){
+        post.location_longitude = req.body.location_longitude;
+        post.location_latitude = req.body.location_latitude;
+        post.location_name = req.body.location_name;
       }
 
       if(req.body.file_path && req.body.file_path != 'undefined') post.file_path = req.body.file_path;
@@ -252,19 +252,19 @@ exports.createUserPost = function(req, res){
         }
       });
     }else{
-      _logger.error('Invalid Request for create posts.' 
-                    +' Missing either text or file_path ', {request_body: req.body});
+      _logger.error('Invalid Request for create posts.' +
+                    ' Missing either text or file_path ', {request_body: req.body});
       _utils.prismResponse(res, null, false, Error.invalidRequest,
                                               Error.invalidRequest.status_code);
     }
 
   }else{
-    _logger.error('Invalid request for create posts.'
-                  +' Missing user id', {request_params: req.params});
+    _logger.error('Invalid request for create posts. '+
+                  ' Missing user id', {request_params: req.params});
     _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
                                             Error.invalidUserRequest.status_code);
   }
-}
+};
 
 /**
  * Fetchs Prism Users posts
@@ -283,7 +283,6 @@ exports.fetchUserPosts = function(req, res){
     if(req.query){
       fetch_options = _utils.parsedQueryOptions(req.query);
       if(req.query.feature_identifier){
-        debugger;
         if(req.query.direction && req.query.direction == 'older'){
           fetch_criteria = {target_id: req.params.id, create_date: { $lt: req.query.feature_identifier}};
         }else{
@@ -297,11 +296,9 @@ exports.fetchUserPosts = function(req, res){
       fetch_criteria = {_id: req.params.id};
       fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
     }
-    debugger;
     _logger.info('logging fetch_options: ', fetch_options);
 
     fetch_query.exec(function(error, user_posts){
-      debugger;
 
       if(error){
         _logger.error('error', 'Error retrieving by user_id: ', req.params.id);
@@ -315,7 +312,7 @@ exports.fetchUserPosts = function(req, res){
     _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
                                             Error.invalidUserRequest.status_code);
   }
-}
+};
 
 /**
  * Validates the required User properties are present 

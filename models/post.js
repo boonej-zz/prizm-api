@@ -14,23 +14,23 @@ var _mongoose   = require('mongoose')
  * @type {Mongoose.Schema}
  */
 var postSchema = new _mongoose.Schema({
-	text 						: {type: String, default: null},
-	type 						: {type: String, required:true},
-	create_date			: {type: Date, default:null, index: true},
-	modify_date			: {type: Date, default: Date.now()},
-	delete_date			: {type: Date, default: null},
-	scope 					: {type: String, default: 'public'},
-	location_name				: {name: String, default: null},
+	text 								: {type: String, default: null},
+	category 						: {type: String, required:true},
+	create_date					: {type: Date, default:null, index: true},
+	modify_date					: {type: Date, default: Date.now()},
+	delete_date					: {type: Date, default: null},
+	scope 							: {type: String, default: 'public'},
+	location_name				: {type: String, default: null},
 	location_longitude	: {type: Number, default: 0},
 	location_latitude 	: {type: Number, default: 0},
-	creator 				: {id: String, name: String},
-	target_id				: {type: String, required: true},
-	status 					: {type: String, default: 'active'},
-	file_path 			: {type: String, default: ''},
-	likes_count 		: Number,
- 	comments_count 	: Number,
- 	comments 				: [],
- 	likes 					: []
+	creator 						: {id: String, name: String},
+	target_id						: {type: String, required: true},
+	status 							: {type: String, default: 'active'},
+	file_path 					: {type: String, default: ''},
+	likes_count 				: Number,
+ 	comments_count 			: Number,
+ 	comments 						: [],
+ 	likes 							: []
 }, { versionKey: false});
 
 

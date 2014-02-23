@@ -19,15 +19,16 @@ describe('Post Model Unit Tests', function(done){
 		it('should create post record successfully with requried fields', function(done){
 			var post = new Post({
 				text : 'this is the body of the test post',
-				type : 'post',
+				category : 'post',
 				target_id: '123sefsdfsjkj34',
 				creator : {id: '123sefsdfsjkj34', name: 'Richard Tester'}
+
 			});
 
 			post.save(function(error, result){
 				var date = Date.now();
 				_expect(result).to.have.property('text');
-				_expect(result).to.have.property('type');
+				_expect(result).to.have.property('category');
 				_expect(result).to.have.property('target_id');
 				_expect(result).to.have.property('creator');
 				_expect(result).to.have.property('create_date');

@@ -43,11 +43,11 @@ describe('User Route Unit Tests', function(done){
             Post.remove({}, function(err){
               if(err) throw err;
               done();
-            })
+            });
           });
         });
       });
-    })
+    });
   });
 
   describe('Testing User Login', function(done){
@@ -137,8 +137,7 @@ describe('User Route Unit Tests', function(done){
         if(user){
           testUser = user;
 
-          var fetch_url = 'https://localhost:3000/users/'
-                          + testUser._id + '/posts';
+          var fetch_url = 'https://localhost:3000/users/' + user._id + '/posts';
           var auth_header = 'Bearer ' + testToken.access_token;
           _request({
             method: 'POST',
@@ -146,47 +145,81 @@ describe('User Route Unit Tests', function(done){
             json: true,
             strictSSL: false,
             headers: {"Authorization" : auth_header},
-            body: {text: 'this is a test post', creator: {id: testUser._id, name: testUser.first_name+ ' ' +testUser.last_name} }
+            body: {
+              text: 'this is a test post', 
+              creator: {
+                id: testUser._id, 
+                name: testUser.first_name+ ' ' +testUser.last_name
+              },
+              category: 'experience' 
+            }
           }, function(error, post){
-            console.log(post.body.data[0]);
+            // console.log(error);
+            // console.log(JSON.stringify(post.body));
             _expect(post.body.data[0]).to.have.property('_id');
             _expect(post.body.data[0].target_id).to.equal(testUser._id.toString());
             _expect(post.body.data[0].creator.id).to.equal(testUser._id.toString());
             done();
           });
         }else{
-          _expect(false).to.be.true;
+          _expect(false).to.equal(true);
           done();
         }
+      });
+    });
+    it('should save your location details when creating a post', function(done){
+      _t_helpers.createTestUser(function(user){
+          testUser = user;
+
+        var location_name = 'Location Test';
+        var location_longitude = 34.3434;
+        var location_latitude = 3.12312323;
+        var fetch_url = 'https://localhost:3000/users/' + testUser._id + '/posts';
+        var auth_header = 'Bearer ' + testToken.access_token;
+        _request({
+          method: 'POST',
+          url: fetch_url,
+          json: true,
+          strictSSL: false,
+          headers: {"Authorization" : auth_header},
+          body: { 
+                  text: 'test post with location', 
+                  creator: {
+                    id: testUser._id, 
+                    name: testUser.first_name+' '+testUser.last_name
+                  },
+                  location_name: location_name,
+                  location_latitude: location_latitude,
+                  location_longitude: location_longitude,
+                  category: 'experience' 
+                }
+        }, function(error, result){
+          _expect(result.body.data[0]).to.have.property('location_name');
+          _expect(result.body.data[0]).to.have.property('location_longitude');
+          _expect(result.body.data[0]).to.have.property('location_latitude');
+          _expect(result.body.data[0].location_name).to.equal('Location Test');
+          _expect(result.body.data[0].location_latitude).to.be.a('Number');
+          _expect(result.body.data[0].location_longitude).to.be.a('Number');
+          _expect(result.body.data[0].location_latitude).to.equal(3.12312323);
+          _expect(result.body.data[0].location_longitude).to.equal(34.3434);
+          done();
+        });
       });
     });
     it('should allow you to page posts', function(done){
       _t_helpers.createTestUser(function(user){
         if(user){
-          var posts = [
-            {text: 'test test tes1',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() - 10 * 60 * 1000},
-            {text: 'test test tes2',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() - 60 * 60 * 100},
-            {text: 'test test tes3',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 60 * 60 * 1000},
-            {text: 'test test tes4',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 1 * 60 * 60 * 1000},
-            {text: 'test test tes5',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 45 * 60 * 1000},
-            {text: 'test test tes6',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 10 * 60 * 1000},
-            {text: 'test test tes7',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 2 * 10 * 60 * 1000},
-            {text: 'test test tes8',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() - 1 * 60 * 60 * 1000},
-            {text: 'test test tes9',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 10 * 60 * 60 * 1000},
-            {text: 'test test tes10',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() - 10 * 60 * 60 * 1000},
-            {text: 'test test tes11',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 30 * 60 * 1000},
-            {text: 'test test tes12',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 15 * 60 * 1000},
-            {text: 'test test tes13',  type: 'posts', creator: testUser._id, target_id: user._id, create_date: Date.now() + 10 * 60 * 100}
-          ];
+          testUser = user;
+          var posts = _t_helpers.fetchFakePostsArray(testUser,user);
 
           Post.create(posts, function(error, result){
             if(error){
-              _expect(false).to.be.true;
+              _expect(false).to.equal(true);
 
               done();
             }else{
               var fi = new Date();
-              var fetch_url = 'https://localhost:3000/users/'+user._id+'/posts?limit=5&feature_identifier='+fi.toISOString()
+              var fetch_url = 'https://localhost:3000/users/'+user._id+'/posts?limit=5&feature_identifier='+fi.toISOString();
               console.log(fetch_url);
               var auth_header = 'Bearer ' + testToken.access_token;
               _request({
@@ -197,7 +230,7 @@ describe('User Route Unit Tests', function(done){
                 headers: {"Authorization" : auth_header}
                 
               }, function(error, post){
-                _expect(error).to.be.null;
+                _expect(error).to.equal(null);
                 _expect(post.body.data).to.have.length(5);
                 post.body.data.forEach(function(apost){
                   _expect(new Date(apost.create_date).valueOf()).to.be.above(fi.valueOf());
@@ -237,7 +270,7 @@ describe('User Route Unit Tests', function(done){
             done();
           });
         }else{
-          _expect(false).to.be.true;
+          _expect(false).to.equal(true);
           done();
         }
       });

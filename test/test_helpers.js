@@ -6,9 +6,10 @@ var _prism_home		= process.env.PRISM_HOME
   , Code 					= _auth_models.Code
   , User					= require(_prism_home + 'models/user').User;
 
+
 exports.fetchAuthHeader = function(id, secret){
   return "Basic " + (new Buffer(id + ':' + secret).toString('base64'));
-}
+};
 
 exports.createTestClient = function(callback){
 	var test = new Client({
@@ -18,15 +19,15 @@ exports.createTestClient = function(callback){
     }).save(function(error, client){
       if(error) throw error;
       callback(client);
-    })
-}
+    });
+};
 
 exports.destroyTestClient = function(callback){
 	Client.remove({}, function(err){
-  	if(err) throw err;
-  	callback();
+    if(err) throw err;
+    callback();
   });
-}
+};
 
 exports.createTestCode = function(callback){
 	var newCode = new Code({
@@ -36,14 +37,33 @@ exports.createTestCode = function(callback){
     if(error) throw error;
     callback(code);
   });
-}
+};
 
 exports.destroyTestCode = function(callback){
 	Code.remove({}, function(err){
-	  if(err) throw err;
-	  callback();
+    if(err) throw err;
+    callback();
   });
-}
+};
+
+exports.fetchFakePostsArray = function(testUser, user){
+  var posts = [
+            {text: 'test test tes1', creator: testUser._id, target_id: user._id, category: 'experience', create_date: Date.now() - 10 * 60 * 1000},
+            {text: 'test test tes2', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 60 * 60 * 100},
+            {text: 'test test tes3', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 60 * 60 * 1000},
+            {text: 'test test tes4', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 1 * 60 * 60 * 1000},
+            {text: 'test test tes5', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 45 * 60 * 1000},
+            {text: 'test test tes6', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 1000},
+            {text: 'test test tes7', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 2 * 10 * 60 * 1000},
+            {text: 'test test tes8', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 1 * 60 * 60 * 1000},
+            {text: 'test test tes9', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 60 * 1000},
+            {text: 'test test tes10', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 10 * 60 * 60 * 1000},
+            {text: 'test test tes11', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 30 * 60 * 1000},
+            {text: 'test test tes12', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 15 * 60 * 1000},
+            {text: 'test test tes13', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 100}
+          ];
+  return posts;
+};
 
 exports.createTestToken = function(callback){
 	var testClient = new Client({
@@ -63,14 +83,14 @@ exports.createTestToken = function(callback){
       });
     });
   });
-}
+};
 
 exports.destroyTestToken = function(callback){
 	Token.remove({}, function(err){
     if(err) throw err;
-  	callback();    
+    callback();    
   });
-}
+};
 
 exports.createTestUser = function(callback){
 	var testUser = new User({
@@ -82,11 +102,11 @@ exports.createTestUser = function(callback){
 		if(err) throw err;
 		callback(result);
 	});
-}
+};
 
 exports.destroyTestUser = function(callback){
 	User.remove({}, function(err){
 		if(err) throw err;
 		callback();
 	});
-}
+};
