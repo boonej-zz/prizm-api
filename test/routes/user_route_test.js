@@ -147,18 +147,14 @@ describe('User Route Unit Tests', function(done){
             headers: {"Authorization" : auth_header},
             body: {
               text: 'this is a test post',
-              creator: {
-                id: testUser._id,
-                name: testUser.first_name+ ' ' +testUser.last_name
-              },
+              creator: testUser._id,
               category: 'experience'
             }
           }, function(error, post){
-            // console.log(error);
-            // console.log(JSON.stringify(post.body));
+            console.log(error);
             _expect(post.body.data[0]).to.have.property('_id');
             _expect(post.body.data[0].target_id).to.equal(testUser._id.toString());
-            _expect(post.body.data[0].creator.id).to.equal(testUser._id.toString());
+            _expect(post.body.data[0].creator._id).to.equal(testUser._id.toString());
             done();
           });
         }else{
@@ -184,10 +180,7 @@ describe('User Route Unit Tests', function(done){
           headers: {"Authorization" : auth_header},
           body: {
                   text: 'test post with location',
-                  creator: {
-                    id: testUser._id,
-                    name: testUser.first_name+' '+testUser.last_name
-                  },
+                  creator: testUser._id,
                   location_name: location_name,
                   location_latitude: location_latitude,
                   location_longitude: location_longitude,
@@ -214,7 +207,7 @@ describe('User Route Unit Tests', function(done){
           var posts = _t_helpers.fetchFakePostsArray(testUser,user);
 
           Post.create(posts, function(error, result){
-            debugger;
+
             if(error){
               _expect(false).to.equal(true);
 

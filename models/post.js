@@ -23,10 +23,11 @@ var postSchema = new _mongoose.Schema({
 	location_name				: {type: String, default: null},
 	location_longitude	: {type: Number, default: 0},
 	location_latitude 	: {type: Number, default: 0},
-	creator 						: { id: {type: String, required: true},
-                          name: {type: String, default: ''},
-                          profile_photo_url: {type: String, default: ''}
-                        },
+	// creator 						: { id: {type: String, required: true},
+ //                          name: {type: String, default: ''},
+ //                          profile_photo_url: {type: String, default: ''}
+ //                        },
+  creator             : {type: _mongoose.Schema.Types.ObjectId, ref: 'User'},
 	target_id						: {type: String, required: true},
 	status 							: {type: String, default: 'active'},
 	file_path 					: {type: String, default: ''},
@@ -35,22 +36,6 @@ var postSchema = new _mongoose.Schema({
  	comments 						: [],
  	likes 							: []
 }, { versionKey: false});
-
-postSchema.methods.fetchPostCreator = function(cb){
-  var self = this;
-  if(self.creator.id){
-    User.findOne({_id: self.creator.id}, function(error, result){
-      if(!error && result){
-        self.creator.profile_photo_url = result.profile_photo_url;
-        self.creator.name = result.first_name + ' ' + result.last_name;
-        cb(true);
-
-      }else{
-        cb(false);
-      }
-    });
-  }
-};
 
 /**
  * Pre Save/Creation Injection
@@ -66,9 +51,6 @@ postSchema.pre('save', function(next){
 	this.modify_date = Date.now();
 	if(!this.create_date){
 		this.create_date = Date.now();
-    this.fetchPostCreator(function(creator_found){
-      if(!creator_found) next(false);
-    });
 	}
 	next();
 });

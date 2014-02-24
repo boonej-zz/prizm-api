@@ -238,6 +238,7 @@ exports.createUserPost = function(req, res){
         }else{
           post.target_id = user._id;
           post.save(function(error, user_post){
+
             if(error){
               _logger.log('error', 'Error trying to create/save a new post',
                           { post_object: post,
@@ -247,7 +248,12 @@ exports.createUserPost = function(req, res){
               _utils.prismResponse(res, null, false, Error.invalidUserRequest);
 
             }else{
-              _utils.prismResponse(res, user_post, true);
+              Post.findOne({_id: user_post._id})
+              .populate('creator', 'first_name last_name profile_photo_url')
+              .exec(function(err, usr){
+
+                _utils.prismResponse(res, usr, true);
+              });
             }
           });
         }
@@ -266,6 +272,8 @@ exports.createUserPost = function(req, res){
                                             Error.invalidUserRequest.status_code);
   }
 };
+
+
 
 /**
  * Fetchs Prism Users posts
@@ -302,14 +310,19 @@ exports.fetchUserPosts = function(req, res){
     }
     _logger.info('logging fetch_options: ', fetch_options);
 
-    fetch_query.exec(function(error, user_posts){
+    var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
+    fetch_query.populate(fetch_populate).exec(function(error, user_posts){
 
       if(error){
         _logger.error('error', 'Error retrieving by user_id: ', req.params.id);
         _utils.prismResponse(res, null, false, Error.invalidUserRequest);
 
       }else{
-        _utils.prismResponse(res, user_posts, true);
+
+
+          _utils.prismResponse(res, user_posts, true);
+        // debugger;
+        // _utils.prismResponse(res, user_posts, true);
       }
     });
   }else{
