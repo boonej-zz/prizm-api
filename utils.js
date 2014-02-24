@@ -113,7 +113,7 @@ exports.buildQueryObject = function(model, criteria, options, is_aggregate_query
       if(typeof(options.limit) !== 'undefined') query.limit(options.limit);
       if(typeof(options.fields) !== 'undefined') query.select(options.fields);
     }
-    debugger;
+
     return query;
 
   }else{

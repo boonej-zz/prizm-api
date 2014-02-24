@@ -17,9 +17,9 @@ module.exports = function(req, res){
   var fetch_criteria = {},
       fetch_options = null,
       fetch_query;
-
-  fetch_options = _utils.parsedQueryOptions(req.query);
-  if(req.query.length > 0){
+debugger;
+  if(req.query && req.query.limit || req.query.feature_identifier){
+    fetch_options = _utils.parsedQueryOptions(req.query);
     if(req.query.feature_identifier){
       if(req.query.direction){
         fetch_criteria = {scope: 'public', create_date: { $lt: req.query.feature_identifier}};
@@ -28,13 +28,13 @@ module.exports = function(req, res){
           fetch_criteria = {scope: 'public', create_date: { $gt: req.query.feature_identifier}};
         }
 
-        fetch_query = utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+        fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }
 
   }else{
-    if(!fetch_criteria.length > 0) fetch_criteria = {scope: 'public'};
+    if(!fetch_options) fetch_options = _utils.parsedQueryOptions(req.query);
+    if(fetch_criteria == {}) fetch_criteria = {scope: 'public'};
     fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
-
   }
 
   var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];

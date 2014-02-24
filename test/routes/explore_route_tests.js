@@ -18,10 +18,14 @@ var _mongoose     = require('mongoose')
   , User          = require(_prism_home + 'models/user').User;
 
 describe('Explore Route Unit Tests', function(done){
+  var test_date = Date.now() + 9 * 60 * 60 * 1000;
+  test_date = new Date(test_date);
+  var fetch_url = 'https://localhost:3000/explore?feature_identifier=' + test_date.toISOString();
   var testUser = null;
   var testClient = null;
   var testCode = null;
   var testToken = null;
+
 
   beforeEach(function(done){
     _t_helpers.createTestUser(function(user){
@@ -36,8 +40,11 @@ describe('Explore Route Unit Tests', function(done){
   });
 
   describe('Testing /explore fetching all posts for explore', function(done){
+    // before(function(done){
+
+    // });
+
     it('should return all public posts sorted by a desc create_date', function(done){
-      var fetch_url = 'https://localhost:3000/explore';
       var auth_headers = 'Bearer ' + testToken.access_token;
       var posts = _t_helpers.fetchFakePostsArray(testUser, testUser);
       Post.create(posts, function(error, postsCreated){
