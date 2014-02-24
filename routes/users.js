@@ -172,7 +172,7 @@ exports.register = function(req, res){
   }else{
     _utils.prismResponse(res, null, false, Error.invalidRequest, Error.invalidRequest.status_code);
   }
-}
+};
 
 /**
  * Fetchs Prism user object by identifier
@@ -190,9 +190,9 @@ exports.fetchUser = function(req, res){
                                                 Error.invalidUserRequest.status_code);
       }else{
         var user = result.toObject();
-          if(!typeof(user.password) == 'undefined') delete user.password;
-          if(!typeof(user.provider_token) == 'undefined') delete user.provider_token;
-          if(!typeof(user.provider_token_secret) == 'undefined') delete user.provider_token_secret;
+          if(typeof(user.password) !== 'undefined') delete user.password;
+          if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
+          if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
           delete user.posts;
           delete user.likes;
           delete user.comments;
@@ -204,7 +204,7 @@ exports.fetchUser = function(req, res){
     _utils.prismResponse(res, null, false, Error.invalidUserRequest,
                                             Error.invalidUserRequest.status_code);
   }
-}
+};
 
 /**
  * [createUserPost description]

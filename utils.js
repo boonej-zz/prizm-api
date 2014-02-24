@@ -39,7 +39,7 @@ exports.prismResponse = function(res, data, success, error, force_status_code){
     response['error'] = error.error_info;
     response['data'] = [];
   }
-  
+
   if(force_status_code){
     res.statusCode = force_status_code;
   }else{
@@ -81,7 +81,7 @@ exports.parsedQueryOptions = function(query_params) {
     if(typeof(query_params.sort_field) !== 'undefined'){
       obj[query_params.sort_field] = -1;;
       options.sort = obj;
-    
+
     }else {
       obj['create_date'] = -1;
       options.sort = obj;
@@ -89,7 +89,7 @@ exports.parsedQueryOptions = function(query_params) {
 
     options.limit = (typeof(query_params.limit) !== 'undefined' ? query_params.limit : 30);
     return options;
-  
+
   }else {
     return null;
   }
@@ -106,15 +106,16 @@ exports.parsedQueryOptions = function(query_params) {
 exports.buildQueryObject = function(model, criteria, options, is_aggregate_query){
   if(!is_aggregate_query){
     var query = model.find(criteria);
-      
+
     if(options !== null){
       if(typeof(options.skip) !== 'undefined') query.skip(options.skip);
       if(typeof(options.sort) !== 'undefined') query.sort(options.sort);
       if(typeof(options.limit) !== 'undefined') query.limit(options.limit);
       if(typeof(options.fields) !== 'undefined') query.select(options.fields);
     }
+    debugger;
     return query;
-    
+
   }else{
     //TODO: add aggregation query builder
     return null;

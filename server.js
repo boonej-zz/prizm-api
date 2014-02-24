@@ -6,20 +6,21 @@
 
 process.env["PRISM_HOME"] = process.cwd() + '/';
 
-var _express        = require('express')
-  , _mongoose       = require('mongoose')
-  , _http           = require('http')
-  , _fs             = require('fs')
-  , _https          = require('https')
-  , _prism_home     = process.env.PRISM_HOME
-  , _prism_auth     = require(_prism_home + 'routes/oauth2/auths')
-  , _prism_token    = require(_prism_home + 'routes/oauth2/tokens')
-  , _prism_user     = require(_prism_home + 'routes/users')
-  , _utils          = require(_prism_home + 'utils')
-  , _gateway        = require(_prism_home + 'gateway')
-  , _config         = require('config')
-  , _e_winston      = require('express-winston')
-  , _winston        = require('winston');
+var _express        = require('express'),
+    _mongoose       = require('mongoose'),
+    _http           = require('http'),
+    _fs             = require('fs'),
+    _https          = require('https'),
+    _prism_home     = process.env.PRISM_HOME,
+    _prism_auth     = require(_prism_home + 'routes/oauth2/auths'),
+    _prism_token    = require(_prism_home + 'routes/oauth2/tokens'),
+    _prism_user     = require(_prism_home + 'routes/users'),
+    _prism_explore  = require(_prism_home + 'routes/explore'),
+    _utils          = require(_prism_home + 'utils'),
+    _gateway        = require(_prism_home + 'gateway'),
+    _config         = require('config'),
+    _e_winston      = require('express-winston'),
+    _winston        = require('winston');
 
 var _app            = _express();
 var _httpserver     = _express();
@@ -102,7 +103,7 @@ _httpserver.get("*", function(req, res, next){
 });
 process.on('uncaughtException', function (err) {
     console.log(err);
-}); 
+});
 
 /********************** API ROUTES ************************/
 /* Root Endpoint */
@@ -114,7 +115,7 @@ _app.get('/oauth2/authorize', _prism_auth);
 /* Default Authorization Code RedirectUri Callback Endpoint - FOR PRISM MOBILE USE ONLY */
 _app.get('/callback', function(req, res){
 	var array = [{authorization_code: req.query.code}];
-	_utils.prismResponse( res, array, true); 
+	_utils.prismResponse( res, array, true);
 });
 
 /* Token Request Endpoint */
@@ -134,6 +135,9 @@ _app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
 
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
+
+/* Explore Route */
+_app.get('/explore', _gateway, _prism_explore);
 
 /* Testing Endpoints only */
 if(_app.get('env')  == 'test'){
