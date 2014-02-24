@@ -13,6 +13,12 @@ var _mongoose     = require('mongoose'),
     User          = require(_prism_home + 'models/user').User,
     Post          = require(_prism_home + 'models/post').Post;
 
+/**
+ * [follow description]
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
 exports.follow = function(req, res){
   if(req.body.creator && req.params.id){
     var follow_result = {followee: null, follower: null}, query, update_data;
@@ -83,18 +89,75 @@ exports.follow = function(req, res){
   }
 };
 
-exports.fetchFollowers = function(req, res){
+/**
+ * [fetchFollowing description]
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.fetchFollowing = function(req, res){
   if(req.params.id){
-    User.find({_id: req.params.id}, {'followers.$._id' : 1}, function(error, user){
-      debugger;
+    User.find({_id: req.params.id}, {following: 1}, function(error, user){
       if(error){
         _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
 
       }else{
+        var following_array = [];
+        for(var i = 0; i < user[0].following.length; i++){
+          following_array.push(user[0].following[i]._id);
+        }
 
+        console.log(following_array);
+
+        User.find(
+          {_id : {$in: following_array}},
+          {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
+          function(err, result){
+            console.log(result);
+            _utils.prismResponse(res, result, true);
+        });
       }
     });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
+
+/**
+ * [fetchFollowers description]
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.fetchFollowers = function(req, res){
+  if(req.params.id){
+    User.find({_id: req.params.id}, {followers : 1}, function(error, user){
+      // debugger;
+      if(error){
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+
+      }else{
+        var followers_array = [];
+        for(var i = 0; i < user[0].followers.length; i++){
+          followers_array.push(user[0].followers[i]._id);
+        }
+
+        console.log(followers_array);
+
+        User.find(
+          {_id: {$in : followers_array}},
+          {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
+          function(err, result){
+            console.log(result);
+            _utils.prismResponse(res, result, true);
+        });
+
+        // _utils.prismResponse(res, user, true);
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+

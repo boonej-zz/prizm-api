@@ -37,7 +37,7 @@ var userSchema = new _mongoose.Schema({
   delete_date           : {type: Date, default: null},
   last_login_date       : {type: Date, default: null},
   status                : {type: Number, default: 0},
-  posts_count           : {type: Number, default: null},
+  posts_count           : {type: Number, default: 0},
   following             : [],
   followers             : [],
   following_count       : {type: Number, default: 0},

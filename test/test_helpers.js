@@ -46,6 +46,18 @@ exports.destroyTestCode = function(callback){
   });
 };
 
+exports.fetchFakeUsersArray = function(){
+  var users = [
+    {first_name: 'mark', last_name: 'zuckerberg', email: 'don.juan@awesome.com', password: 'pass123', profile_photo_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYi9HtZArUiI9FeoRfuITjXZ1fQWg5W9fK6gimm02MwaRnGneSdK8Cc_pivpeLktVye6U'},
+    {first_name: 'edwardo', last_name: 'saverin', email: 'don.juan1@awesome.com', password: 'pass123', profile_photo_url: 'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRgH-YDfVCRISQlMmmV14Ufajqad3-Nt3HillHP56iOUCuLg3rxaO7nQ5okbBQF_5acMQE'},
+    {first_name: 'cameron', last_name: 'winklevoss', email: 'don.juan2@awesome.com', password: 'pass123', profile_photo_url: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTfpTtJLqJ8iWq4HhiMEmbrA42GPUNdVCLX0tviiJ9UQ-xQ7gRgv0aQD1we6oALpUxyYBA'},
+    {first_name: 'erica', last_name: 'albright', email: 'don.juan4@awesome.com', password: 'pass123', profile_photo_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThtTCT3PV3toz1Hp5DhpqAeAWpuZOETwkoXw7ZL6QJ-bgTq2nzKNV1XQPDGuGQgoM-iQM'},
+    {first_name: 'sean', last_name: 'parker', email: 'don.juan5@awesome.com', password: 'pass123', profile_photo_url: 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSbsO8l6rTC-yIwFys2c7dSQ4HJlOBQmtedvC6R2dQBQp88RVKVzyR_a593IsGkklreG2k'},
+    {first_name: 'maryolin', last_name: 'deploy', email: 'don.juan6@awesome.com', password: 'pass123', profile_photo_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfBCpd7yf1VL-k-GLDFrf7mx0EE1YHYEqoZL6EymNeaajL9tqR9_CFrU6LhL5oJcK_TVc'}
+  ];
+  return users;
+};
+
 exports.fetchFakePostsArray = function(testUser, user){
   var posts = [
             {text: 'test test tes1', creator: testUser._id, target_id: user._id, category: 'experience', create_date: Date.now() - 10 * 60 * 1000},

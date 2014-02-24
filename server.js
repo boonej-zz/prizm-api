@@ -138,13 +138,13 @@ _app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
 _app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
 
 /* Fetch Users followers */
-_app.get('/usres/:id/followers', _gateway, _prism_follow.fetchFollowers);
+_app.get('/users/:id/followers', _gateway, _prism_follow.fetchFollowers);
 
 /* Fetch Users following */
+_app.get('/users/:id/following', _gateway, _prism_follow.fetchFollowing);
 
 /* Follow a User */
 _app.post('/users/:id/follow', _gateway, _prism_follow.follow);
-
 
 /* UnFollow a User */
 // _app.post('/users/:id/unfollow', _gateway, _prism_follow.unfollow);
