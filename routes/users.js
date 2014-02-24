@@ -21,7 +21,7 @@ var _mongoose     = require('mongoose')
  * Handles authenticating user login request
  *
  * TODO: create session on success & add logout to destroy session
- * 
+ *
  * @param  {HTTPRequest} req The request object
  * @param  {HTTPResponse} res The response object
  * @return {User} Returns a valid user object
@@ -31,7 +31,7 @@ exports.login = function(req, res){
     if(isSocialProvider(req.body)){
       handleSocialProviderLogin(req.body, function(error, result){
         if(error || result === false){
-          //social login failure - user does not exist or 
+          //social login failure - user does not exist or
           //failire to authenticate with social provider
           if(error){
           	_utils.prismResponse( res,
@@ -40,8 +40,8 @@ exports.login = function(req, res){
                                 	error,
                                 	error.status_code);
       	  }else{
-      		_utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist, 
-                                                  Error.invalidLoginUserDoesNotExist.status_code);	
+      		_utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist,
+                                                  Error.invalidLoginUserDoesNotExist.status_code);
       		}
         }else{
           //succesful login - send back returned user object
@@ -57,7 +57,7 @@ exports.login = function(req, res){
     }else{
       User.findOne({email: req.body.email}, function(error, result){
         if(error){
-          _utils.prismResponse( res, 
+          _utils.prismResponse( res,
                                 null,
                                 false,
                                 Error.invalidLoginUserDoesNotExist,
@@ -66,14 +66,14 @@ exports.login = function(req, res){
           if(hashAndValidatePassword(result, req.body.password)){
             _utils.prismResponse(res, result, true, null, null);
           }else{
-	         _utils.prismResponse( res, 
-                                 null, 
+	         _utils.prismResponse( res,
+                                 null,
                                 false,
                                 Error.invalidUserCredentials,
                                 Error.invalidUserCredentials.status_code );
-          } 
+          }
         }else{
-          _utils.prismResponse( res, 
+          _utils.prismResponse( res,
                                 null,
                                 false,
                                 Error.invalidLoginUserDoesNotExist,
@@ -82,8 +82,8 @@ exports.login = function(req, res){
       });
     }
   }else{
-    _utils.prismResponse( res, 
-                          null, 
+    _utils.prismResponse( res,
+                          null,
                           false,
                           Error.invalidLoginRequest,
                           Error.invalidLoginRequest.status_code );
@@ -92,14 +92,14 @@ exports.login = function(req, res){
 
 /**
  * Handles User creation if user does not exist
- * 
+ *
  * @param  {HTTPRequest} req The request object
  * @param  {HTTPResponse} res The response object
  * @return {User} Returns the newly created User object
  */
 exports.register = function(req, res){
   if(isValidRegisterRequest(req)){
-    //Handle traidtional registration -- 
+    //Handle traidtional registration --
     var newUser = new User({
       first_name: req.body.first_name,
       last_name: req.body.last_name,
@@ -116,7 +116,7 @@ exports.register = function(req, res){
     if(typeof(req.body.cover_photo_url) != 'undefined') newUser.cover_photo_url = req.body.cover_photo_url;
 
     if(typeof(req.body.profile_photo_url) != 'undefined') newUser.profile_photo_url = req.body.profile_photo_url;
-    
+
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
       handleSocialProviderRegistration(req.body, function(error, social){
@@ -134,10 +134,10 @@ exports.register = function(req, res){
           newUser.save(function(error, result){
 
             if(error || !result){
-               _utils.prismResponse( res, 
-                                null, 
-                                false, 
-                                Error.invalidRegisterUserExists, 
+               _utils.prismResponse( res,
+                                null,
+                                false,
+                                Error.invalidRegisterUserExists,
                                 Error.invalidRegisterUserExists.status_code);
             }else{
               _utils.prismResponse(res, result, true);
@@ -152,10 +152,10 @@ exports.register = function(req, res){
 
       newUser.save(function(error, result){
         if(error || !result){
-          _utils.prismResponse( res, 
-                                null, 
-                                false, 
-                                Error.invalidRegisterUserExists, 
+          _utils.prismResponse( res,
+                                null,
+                                false,
+                                Error.invalidRegisterUserExists,
                                 Error.invalidRegisterUserExists.status_code);
         }else{
           var user = result.toObject();
@@ -176,7 +176,7 @@ exports.register = function(req, res){
 
 /**
  * Fetchs Prism user object by identifier
- * 
+ *
  * @param  {HTTPRequest} req The request object
  * @param  {HTTPResponse} res The response object
  * @return {User} Returns the valid user object to the response object
@@ -186,7 +186,7 @@ exports.fetchUser = function(req, res){
     User.findOne({_id: req.params.id}, function(error, result){
       if(error){
         console.log('Error retrieving user by id: ' + req.params.id);
-        _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+        _utils.prismResponse(res, null, false, Error.invalidUserRequest,
                                                 Error.invalidUserRequest.status_code);
       }else{
         var user = result.toObject();
@@ -201,7 +201,7 @@ exports.fetchUser = function(req, res){
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+    _utils.prismResponse(res, null, false, Error.invalidUserRequest,
                                             Error.invalidUserRequest.status_code);
   }
 }
@@ -233,7 +233,7 @@ exports.createUserPost = function(req, res){
         if(error){
           console.log('Error retrieving user by id: ' + req.params.id);
           _utils.prismResponse(res, null, false, Error.invalidUserRequest);
-                                                  
+
         }else{
           post.target_id = user._id;
           post.save(function(error, user_post){
@@ -261,14 +261,14 @@ exports.createUserPost = function(req, res){
   }else{
     _logger.error('Invalid request for create posts. '+
                   ' Missing user id', {request_params: req.params});
-    _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+    _utils.prismResponse(res, null, false, Error.invalidUserRequest,
                                             Error.invalidUserRequest.status_code);
   }
 };
 
 /**
  * Fetchs Prism Users posts
- * 
+ *
  * @param  {HTTPRequest} req The request object
  * @param  {HTTPResponse} res The response object
  * @return {Post} Returns the User.posts subdocument array
@@ -278,7 +278,7 @@ exports.fetchUserPosts = function(req, res){
   var fetch_query, fetch_options;
 
   _logger.info('fetch users posts params: ', req.params);
-  
+
   if(req.params.id){
     if(req.query){
       fetch_options = _utils.parsedQueryOptions(req.query);
@@ -309,15 +309,15 @@ exports.fetchUserPosts = function(req, res){
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, Error.invalidUserRequest, 
+    _utils.prismResponse(res, null, false, Error.invalidUserRequest,
                                             Error.invalidUserRequest.status_code);
   }
 };
 
 /**
- * Validates the required User properties are present 
+ * Validates the required User properties are present
  * for registration
- * 
+ *
  * @param  {HTTPRequest} req The request object
  * @return {Boolean}
  */
@@ -330,7 +330,7 @@ var isValidRegisterRequest = function(req){
       typeof(req.body.city) == 'undefined' ||
       typeof(req.body.state) == 'undefined' ||
       typeof(req.body.birthday) == 'undefined' ){
-  
+
     return false;
 
   }else{
@@ -368,10 +368,10 @@ var isValidSocialRegisterRequest = function(req){
 /**
  * Takes passed plain text password & hashes it to
  * validate it equals the stored hash password
- * 
+ *
  * @param  {User} user The located User object
- * @param  {String} password_to_validate The password to validate 
- * @return {Boolean} 
+ * @param  {String} password_to_validate The password to validate
+ * @return {Boolean}
  */
 var hashAndValidatePassword = function(user, password_to_validate){
   //create user hash
@@ -418,7 +418,7 @@ var handleSocialProviderLogin = function(body, callback){
       var tw = new Twitter(body.provider_token, body.provider_token_secret);
       tw.authorizeUser(function(error, result){
         if(error){
-          _logger.error('Error returned attempting to authorize twitter user: ', 
+          _logger.error('Error returned attempting to authorize twitter user: ',
                     error);
           callback(error, false);
 
@@ -431,11 +431,11 @@ var handleSocialProviderLogin = function(body, callback){
               _logger.error('Error returned trying to find twitter user in prism.'
                             +' Users does not exist.', {error: error, twitter_user: result});
               callback(Error.invalidSocialUser, false);
-            
+
             }else if(response && response._id){
               _logger.info('Found twitter user to validate login', {user: response});
               callback(false, response);
-            
+
             }else{
               _logger.warn('Did not find an error or result in fetching twitter user');
               callback(Error.invalidSocialUser, false);
@@ -443,7 +443,7 @@ var handleSocialProviderLogin = function(body, callback){
           });
 
         }else{
-          _logger.error('A server error occured. No error or' 
+          _logger.error('A server error occured. No error or'
                       + ' result was retured from authorizing a twitter user');
           callback(Error.serverError, false);
         }
@@ -452,7 +452,7 @@ var handleSocialProviderLogin = function(body, callback){
     default:
       _logger.log('A unsupported provider type was passed to user registration ',
                   {provider: body.provider});
-      
+
       callback(Error.unsupportedProviderType(body.provider), false);
       break;
   }
@@ -497,11 +497,11 @@ var handleSocialProviderRegistration = function(body, callback){
       });
       break;
     default:
-      //there is no default. therefore the requested provider authorization is 
+      //there is no default. therefore the requested provider authorization is
       //not currently supported. Log & reutrn error
       _logger.log('A unsupported provider type was passed to user registration ',
                   {provider: body.provider});
-      
+
       callback(Error.unsupportedProviderType(body.provider), false);
       break;
   }
@@ -509,10 +509,10 @@ var handleSocialProviderRegistration = function(body, callback){
 
 /**
  * Validates the login request body has required properties to
- * process authenticating the user. This can be in the form of 
+ * process authenticating the user. This can be in the form of
  * traditional authentication {username:pass} OR social authentication
  * which requries {provider, provider_id, & provider_token}
- * 
+ *
  * @param  {Object}  body The request body object
  * @return {Boolean}
  */
@@ -530,10 +530,10 @@ var isValidLoginRequest = function(body){
 
 /**
  * Determines if the request body is/has social provider attributes
- * 
+ *
  * @param  {Object}  body The request body object
  * @return {Boolean}
- */ 
+ */
 var isSocialProvider = function(body){
   if(body.provider && body.provider_token){
     console.log('isSocialProvider -- body:' + JSON.stringify(body));

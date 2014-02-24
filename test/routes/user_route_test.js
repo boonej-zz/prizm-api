@@ -34,7 +34,7 @@ describe('User Route Unit Tests', function(done){
       });
     });
   });
-  
+
   afterEach(function(done){
     _t_helpers.destroyTestUser(function(){
       _t_helpers.destroyTestToken(function(){
@@ -53,7 +53,7 @@ describe('User Route Unit Tests', function(done){
   describe('Testing User Login', function(done){
     it('should properly login an existing user with basic auth', function(done){
       var fetch_url = 'https://localhost:3000/oauth2/login';
-      var auth_header = _t_helpers.fetchAuthHeader( testClient.client_id, 
+      var auth_header = _t_helpers.fetchAuthHeader( testClient.client_id,
                                                     testClient.client_secret);
       var request_body = {
         email: testUser.email,
@@ -78,7 +78,7 @@ describe('User Route Unit Tests', function(done){
       });
     });
     it('should return error if user does not exist', function(done){
-      var auth_header = _t_helpers.fetchAuthHeader( testClient.client_id, 
+      var auth_header = _t_helpers.fetchAuthHeader( testClient.client_id,
                                                     testClient.client_secret);
       var fetch_url = 'https://localhost:3000/oauth2/login';
       var request_body = {
@@ -146,12 +146,12 @@ describe('User Route Unit Tests', function(done){
             strictSSL: false,
             headers: {"Authorization" : auth_header},
             body: {
-              text: 'this is a test post', 
+              text: 'this is a test post',
               creator: {
-                id: testUser._id, 
+                id: testUser._id,
                 name: testUser.first_name+ ' ' +testUser.last_name
               },
-              category: 'experience' 
+              category: 'experience'
             }
           }, function(error, post){
             // console.log(error);
@@ -182,18 +182,19 @@ describe('User Route Unit Tests', function(done){
           json: true,
           strictSSL: false,
           headers: {"Authorization" : auth_header},
-          body: { 
-                  text: 'test post with location', 
+          body: {
+                  text: 'test post with location',
                   creator: {
-                    id: testUser._id, 
+                    id: testUser._id,
                     name: testUser.first_name+' '+testUser.last_name
                   },
                   location_name: location_name,
                   location_latitude: location_latitude,
                   location_longitude: location_longitude,
-                  category: 'experience' 
+                  category: 'experience'
                 }
         }, function(error, result){
+          console.log(result.body);
           _expect(result.body.data[0]).to.have.property('location_name');
           _expect(result.body.data[0]).to.have.property('location_longitude');
           _expect(result.body.data[0]).to.have.property('location_latitude');
@@ -213,6 +214,7 @@ describe('User Route Unit Tests', function(done){
           var posts = _t_helpers.fetchFakePostsArray(testUser,user);
 
           Post.create(posts, function(error, result){
+            debugger;
             if(error){
               _expect(false).to.equal(true);
 
@@ -228,7 +230,7 @@ describe('User Route Unit Tests', function(done){
                 json: true,
                 strictSSL: false,
                 headers: {"Authorization" : auth_header}
-                
+
               }, function(error, post){
                 _expect(error).to.equal(null);
                 _expect(post.body.data).to.have.length(5);
@@ -252,7 +254,7 @@ describe('User Route Unit Tests', function(done){
           testUser = user;
 
           var fetch_url = 'https://localhost:3000/users/' + testUser._id;
-          var auth_header = 'Bearer ' + testToken.access_token; 
+          var auth_header = 'Bearer ' + testToken.access_token;
           _request({
             method: 'GET',
             url: fetch_url,
@@ -274,7 +276,7 @@ describe('User Route Unit Tests', function(done){
           done();
         }
       });
-    });  
+    });
   });
 });
 

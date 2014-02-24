@@ -48,26 +48,26 @@ exports.destroyTestCode = function(callback){
 
 exports.fetchFakePostsArray = function(testUser, user){
   var posts = [
-            {text: 'test test tes1', creator: testUser._id, target_id: user._id, category: 'experience', create_date: Date.now() - 10 * 60 * 1000},
-            {text: 'test test tes2', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 60 * 60 * 100},
-            {text: 'test test tes3', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 60 * 60 * 1000},
-            {text: 'test test tes4', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 1 * 60 * 60 * 1000},
-            {text: 'test test tes5', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 45 * 60 * 1000},
-            {text: 'test test tes6', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 1000},
-            {text: 'test test tes7', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 2 * 10 * 60 * 1000},
-            {text: 'test test tes8', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 1 * 60 * 60 * 1000},
-            {text: 'test test tes9', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 60 * 1000},
-            {text: 'test test tes10', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 10 * 60 * 60 * 1000},
-            {text: 'test test tes11', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 30 * 60 * 1000},
-            {text: 'test test tes12', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 15 * 60 * 1000},
-            {text: 'test test tes13', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 100}
+            {text: 'test test tes1', creator: {id: testUser._id}, target_id: user._id, category: 'experience', create_date: Date.now() - 10 * 60 * 1000},
+            {text: 'test test tes2', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() - 60 * 60 * 100},
+            {text: 'test test tes3', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 60 * 60 * 1000},
+            {text: 'test test tes4', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 1 * 60 * 60 * 1000},
+            {text: 'test test tes5', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 45 * 60 * 1000},
+            {text: 'test test tes6', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 1000},
+            {text: 'test test tes7', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 2 * 10 * 60 * 1000},
+            {text: 'test test tes8', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() - 1 * 60 * 60 * 1000},
+            {text: 'test test tes9', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 60 * 1000},
+            {text: 'test test tes10', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() - 10 * 60 * 60 * 1000},
+            {text: 'test test tes11', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 30 * 60 * 1000},
+            {text: 'test test tes12', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 15 * 60 * 1000},
+            {text: 'test test tes13', creator: {id: testUser._id}, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 100}
           ];
   return posts;
 };
 
 exports.createTestToken = function(callback){
 	var testClient = new Client({
-		name: "test", 
+		name: "test",
 		description: "description",
 		redirect_uri: "https://localhost:3000/callback"
 	});
@@ -88,7 +88,7 @@ exports.createTestToken = function(callback){
 exports.destroyTestToken = function(callback){
 	Token.remove({}, function(err){
     if(err) throw err;
-    callback();    
+    callback();
   });
 };
 

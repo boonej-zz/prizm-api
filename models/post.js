@@ -7,7 +7,7 @@ var _mongoose   = require('mongoose')
   , _serial     = require('serializer')
   , _crypt      = require('crypto')
   , _utils      = require(process.env.PRISM_HOME + 'utils')
-  , User 				= require(process.env.PRISM_HOME + 'models/user');
+  , User 				= require(process.env.PRISM_HOME + 'models/user').User;
 
 /**
  * Posts Model Schema
@@ -23,7 +23,10 @@ var postSchema = new _mongoose.Schema({
 	location_name				: {type: String, default: null},
 	location_longitude	: {type: Number, default: 0},
 	location_latitude 	: {type: Number, default: 0},
-	creator 						: {id: String, name: String},
+	creator 						: { id: {type: String, required: true},
+                          name: {type: String, default: ''},
+                          profile_photo_url: {type: String, default: ''}
+                        },
 	target_id						: {type: String, required: true},
 	status 							: {type: String, default: 'active'},
 	file_path 					: {type: String, default: ''},
@@ -33,14 +36,29 @@ var postSchema = new _mongoose.Schema({
  	likes 							: []
 }, { versionKey: false});
 
+postSchema.methods.fetchPostCreator = function(cb){
+  var self = this;
+  if(self.creator.id){
+    User.findOne({_id: self.creator.id}, function(error, result){
+      if(!error && result){
+        self.creator.profile_photo_url = result.profile_photo_url;
+        self.creator.name = result.first_name + ' ' + result.last_name;
+        cb(true);
+
+      }else{
+        cb(false);
+      }
+    });
+  }
+};
 
 /**
  * Pre Save/Creation Injection
  *
  * Sets the modify_date anytime the record is saved.
- * If its the first time the record is saved, the create_date 
+ * If its the first time the record is saved, the create_date
  * is date stamped
- * 
+ *
  * @param  {Function} next Calls the next() iterator to continue process
  */
 postSchema.pre('save', function(next){
@@ -48,6 +66,9 @@ postSchema.pre('save', function(next){
 	this.modify_date = Date.now();
 	if(!this.create_date){
 		this.create_date = Date.now();
+    this.fetchPostCreator(function(creator_found){
+      if(!creator_found) next(false);
+    });
 	}
 	next();
 });
@@ -56,7 +77,7 @@ postSchema.pre('save', function(next){
  * Pre Update Injection
  *
  * Date stampes the modify_date field
- * 
+ *
  * @param  {Function} next Calls the next() iterator to continue process
  */
 postSchema.pre('update', function(next){
