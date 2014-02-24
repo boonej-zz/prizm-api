@@ -63,7 +63,6 @@ describe('Follow Route Unit Tests', function(done){
         test_client = client;
         setupSocialNetworkUsers(function(c){
           var social_network_followers = [mark, edwardo, cameron, erica, sean, maryolin];
-          debugger;
           for(var i = 0; i < social_network_followers.length; i++){
 
             executeFollowRequest(social_network_followers[i], test_user, null);
@@ -139,8 +138,14 @@ describe('Follow Route Unit Tests', function(done){
       });
     });
 
+    it('should not allow you to follow someone twice', function(done){
+      executeFollowRequest(mark, test_user, function(err, result){
+        _expect(result.metadata.success).to.equal(false);
+        _expect(result.error.error).to.equal('unable_to_follow_user');
+        done();
+      })
+    });
     it('should return follwers', function(done){
-      debugger;
       _request({
         method: "GET",
         strictSSL: false,
@@ -154,7 +159,6 @@ describe('Follow Route Unit Tests', function(done){
 
     });
     it('should return following', function(done){
-      debugger;
       _request({
         method: "GET",
         strictSSL: false,
@@ -165,7 +169,6 @@ describe('Follow Route Unit Tests', function(done){
         console.log(JSON.stringify(response.body));
         done();
       });
-
     });
   });
 });

@@ -43,6 +43,27 @@ exports.follow = function(req, res){
           followee = result[0];
         }
 
+        //check to make sure the followee is not already being followed by the follower
+        var is_following = false;
+        for(i=0; i < follower.following.length; i++){
+          if(follower.following[i]._id.toString() == followee._id.toString()){
+            is_following = true;
+            break;
+          }
+        }
+
+        if(is_following){
+          var error = {
+            status_code: 401,
+            error_info: {
+              error: 'unable_to_follow_user',
+              error_description: 'The requested followee is already being followed'
+            }
+          };
+
+          _utils.prismResponse(res, null, false, error);
+        }
+
         //update followee record
         query = {_id: followee._id};
         update_data = {
