@@ -228,6 +228,7 @@ exports.createUserPost = function(req, res){
 
       if(req.body.file_path && req.body.file_path != 'undefined') post.file_path = req.body.file_path;
       if(req.body.text && req.body.text != 'undefined') post.text = req.body.text;
+      if(req.body.scope != 'undefined') post.scope = req.body.scope;
 
       User.findOne({_id: req.params.id}, function(error, user){
         if(error){
@@ -289,6 +290,9 @@ exports.fetchUserPosts = function(req, res){
           fetch_criteria = {target_id: req.params.id, create_date: { $gt: req.query.feature_identifier}};
         }
 
+        fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+      }else{
+        fetch_criteria = {target_id: req.params.id};
         fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }
 
