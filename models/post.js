@@ -3,38 +3,35 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _mongoose   = require('mongoose')
-  , _serial     = require('serializer')
-  , _crypt      = require('crypto')
-  , _utils      = require(process.env.PRISM_HOME + 'utils')
-  , User 				= require(process.env.PRISM_HOME + 'models/user').User;
+var _mongoose   = require('mongoose'),
+    _serial     = require('serializer'),
+    _crypt      = require('crypto'),
+    _utils      = require(process.env.PRISM_HOME + 'utils'),
+    User        = require(process.env.PRISM_HOME + 'models/user').User;
 
 /**
  * Posts Model Schema
  * @type {Mongoose.Schema}
  */
 var postSchema = new _mongoose.Schema({
-	text 								: {type: String, default: null},
-	category 						: {type: String, required:true},
-	create_date					: {type: Date, default:null, index: true},
-	modify_date					: {type: Date, default: Date.now()},
-	delete_date					: {type: Date, default: null},
-	scope 							: {type: String, default: 'public'},
-	location_name				: {type: String, default: null},
-	location_longitude	: {type: Number, default: 0},
-	location_latitude 	: {type: Number, default: 0},
-	// creator 						: { id: {type: String, required: true},
- //                          name: {type: String, default: ''},
- //                          profile_photo_url: {type: String, default: ''}
- //                        },
+  text                : {type: String, default: null},
+  category            : {type: String, required:true},
+  create_date         : {type: Date, default:null, index: true},
+  modify_date         : {type: Date, default: Date.now()},
+  delete_date         : {type: Date, default: null},
+  scope               : {type: String, default: 'public'},
+  location_name       : {type: String, default: null},
+  location_longitude  : {type: Number, default: 0},
+  location_latitude   : {type: Number, default: 0},
   creator             : {type: _mongoose.Schema.Types.ObjectId, ref: 'User'},
-	target_id						: {type: String, required: true},
-	status 							: {type: String, default: 'active'},
-	file_path 					: {type: String, default: ''},
-	likes_count 				: Number,
- 	comments_count 			: Number,
- 	comments 						: [],
- 	likes 							: []
+  target_id           : {type: String, required: true},
+  status              : {type: String, default: 'active'},
+  file_path           : {type: String, default: ''},
+  likes_count         : {type: Number, default: null},
+  comments_count      : {type: Number, default: null},
+  tags                : [],
+  comments            : [],
+  likes               : []
 }, { versionKey: false});
 
 /**

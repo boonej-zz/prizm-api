@@ -3,15 +3,15 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _mongoose     = require('mongoose')
-  , _prism_home   = process.env.PRISM_HOME
-  , _utils        = require(_prism_home + 'utils')
-  , _logger       = require('winston')
-  , Error         = require(_prism_home + 'error')
-  , Facebook      = require(_prism_home + 'classes/Facebook')
-  , Twitter       = require(_prism_home + 'classes/Twitter')
-  , User          = require(_prism_home + 'models/user').User
-  , Post          = require(_prism_home + 'models/post').Post;
+var _mongoose     = require('mongoose'),
+    _prism_home   = process.env.PRISM_HOME,
+    _utils        = require(_prism_home + 'utils'),
+    _logger       = require('winston'),
+    Error         = require(_prism_home + 'error'),
+    Facebook      = require(_prism_home + 'classes/Facebook'),
+    Twitter       = require(_prism_home + 'classes/Twitter'),
+    User          = require(_prism_home + 'models/user').User,
+    Post          = require(_prism_home + 'models/post').Post;
 
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
@@ -34,15 +34,13 @@ exports.login = function(req, res){
           //social login failure - user does not exist or
           //failire to authenticate with social provider
           if(error){
-          	_utils.prismResponse( res,
-                	                null,
-                        	        false,
-                                	error,
-                                	error.status_code);
-      	  }else{
-      		_utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist,
-                                                  Error.invalidLoginUserDoesNotExist.status_code);
-      		}
+            _utils.prismResponse( res,
+                                  null,
+                                  false,
+                                  error);
+          }else{
+            _utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist);
+          }
         }else{
           //succesful login - send back returned user object
           var user = result.toObject();
@@ -60,24 +58,21 @@ exports.login = function(req, res){
           _utils.prismResponse( res,
                                 null,
                                 false,
-                                Error.invalidLoginUserDoesNotExist,
-                                Error.invalidLoginUserDoesNotExist.status_code );
+                                Error.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
             _utils.prismResponse(res, result, true, null, null);
           }else{
-	         _utils.prismResponse( res,
-                                 null,
+           _utils.prismResponse(res,
+                                null,
                                 false,
-                                Error.invalidUserCredentials,
-                                Error.invalidUserCredentials.status_code );
+                                Error.invalidUserCredentials);
           }
         }else{
           _utils.prismResponse( res,
                                 null,
                                 false,
-                                Error.invalidLoginUserDoesNotExist,
-                                Error.invalidLoginUserDoesNotExist.status_code );
+                                Error.invalidLoginUserDoesNotExist);
         }
       });
     }
@@ -85,10 +80,9 @@ exports.login = function(req, res){
     _utils.prismResponse( res,
                           null,
                           false,
-                          Error.invalidLoginRequest,
-                          Error.invalidLoginRequest.status_code );
+                          Error.invalidLoginRequest);
   }
-}
+};
 
 /**
  * Handles User creation if user does not exist
@@ -358,7 +352,7 @@ var isValidRegisterRequest = function(req){
     }
     return true;
   }
-}
+};
 
 /**
  * [isValidSocialRegisterRequest description]
@@ -380,7 +374,7 @@ var isValidSocialRegisterRequest = function(req){
   }else{
     return false;
   }
-}
+};
 
 /**
  * Takes passed plain text password & hashes it to
@@ -393,12 +387,12 @@ var isValidSocialRegisterRequest = function(req){
 var hashAndValidatePassword = function(user, password_to_validate){
   //create user hash
   if(user){
-    var hash_salt             = user.createUserSalt();
-    var password_to_validate  = _utils.prismEncrypt(password_to_validate, hash_salt);
-    if(password_to_validate == user.password) return true;
+    var hash_salt        = user.createUserSalt();
+    var hashed_password  = _utils.prismEncrypt(password_to_validate, hash_salt);
+    if(hashed_password == user.password) return true;
   }
   return false;
-}
+};
 
 /**
  * [handleSocialProvider description]
@@ -445,8 +439,8 @@ var handleSocialProviderLogin = function(body, callback){
 
           User.findOne({provider_id: result.id.toString()}, function(error, response){
             if(error){
-              _logger.error('Error returned trying to find twitter user in prism.'
-                            +' Users does not exist.', {error: error, twitter_user: result});
+              _logger.error('Error returned trying to find twitter user in prism.'+
+                            ' Users does not exist.', {error: error, twitter_user: result});
               callback(Error.invalidSocialUser, false);
 
             }else if(response && response._id){
@@ -460,8 +454,8 @@ var handleSocialProviderLogin = function(body, callback){
           });
 
         }else{
-          _logger.error('A server error occured. No error or'
-                      + ' result was retured from authorizing a twitter user');
+          _logger.error('A server error occured. No error or'+
+                       ' result was retured from authorizing a twitter user');
           callback(Error.serverError, false);
         }
       });
@@ -473,7 +467,7 @@ var handleSocialProviderLogin = function(body, callback){
       callback(Error.unsupportedProviderType(body.provider), false);
       break;
   }
-}
+};
 
 /**
  * [handleSocialProviderRegistration description]
@@ -522,7 +516,7 @@ var handleSocialProviderRegistration = function(body, callback){
       callback(Error.unsupportedProviderType(body.provider), false);
       break;
   }
-}
+};
 
 /**
  * Validates the login request body has required properties to
@@ -543,7 +537,7 @@ var isValidLoginRequest = function(body){
     }
     return false;
   }
-}
+};
 
 /**
  * Determines if the request body is/has social provider attributes
@@ -557,4 +551,4 @@ var isSocialProvider = function(body){
     return true;
   }
   return false;
-}
+};

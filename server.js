@@ -4,7 +4,7 @@
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
 
-process.env["PRISM_HOME"] = process.cwd() + '/';
+process.env.PRISM_HOME = process.cwd() + '/';
 
 var _express        = require('express'),
     _mongoose       = require('mongoose'),
@@ -16,6 +16,7 @@ var _express        = require('express'),
     _prism_token    = require(_prism_home + 'routes/oauth2/tokens'),
     _prism_user     = require(_prism_home + 'routes/users'),
     _prism_explore  = require(_prism_home + 'routes/explore'),
+    _prism_follow   = require(_prism_home + 'routes/follow'),
     _utils          = require(_prism_home + 'utils'),
     _gateway        = require(_prism_home + 'gateway'),
     _config         = require('config'),
@@ -43,14 +44,14 @@ if (_app.get('env') != 'test') {
       json: true,
       colorize: true
     })
-  ]
+  ];
   standardTransports = [
     new _winston.transports.File({
       filename: 'logs/prism_requests.log',
       json: true,
       colorize: true
     })
-  ]
+  ];
 }
 else {
   errorTransports = [
@@ -59,14 +60,14 @@ else {
       colorize: true,
       prettyPrint: true
     })
-  ]
+  ];
   standardTransports = [
     new _winston.transports.File({
       filename: 'logs/prism_requests.log',
       json: true,
       colorize: true
     })
-  ]
+  ];
 }
 
 /* configure mongo connection */
@@ -89,11 +90,11 @@ _app.use(_e_winston.errorLogger({
 
 //Set SSL options for HTTPS traffic
 var ssl_options = {
-	key: 				        _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.key'),
-	cert: 			        _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.crt'),
-	ca: 				        _fs.readFileSync(_prism_home + '/config/ssl/stablekernel.crt'),
-//	requestCert: 		    true,
-	rejectUnauthorized: false
+  key:                  _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.key'),
+  cert:                 _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.crt'),
+  ca:                   _fs.readFileSync(_prism_home + '/config/ssl/stablekernel.crt'),
+//  requestCert:       true,
+  rejectUnauthorized:   false
 };
 
 /* Force all http traffic to https */
@@ -107,7 +108,7 @@ process.on('uncaughtException', function (err) {
 
 /********************** API ROUTES ************************/
 /* Root Endpoint */
-_app.get('/', function(req,res){ res.send('Welcome to the Prism API') });
+_app.get('/', function(req,res){ res.send('Welcome to the Prism API'); });
 
 /* Authentication Code Endpoint */
 _app.get('/oauth2/authorize', _prism_auth);
@@ -135,6 +136,18 @@ _app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
 
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
+
+/* Fetch Users followers */
+_app.get('/usres/:id/followers', _gateway, _prism_follow.fetchFollowers);
+
+/* Fetch Users following */
+
+/* Follow a User */
+_app.post('/users/:id/follow', _gateway, _prism_follow.follow);
+
+
+/* UnFollow a User */
+// _app.post('/users/:id/unfollow', _gateway, _prism_follow.unfollow);
 
 /* Explore Route */
 _app.get('/explore', _gateway, _prism_explore);

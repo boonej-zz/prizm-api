@@ -17,7 +17,7 @@ module.exports = function(req, res){
   var fetch_criteria = {},
       fetch_options = null,
       fetch_query;
-debugger;
+
   if(req.query && req.query.limit || req.query.feature_identifier){
     fetch_options = _utils.parsedQueryOptions(req.query);
     if(req.query.feature_identifier){

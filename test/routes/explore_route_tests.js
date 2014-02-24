@@ -40,9 +40,6 @@ describe('Explore Route Unit Tests', function(done){
   });
 
   describe('Testing /explore fetching all posts for explore', function(done){
-    // before(function(done){
-
-    // });
 
     it('should return all public posts sorted by a desc create_date', function(done){
       var auth_headers = 'Bearer ' + testToken.access_token;

@@ -3,13 +3,11 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _mongoose   = require('mongoose')
-  , _serial     = require('serializer')
-  , _crypt      = require('crypto')
-  , _prism_home = process.env.PRISM_HOME
-  , _utils      = require(_prism_home + 'utils');
-
-
+var _mongoose   = require('mongoose'),
+    _serial     = require('serializer'),
+    _crypt      = require('crypto'),
+    _prism_home = process.env.PRISM_HOME,
+    _utils      = require(_prism_home + 'utils');
 
 var userSchema = new _mongoose.Schema({
 	first_name            : {type: String, required: true},
@@ -33,12 +31,17 @@ var userSchema = new _mongoose.Schema({
   zip_postal            : String,
   cover_photo_url       : {type: String, default: ''},
   profile_photo_url     : {type: String, default: ''},
-  picture_thumb_path    : String,
+  picture_thumb_path    : {type: String, default: ''},
   create_date           : Date,
   modify_date           : Date,
-  delete_date           : Date,
-  last_login_date       : Date,
-  status                : Number,
+  delete_date           : {type: Date, default: null},
+  last_login_date       : {type: Date, default: null},
+  status                : {type: Number, default: 0},
+  posts_count           : {type: Number, default: null},
+  following             : [],
+  followers             : [],
+  following_count       : {type: Number, default: 0},
+  followers_count       : {type: Number, default: 0},
   comments              : [],
   likes                 : []
 },
@@ -90,8 +93,8 @@ userSchema.methods.cleanUserJSON = function(){
           delete user.likes;
           delete user.provider_token;
           delete user.provider_token_secret;
-  return
-}
+  return user;
+};
 
 userSchema.pre('save', function(next){
   //set create & modify dates
