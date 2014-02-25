@@ -139,11 +139,15 @@ describe('Follow Route Unit Tests', function(done){
     });
 
     it('should not allow you to follow someone twice', function(done){
+      var count = mark.following.count;
       executeFollowRequest(mark, test_user, function(err, result){
         _expect(result.metadata.success).to.equal(false);
         _expect(result.error.error).to.equal('unable_to_follow_user');
-        done();
-      })
+        User.findOne({_id: mark._id}, function(err, res){
+          _expect(res.following.count).to.equal(count);
+          done();
+        });
+      });
     });
     it('should return follwers', function(done){
       _request({
