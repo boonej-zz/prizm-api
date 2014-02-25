@@ -62,46 +62,48 @@ exports.follow = function(req, res){
           };
 
           _utils.prismResponse(res, null, false, error);
-        }
 
-        //update followee record
-        query = {_id: followee._id};
-        update_data = {
-          followers_count: followee.followers_count+1,
-          $push: {
-            "followers": {
-              _id: follower._id.toString(),
-              date: new Date().toString()
-            }
-          }
-        };
+        }else{
 
-        User.findOneAndUpdate(query,update_data, function(err, followee_update){
-
-          if(followee_update){
-            follow_result.followee = followee_update;
-
-            //update the follower record
-            query = {_id: follower._id};
-            update_data = {
-              following_count: follower.following_count+1,
-              $push: {
-                "following": {
-                  _id: followee._id.toString(),
-                  date: new Date().toString()
-                }
+          //update followee record
+          query = {_id: followee._id};
+          update_data = {
+            followers_count: followee.followers_count+1,
+            $push: {
+              "followers": {
+                _id: follower._id.toString(),
+                date: new Date().toString()
               }
-            };
+            }
+          };
 
-            User.findOneAndUpdate(query, update_data, function(err, follower_update){
-             if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-              _utils.prismResponse(res, {}, true);
-            });
+          User.findOneAndUpdate(query,update_data, function(err, followee_update){
 
-          }else{
-            _utils.prismResponse(res, null, false, PrismError.serverError);
-          }
-        });
+            if(followee_update){
+              follow_result.followee = followee_update;
+
+              //update the follower record
+              query = {_id: follower._id};
+              update_data = {
+                following_count: follower.following_count+1,
+                $push: {
+                  "following": {
+                    _id: followee._id.toString(),
+                    date: new Date().toString()
+                  }
+                }
+              };
+
+              User.findOneAndUpdate(query, update_data, function(err, follower_update){
+               if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+                _utils.prismResponse(res, {}, true);
+              });
+
+            }else{
+              _utils.prismResponse(res, null, false, PrismError.serverError);
+            }
+          });
+        }
       }
     });
   }else{
