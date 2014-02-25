@@ -146,6 +146,9 @@ _app.get('/users/:id/following', _gateway, _prism_follow.fetchFollowing);
 /* Follow a User */
 _app.post('/users/:id/follow', _gateway, _prism_follow.follow);
 
+/* Unfollow a User */
+_app.post('/users/:id/unfollow', _gateway, _prism_follow.unfollow);
+
 /* UnFollow a User */
 // _app.post('/users/:id/unfollow', _gateway, _prism_follow.unfollow);
 

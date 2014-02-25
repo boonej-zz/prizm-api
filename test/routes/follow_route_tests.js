@@ -124,6 +124,39 @@ describe('Follow Route Unit Tests', function(done){
       _expect(follow_result.follower.following_count).to.equal(1);
       done();
     });
+
+    it('should unfollow a user with /users/:id/unfollow endpoint', function(done){
+      console.log(maryolin._id);
+      console.log(test_user._id);
+      _request({
+        method: 'POST',
+        strictSSL: false,
+        json: true,
+        headers: {"Authorization":'Bearer ' + test_token.access_token},
+        url: 'https://localhost:3000/users/' + maryolin._id + '/unfollow',
+        body: {creator: test_user._id}
+      },function(err, result){
+        //should recieve successful response
+        _expect(result.body.metadata.success).to.equal(true);
+
+        User.findOne({_id: maryolin._id}, function(err, m_followee){
+          if(m_followee.length < 0){
+            for(var i=0; i <=m_followee.followers.length; i++){
+              _expect(m_followee.followers[i]._id).to.not.equal(test_user._id);
+            }
+          }
+
+          User.findOne({_id: test_user._id}, function(err, t_follower){
+            if(t_follower.following.length < 0){
+              for(var i=0; i <=t_follower.following.length; i++){
+                _expect(t_follower.following[i]._id).to.not.equal(test_user._id);
+              }
+            }
+            done();
+          });
+        });
+      });
+    });
   });
 
   describe('Testing fetching a users followers', function(done){

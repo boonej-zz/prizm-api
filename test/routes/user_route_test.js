@@ -200,6 +200,32 @@ describe('User Route Unit Tests', function(done){
         });
       });
     });
+    it('should update the users post_count after they create a post', function(done){
+      _t_helpers.createTestUser(function(user){
+        _expect(user.posts_count).to.equal(0);
+
+        var fetch_url = 'https://localhost:3000/users/'+user._id+'/posts';
+        _request({
+          method: 'POST',
+          url: fetch_url,
+          headers: {"Authorization" : 'Bearer ' + testToken.access_token},
+          json: true,
+          strictSSL: false,
+          body:{
+            text: 'im posting this test to make sure i see my posts increase',
+            creator: user._id,
+            category: 'experience'
+          }
+        }, function(err, result){
+          _expect(result.body.metadata.success).to.equal(true);
+
+          User.findOne({_id: user._id}, function(err, u_post){
+            _expect(u_post.posts_count).to.equal(1);
+            done();
+          });
+        });
+      });
+    });
     it('should allow you to page posts', function(done){
       _t_helpers.createTestUser(function(user){
         if(user){

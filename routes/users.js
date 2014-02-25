@@ -246,7 +246,23 @@ exports.createUserPost = function(req, res){
               .populate('creator', 'first_name last_name profile_photo_url')
               .exec(function(err, usr){
 
-                _utils.prismResponse(res, usr, true);
+                //update post count on creator object
+                User.findOne({_id: req.body.creator}, function(err, c_user){
+                  if(err){
+                    console.log(err);
+                    _utils.prismResponse(res, null, false, Error.serverError);
+                  }else{
+                    c_user.posts_count = c_user.posts_count+1;
+                    c_user.save(function(err, updated_count){
+                      if(err){
+                        console.log(err);
+                        _utils.prismResponse(res, null, false, Error.serverError);
+                      }else{
+                        _utils.prismResponse(res, usr, true);
+                      }
+                    });
+                  }
+                });
               });
             }
           });

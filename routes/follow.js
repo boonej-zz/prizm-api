@@ -113,6 +113,68 @@ exports.follow = function(req, res){
 };
 
 /**
+ * [unfollow description]
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.unfollow = function(req, res){
+  if(req.params.id && req.body.creator){
+    //remove follower from followee
+    User.findOne({_id: req.params.id}, function(err, result){
+      if(err){
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+
+      }else{
+        //unset the creator from the followees followers array
+        for(var i=result.followers.length-1; i >= 0; i--){
+          if(result.followers[i]._id == req.body.creator){
+            result.followers.splice(i,1);
+            //decrement the followers count
+            result.followers_count = result.followers_count - 1;
+          }
+        }
+
+        //save|update the followee record
+        result.save(function(err, updated){
+          if(err){
+            _utils.prismResponse(res, null, falase, PrismError.serverError);
+
+          }else{
+            //remove followee from the follower
+            User.findOne({_id: req.body.creator}, function(err, result){
+              if(err){
+                _utils.prismRespnse(res, null, false, PrismError.invalidRequest);
+
+              }else{
+
+                //unset the followee from the following array
+                for(var i=result.following.length-1; i >=0; i--){
+                  if(result.following[i]._id == req.body.creator){
+                    result.following.splice(i,1);
+                    result.following_count = result.following_count -1;
+                  }
+                }
+
+                result.save(function(err, updated){
+                  if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+
+                  //send back successful unfollow
+                  _utils.prismResponse(res, {}, true);
+
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
  * [fetchFollowing description]
  * @param  {[type]} req [description]
  * @param  {[type]} res [description]
