@@ -17,6 +17,7 @@ var _express        = require('express'),
     _prism_user     = require(_prism_home + 'routes/users'),
     _prism_explore  = require(_prism_home + 'routes/explore'),
     _prism_follow   = require(_prism_home + 'routes/follow'),
+    _prism_post     = require(_prism_home + 'routes/posts'),
     _utils          = require(_prism_home + 'utils'),
     _gateway        = require(_prism_home + 'gateway'),
     _config         = require('config'),
@@ -137,11 +138,30 @@ _app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
 
+/* Like A Post */
+_app.post('/posts/:id/like', _gateway, _prism_post.likePost);
+
+/* Unlike A Post */
+_app.post('/posts/:id/unlike', _gateway, _prism_post.unlikePost);
+
+/* Fetch A Posts Like by Request Identifier */
+_app.get('/posts/:id/like/:like_id', _gateway, _prism_post.fetchPostAndLikeById);
+
 /* Fetch Users followers */
 _app.get('/users/:id/followers', _gateway, _prism_follow.fetchFollowers);
 
 /* Fetch Users following */
 _app.get('/users/:id/following', _gateway, _prism_follow.fetchFollowing);
+
+/* Fetch is User Following By Following Identifier */
+_app.get( '/users/:id/following/:following_id',
+          _gateway,
+          _prism_follow.fetchIsFollowingById );
+
+/* Fetch is User Follower By Follower Identifier */
+_app.get( '/users/:id/followers/:follower_id',
+          _gateway,
+          _prism_follow.fetchIsFollowersById );
 
 /* Follow a User */
 _app.post('/users/:id/follow', _gateway, _prism_follow.follow);

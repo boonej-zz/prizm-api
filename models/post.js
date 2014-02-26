@@ -27,8 +27,9 @@ var postSchema = new _mongoose.Schema({
   target_id           : {type: String, required: true},
   status              : {type: String, default: 'active'},
   file_path           : {type: String, default: ''},
-  likes_count         : {type: Number, default: null},
-  comments_count      : {type: Number, default: null},
+  likes_count         : {type: Number, default: 0},
+  comments_count      : {type: Number, default: 0},
+  tages_count         : {type: Number, default: 0},
   tags                : [],
   comments            : [],
   likes               : []
