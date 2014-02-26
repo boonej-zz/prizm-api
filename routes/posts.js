@@ -50,8 +50,8 @@ exports.likePost = function(req, res){
 
         }else{
 
-          post.likes.push({"_id":req.body.creator});
-          post.likes_count = (post.likes !== null) ? post.likes_count + 1 : 1;
+          post.likes.push({_id: req.body.creator});
+          post.likes_count = post.likes_count + 1;
           post.save(function(err, result){
             if(err){
               _utils.prismResponse( res,
@@ -149,7 +149,7 @@ exports.fetchPostAndLikeById = function(req, res){
     Post.findOne({_id: req.params.id, "likes._id": like_id},
                  {likes_count:1, "likes._id": 1},
                  function(err, post){
-      debugger;
+
       if(err || !post){
          _utils.prismResponse( res,
                               null,

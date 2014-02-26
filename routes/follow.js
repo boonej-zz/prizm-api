@@ -157,11 +157,12 @@ exports.unfollow = function(req, res){
                 }
 
                 result.save(function(err, updated){
-                  if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-
-                  //send back successful unfollow
-                  _utils.prismResponse(res, {}, true);
-
+                  if(err) {
+                    _utils.prismResponse(res, null, false, PrismError.serverError);
+                  }else{
+                     //send back successful unfollow
+                    _utils.prismResponse(res, {}, true);
+                  }
                 });
               }
             });
