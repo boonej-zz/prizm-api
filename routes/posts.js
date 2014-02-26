@@ -39,11 +39,16 @@ exports.likePost = function(req, res){
         }
 
         if(alreadyLikes){
-          _utils.prismResponse( res, {}, true);
+          var error = {
+            status_code: 400,
+            error_info: {
+              error: 'already_liked',
+              error_description: 'The requestor has already liked this post'
+            }
+          };
+          _utils.prismResponse( res, null, false, error);
 
         }else{
-
-
 
           post.likes.push({"_id":req.body.creator});
           post.likes_count = (post.likes !== null) ? post.likes_count + 1 : 1;
