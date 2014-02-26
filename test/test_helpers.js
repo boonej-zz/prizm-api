@@ -1,11 +1,10 @@
-var _prism_home		= process.env.PRISM_HOME
-	, _auth_models	= require(_prism_home + 'models/auth')
-	, _utils				= require(_prism_home + 'utils')
-	, Token					= _auth_models.Token
-  , Client 				= _auth_models.ClientApplication
-  , Code 					= _auth_models.Code
-  , User					= require(_prism_home + 'models/user').User;
-
+var _prism_home   = process.env.PRISM_HOME,
+    _auth_models  = require(_prism_home + 'models/auth'),
+    _utils        = require(_prism_home + 'utils'),
+    Token         = _auth_models.Token,
+    Client        = _auth_models.ClientApplication,
+    Code          = _auth_models.Code,
+    User          = require(_prism_home + 'models/user').User;
 
 exports.fetchAuthHeader = function(id, secret){
   return "Basic " + (new Buffer(id + ':' + secret).toString('base64'));

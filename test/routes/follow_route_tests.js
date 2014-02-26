@@ -53,6 +53,20 @@ describe('Follow Route Unit Tests', function(done){
       if(cb) cb(err, result.body);
     });
   };
+
+  var executeFetchFollowByTypeAndIdRequest = function(type, u_id, f_id, cb){
+    _request({
+        method: 'GET',
+        json: true,
+        stictSSL: false,
+        rejectUnauthorized: false,
+        headers: {"Authorization": "Bearer " + test_token.access_token},
+        url: 'https://localhost:3000/users/'+u_id+'/'+type+'/'+f_id
+    }, function(err, res){
+      if(cb) cb(err, res.body);
+    });
+  };
+
   before(function(done){
     _t_helpers.createTestUser(function(testuser){
       test_user = testuser;
@@ -93,7 +107,6 @@ describe('Follow Route Unit Tests', function(done){
                 done();
               });
             });
-            // done();
           });
         });
       });
@@ -124,7 +137,42 @@ describe('Follow Route Unit Tests', function(done){
       _expect(follow_result.follower.following_count).to.equal(1);
       done();
     });
-
+    it('**/following/:following_id should return array and success when true', function(done){
+      executeFetchFollowByTypeAndIdRequest('following',mark._id, test_user._id, function(err, result){
+        if(err) throw err;
+        _expect(result.metadata.success).to.be.equal(true);
+        _expect(result.data[0]).to.have.property('_id');
+        _expect(result.data[0]).to.have.property('date');
+        _expect(result.data[0]._id.toString()).to.equal(test_user._id.toString());
+        done();
+      });
+    });
+    it('**/following/:following_id should return empty data and success when no id found', function(done){
+      executeFetchFollowByTypeAndIdRequest('following', test_user._id, mark._id, function(err, result){
+        if(err) throw err;
+        _expect(result.metadata.success).to.equal(true);
+        _expect(result.data.length).to.equal(0);
+        done();
+      });
+    });
+    it('**/followers/:follower_id should return array and success when true', function(done){
+      executeFetchFollowByTypeAndIdRequest('followers', test_user._id, mark._id, function(err, result){
+        if(err) throw err;
+        _expect(result.metadata.success).to.equal(true);
+        _expect(result.data[0]).to.have.property('_id');
+        _expect(result.data[0]).to.have.property('date');
+        _expect(result.data[0]._id.toString()).to.equal(mark._id.toString());
+        done();
+      });
+    });
+    it('**/followers/:follower_id should return empty data and success when no id found', function(done){
+      executeFetchFollowByTypeAndIdRequest('followers', mark._id, test_user._id, function(err, result){
+        if(err) throw err;
+        _expect(result.metadata.success).to.equal(true);
+        _expect(result.data.length).to.equal(0);
+        done();
+      });
+    });
     it('should unfollow a user with /users/:id/unfollow endpoint', function(done){
       console.log(maryolin._id);
       console.log(test_user._id);
@@ -152,6 +200,7 @@ describe('Follow Route Unit Tests', function(done){
                 _expect(t_follower.following[i]._id).to.not.equal(test_user._id);
               }
             }
+
             done();
           });
         });

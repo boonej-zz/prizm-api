@@ -31,9 +31,9 @@ exports.prismEncrypt = function(string, salt_key){
  * @param {Number} force_status_code Forced HTTP status to set
  */
 exports.prismResponse = function(res, data, success, error, force_status_code){
-  var response = {};
-  response['metadata'] = { success: success };
-  response['data'] = (Array.isArray(data) ? data : [data]);
+  var response = {metadata: null, data: null};
+  response.metadata = { success: success };
+  response.data = (Array.isArray(data) ? data : [data]);
 
   if(error && success == false){
     response['error'] = error.error_info;
@@ -47,7 +47,7 @@ exports.prismResponse = function(res, data, success, error, force_status_code){
   }
 
   res.send(response);
-}
+};
 
 /**
  * [parsedQueryOptions description]
@@ -59,7 +59,7 @@ exports.parsedQueryOptions = function(query_params) {
   var obj = {};
 
   if(typeof(query_params) !== 'undefined'){
-    options.fields = {}
+    options.fields = {};
 
     if(typeof(query_params.fields) !== 'undefined'){
       var fields = query_params.fields.split(',');
@@ -79,7 +79,7 @@ exports.parsedQueryOptions = function(query_params) {
     }
 
     if(typeof(query_params.sort_field) !== 'undefined'){
-      obj[query_params.sort_field] = -1;;
+      obj[query_params.sort_field] = -1;
       options.sort = obj;
 
     }else {
