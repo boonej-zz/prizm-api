@@ -48,13 +48,12 @@ exports.follow = function(req, res){
         for(i=0; i < follower.following.length; i++){
           if(follower.following[i]._id.toString() == followee._id.toString()){
             is_following = true;
-            break;
           }
         }
 
         if(is_following){
           var error = {
-            status_code: 401,
+            status_code: 400,
             error_info: {
               error: 'unable_to_follow_user',
               error_description: 'The requested followee is already being followed'
@@ -127,47 +126,65 @@ exports.unfollow = function(req, res){
 
       }else{
         //unset the creator from the followees followers array
+        var is_following = true;
         for(var i=0; i < result.followers.length; i++){
           if(result.followers[i]._id == req.body.creator){
             result.followers.splice(i,1);
             //decrement the followers count
             result.followers_count = result.followers_count - 1;
+            is_following = false;
           }
         }
 
-        //save|update the followee record
-        result.save(function(err, updated){
-          if(err){
-            _utils.prismResponse(res, null, falase, PrismError.serverError);
+        if(is_following){
+          var error = {
+            status_code: 400,
+            error_info: {
+              error: 'unable_to_unfollow_user',
+              error_description: 'unable to process unfollow request'
+            }
+          };
 
-          }else{
-            //remove followee from the follower
-            User.findOne({_id: req.body.creator}, function(err, result){
-              if(err){
-                _utils.prismRespnse(res, null, false, PrismError.invalidRequest);
+          _utils.prismResponse( res,
+                                null,
+                                false,
+                                error);
+        }else{
 
-              }else{
+          //save|update the followee record
+          result.save(function(err, updated){
+            if(err){
+              _utils.prismResponse(res, null, falase, PrismError.serverError);
 
-                //unset the followee from the following array
-                for(var i=0; i < result.following.length; i++){
-                  if(result.following[i]._id == req.body.creator){
-                    result.following.splice(i,1);
-                    result.following_count = result.following_count -1;
+            }else{
+              //remove followee from the follower
+              User.findOne({_id: req.body.creator}, function(err, result){
+                if(err){
+                  _utils.prismRespnse(res, null, false, PrismError.invalidRequest);
+
+                }else{
+
+                  //unset the followee from the following array
+                  for(var i=0; i < result.following.length; i++){
+                    if(result.following[i]._id == req.params.id){
+                      result.following.splice(i,1);
+                      result.following_count = result.following_count -1;
+                    }
                   }
+
+                  result.save(function(err, updated){
+                    if(err) {
+                      _utils.prismResponse(res, null, false, PrismError.serverError);
+                    }else{
+                       //send back successful unfollow
+                      _utils.prismResponse(res, {}, true);
+                    }
+                  });
                 }
-
-                result.save(function(err, updated){
-                  if(err) {
-                    _utils.prismResponse(res, null, false, PrismError.serverError);
-                  }else{
-                     //send back successful unfollow
-                    _utils.prismResponse(res, {}, true);
-                  }
-                });
-              }
-            });
-          }
-        });
+              });
+            }
+          });
+        }
       }
     });
   }else{
@@ -265,8 +282,6 @@ exports.fetchFollowing = function(req, res){
           following_array.push(user[0].following[i]._id);
         }
 
-        console.log(following_array);
-
         User.find(
           {_id : {$in: following_array}},
           {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
@@ -299,8 +314,6 @@ exports.fetchFollowers = function(req, res){
         for(var i = 0; i < user[0].followers.length; i++){
           followers_array.push(user[0].followers[i]._id);
         }
-
-        console.log(followers_array);
 
         User.find(
           {_id: {$in : followers_array}},
