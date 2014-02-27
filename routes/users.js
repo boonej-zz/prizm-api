@@ -208,8 +208,8 @@ exports.fetchUser = function(req, res){
  */
 exports.fetchUserNewsFeed = function(req, res){
   if(req.params.id){
-    debugger;
     User.findOne({_id: req.params.id}, function(err, user){
+
       if(err || !user){
         _utils.prismResponse(res,null,false,Error.invalidUserRequest);
 
@@ -217,7 +217,8 @@ exports.fetchUserNewsFeed = function(req, res){
         //fetch all posts that are public & the user is following
         var following_array = [];
         for(var i = 0; i < user.following.length; i++){
-          following_array.push(user.following.length[i]._id);
+
+          following_array.push(user.following[i]._id);
         }
 
         if(following_array.length > 0){
@@ -226,26 +227,26 @@ exports.fetchUserNewsFeed = function(req, res){
             fetch_options = _utils.parsedQueryOptions(req.query);
             if(req.query.feature_identifier){
               if(req.query.direction && req.query.direction == 'older'){
-                fetch_criteria = {creator: {$in : following_array},
+                fetch_criteria = {scope: 'public', creator: {$in : following_array},
                                   create_date: { $lt: req.query.feature_identifier}};
               }else{
-                fetch_criteria = {creator: {$in : following_array},
+                fetch_criteria = {scope: 'public', creator: {$in : following_array},
                                   create_date: { $gt: req.query.feature_identifier}};
               }
 
               fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
             }else{
-              fetch_criteria = {creator: {$in : following_array}};
+              fetch_criteria = {scope: 'public', creator: {$in : following_array}};
               fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
             }
 
           }else{
-            fetch_criteria = {creator: {$in : following_array}};
+            fetch_criteria = {scope: 'public', creator: {$in : following_array}};
             fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
           }
-          debugger;
+
           var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
-          fetch.query(fetch_populate).exec(function(err, feed){
+          fetch_query.populate(fetch_populate).exec(function(err, feed){
             if(err){
               _utils.prismResponse(res,null,false,Error.serverError);
 
