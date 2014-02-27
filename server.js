@@ -153,6 +153,9 @@ _app.get('/users/:id/followers', _gateway, _prism_follow.fetchFollowers);
 /* Fetch Users following */
 _app.get('/users/:id/following', _gateway, _prism_follow.fetchFollowing);
 
+/* Fetch Users News Feed */
+_app.get('/users/:id/feed', _gateway, _prism_user.fetchUserNewsFeed);
+
 /* Fetch is User Following By Following Identifier */
 _app.get( '/users/:id/following/:following_id',
           _gateway,

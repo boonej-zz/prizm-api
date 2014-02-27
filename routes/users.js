@@ -201,6 +201,79 @@ exports.fetchUser = function(req, res){
 };
 
 /**
+ * [fetchUserNewsFeed description]
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Post} Returns A Post Object array containing ..
+ */
+exports.fetchUserNewsFeed = function(req, res){
+  if(req.params.id){
+    debugger;
+    User.findOne({_id: req.params.id}, function(err, user){
+      if(err || !user){
+        _utils.prismResponse(res,null,false,Error.invalidUserRequest);
+
+      }else{
+        //fetch all posts that are public & the user is following
+        var following_array = [];
+        for(var i = 0; i < user.following.length; i++){
+          following_array.push(user.following.length[i]._id);
+        }
+
+        if(following_array.length > 0){
+
+          if(req.query){
+            fetch_options = _utils.parsedQueryOptions(req.query);
+            if(req.query.feature_identifier){
+              if(req.query.direction && req.query.direction == 'older'){
+                fetch_criteria = {creator: {$in : following_array},
+                                  create_date: { $lt: req.query.feature_identifier}};
+              }else{
+                fetch_criteria = {creator: {$in : following_array},
+                                  create_date: { $gt: req.query.feature_identifier}};
+              }
+
+              fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+            }else{
+              fetch_criteria = {creator: {$in : following_array}};
+              fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+            }
+
+          }else{
+            fetch_criteria = {creator: {$in : following_array}};
+            fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
+          }
+          debugger;
+          var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
+          fetch.query(fetch_populate).exec(function(err, feed){
+            if(err){
+              _utils.prismResponse(res,null,false,Error.serverError);
+
+            }else{
+              _utils.prismResponse(res,feed,true);
+            }
+          });
+
+        }else{
+          //user is not following anyone. send error
+          var error = {
+            status_code: 400,
+            error_info: {
+              error: 'user_has_no_news_feed_content',
+              error_description: 'The requested user is not following anyone.'+
+              ' There is no content to display'
+            }
+          };
+          _utils.prismResponse(res,null,false,error);
+        }
+      }
+    });
+  }else{
+    _utils.prismResponse(res,null,false,Error.invalidRequest);
+  }
+};
+
+/**
  * [createUserPost description]
  * @param  {[type]} req [description]
  * @param  {[type]} res [description]
@@ -318,7 +391,6 @@ exports.fetchUserPosts = function(req, res){
       fetch_criteria = {_id: req.params.id};
       fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
     }
-    _logger.info('logging fetch_options: ', fetch_options);
 
     var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
     fetch_query.populate(fetch_populate).exec(function(error, user_posts){
@@ -329,10 +401,7 @@ exports.fetchUserPosts = function(req, res){
 
       }else{
 
-
           _utils.prismResponse(res, user_posts, true);
-        // debugger;
-        // _utils.prismResponse(res, user_posts, true);
       }
     });
   }else{
