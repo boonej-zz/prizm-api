@@ -96,7 +96,7 @@ exports.unlikePost = function(req, res){
         var removed = false;
         for(var i=0; i < post.likes.length; i++){
           if(post.likes[i]._id == req.body.creator){
-            post.likes.slice(i, 1);
+            post.likes.splice(i, 1);
             removed = true;
           }
         }
@@ -146,7 +146,7 @@ exports.unlikePost = function(req, res){
  */
 exports.fetchPostAndLikeById = function(req, res){
   if(req.params.id && req.params.like_id){
-    Post.findOne({_id: req.params.id, "likes._id": like_id},
+    Post.findOne({_id: req.params.id, "likes._id": req.params.like_id},
                  {likes_count:1, "likes._id": 1},
                  function(err, post){
 

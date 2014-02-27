@@ -127,7 +127,7 @@ exports.unfollow = function(req, res){
 
       }else{
         //unset the creator from the followees followers array
-        for(var i=result.followers.length-1; i >= 0; i--){
+        for(var i=0; i < result.followers.length; i++){
           if(result.followers[i]._id == req.body.creator){
             result.followers.splice(i,1);
             //decrement the followers count
@@ -149,7 +149,7 @@ exports.unfollow = function(req, res){
               }else{
 
                 //unset the followee from the following array
-                for(var i=result.following.length-1; i >=0; i--){
+                for(var i=0; i < result.following.length; i++){
                   if(result.following[i]._id == req.body.creator){
                     result.following.splice(i,1);
                     result.following_count = result.following_count -1;

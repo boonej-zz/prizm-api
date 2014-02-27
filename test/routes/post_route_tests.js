@@ -124,14 +124,13 @@ describe('Posts Route Unit Tests', function(done){
           json: true,
           headers: {"Authorization" : "Bearer "+ test_token.access_token},
           url: 'https://localhost:3000/posts/'+test_post3._id+'/like/'+edwardo._id
-        }, function(err, res){
-          debugger;
-          _expect(res.body.metadata.success).to.be.true;
-          _expect(res.body.data.likes_count).to.be.above(0);
-          _expect(res.body.data.likes[0]._id).to.equal(edwardo._id.toString());
+        }, function(err, result){
+          _expect(result.body.metadata.success).to.be.true;
+          _expect(result.body.data[0].likes_count).to.be.above(0);
+          _expect(result.body.data[0].likes[0]._id).to.equal(edwardo._id.toString());
           done();
         });
-      })
+      });
     });
   });
 
