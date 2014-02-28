@@ -25,24 +25,37 @@ var _mongoose     = require('mongoose'),
  */
 exports.createPostComment = function(req, res){
   if(req.params.id && req.body.creator && req.body.text){
-    // var comment = {_id: req.body.creator, text: req.body.text, date: new Date()};
-    var comment = new Comment({
-      text: req.body.text,
-      creator: req.body.creator
-    });
 
-    Post.findOne({_id: req.params.id}, function(err, post){
-      if(err || !post){
-        _utils.prismResponse(res,null,false,PrismError.invalidRequest);
-      }else{
-        post.comments.push(comment);
-        post.comments_count = post.comments_count + 1;
-        post.save(function(err, saved){
-          if(err) _utils.prismResponse(res,null,false,PrismError.serverError);
-          var response = {comments: comment, comments_count: saved.comments_count};
-          _utils.prismResponse(res, response, true);
-        });
-      }
+    User.findOne({_id: req.body.creator}, function(err, user){
+      if(err) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+
+      // var comment = {_id: req.body.creator, text: req.body.text, date: new Date()};
+      var comment = new Comment({
+        text: req.body.text,
+        creator: req.body.creator
+      });
+
+      Post.findOne({_id: req.params.id}, function(err, post){
+        if(err || !post){
+          _utils.prismResponse(res,null,false,PrismError.invalidRequest);
+        }else{
+          post.comments.push(comment);
+          post.comments_count = post.comments_count + 1;
+          post.save(function(err, saved){
+            if(err) _utils.prismResponse(res,null,false,PrismError.serverError);
+            var comment_creator = {
+              name: user.name,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              _id: user._id,
+              profile_photo_url: user.profile_photo_url
+            };
+            comment.creator = comment_creator;
+            var response = {comments: comment, comments_count: saved.comments_count};
+            _utils.prismResponse(res, response, true);
+          });
+        }
+      });
     });
   }else{
     _utils.prismResponse(res,null,false,PrismError.invalidRequest);

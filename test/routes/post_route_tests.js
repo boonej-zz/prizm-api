@@ -154,7 +154,7 @@ describe('Posts Route Unit Tests', function(done){
           headers: {"Authorization" : "Bearer " + test_token.access_token},
           url: 'https://localhost:3000/posts/'+test_post1._id+'/comments'
         }, function(err, result){
-          console.log(result);
+          console.log(result.body);
           console.log(err);
           debugger;
           done();
