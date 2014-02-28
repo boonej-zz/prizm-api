@@ -11,7 +11,7 @@
 
 exports.invalidRequest = {
   status_code         : 400,
-  error_info          : {  
+  error_info          : {
     error             : 'invalid_request',
     error_description : 'the request was malformed or missing required data'
   }
@@ -58,7 +58,7 @@ exports.invalidUserRequest = {
 }
 
 exports.unauthorized = {
-  status_code         : 401, 
+  status_code         : 401,
   error_info          : {
       error             : 'unauthorized',
       error_description : 'invalid credentials'
@@ -86,7 +86,7 @@ exports.accessDenied = {
   status_code         : 401,
   error_info          : {
       error             : 'access_denied',
-      error_description : 'your credentials are not sufficient to access this' 
+      error_description : 'your credentials are not sufficient to access this'
                              + ' resource'
     }
 }
@@ -120,7 +120,7 @@ exports.unsupportedProviderType = function(type){
 
 exports.invalidScope = {
   status_code           : 403,
-  error_info            : { 
+  error_info            : {
       error             : 'invalid_scope',
       error_description : 'you do not have permissions to access this resource'
     }
@@ -138,8 +138,8 @@ exports.serverError = {
   status_code         : 500,
   error_info          : {
       error             : 'server_error',
-      error_description : 'the server has encountered a serious error. ' 
-                          + 'If this issue persists, please contact support' 
+      error_description : 'the server has encountered a serious error. '
+                          + 'If this issue persists, please contact support'
     }
 }
 

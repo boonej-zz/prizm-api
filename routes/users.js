@@ -168,6 +168,47 @@ exports.register = function(req, res){
   }
 };
 
+var formatStringSearchVariable = function(search_string){
+  return new RegExp(search_string, "i");
+};
+
+/**
+ * Fetchs all users.
+ *
+ * //TODO: this should be moved to a middleware or global object
+ * currently checks for user's name in the query object & trys to apply the filter
+ * to the query criteria
+ *
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.fetchAllUsers = function(req, res){
+  var query, options, criteria = {};
+
+  options = _utils.parsedQueryOptions(req.query);
+  if(req.query){
+    if(req.query.name) criteria = {name: {$regex: formatStringSearchVariable(req.query.name)}};
+    if(req.query.first_name) criteria.first_name = {$regex: formatStringSearchVariable(req.query.first_name)};
+    if(req.query.last_name) criteria.last_name = {$regex: formatStringSearchVariable(req.query.last_name)};
+    if(req.query.feature_identifier){
+      criteria.create_date = ( req.query.direction &&
+                                  req.query.direction == 'older') ?
+                                    {$lt: req.query.feature_identifier} :
+                                    {$gt: req.query.feature_identifier};
+    }
+  }
+
+  query = _utils.buildQueryObject(User, criteria, options);
+  query.select('name first_name last_name profile_photo_url').exec(function(err, users){
+    if(err || !users){
+      _utils.prismResponse(res,null,false,Error.invalidUserRequest);
+    }else{
+      _utils.prismResponse(res,users,true);
+    }
+  });
+};
+
 /**
  * Fetchs Prism user object by identifier
  *

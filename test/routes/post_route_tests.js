@@ -85,7 +85,7 @@ describe('Posts Route Unit Tests', function(done){
             for(var i = 0; i < social_network_followers.length; i++){
 
               executeFollowRequest(social_network_followers[i], test_user, null);
-              if(i !== 0) executeFollowRequest(test_user, social_network_followers[i], null);
+              if(i !== 3) executeFollowRequest(test_user, social_network_followers[i], null);
               // if(i == social_network_followers.length) done();
             }
             //setup fake posts
@@ -112,6 +112,28 @@ describe('Posts Route Unit Tests', function(done){
   describe('Testing Fetching a Post by Id', function(done){
     it('should return the entire post object', function(done){
       done();
+    });
+  });
+
+  describe('Testing A Users News Feed', function(done){
+    //setup test_user to follow mark
+    before(function(done){
+      //make the assumption everything is fine
+      executeFollowRequest(test_user, mark);
+      done();
+    });
+    it('should fetch a users news feed', function(done){
+      _request({
+        method: 'GET',
+        url: 'https://localhost:3000/users/' + test_user._id+'/feed',
+        json: true,
+        strictSSL: false,
+        headers: {"Authorization":"Bearer "+test_token.access_token}
+      },function(err, result){
+        debugger;
+        // _expect(result.)
+        done();
+      });
     });
   });
 

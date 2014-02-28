@@ -297,6 +297,30 @@ describe('User Route Unit Tests', function(done){
       });
     });
   });
+  describe('Testing Searching for A User', function(done){
+    it('should fetch a user by there first name', function(done){
+      var fusers = _t_helpers.fetchFakeUsersArray();
+      User.create(fusers, function(err){
+        var fetch_url = 'https://localhost:3000/users?last_name=zuck';
+        var auth_header = 'Bearer ' + testToken.access_token;
+        _request({
+          method: 'GET',
+          url: fetch_url,
+          json: true,
+          strictSSL: false,
+          headers: {"Authorization" : auth_header}
+        }, function(error, result, body){
+          console.log(result.body);
+          _expect(result.body.data[0]).to.have.property('name');
+          _expect(result.body.data[0]).to.have.property('first_name');
+          _expect(result.body.data[0]).to.have.property('last_name');
+          _expect(result.body.data[0]).to.have.property('_id');
+          _expect(result.body.data[0].first_name).to.equal('mark');
+          done();
+        });
+      });
+    });
+  });
 });
 
 

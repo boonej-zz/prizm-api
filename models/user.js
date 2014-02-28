@@ -10,6 +10,7 @@ var _mongoose   = require('mongoose'),
     _utils      = require(_prism_home + 'utils');
 
 var userSchema = new _mongoose.Schema({
+  name                  : {type: String, default: ''},
 	first_name            : {type: String, required: true},
 	last_name             : {type: String, required: true},
 	email                 : { type: String,
@@ -52,7 +53,7 @@ var userSchema = new _mongoose.Schema({
 
 userSchema.methods.createUserSalt = function(){
   return _serial.stringify(this._id+this.create_date.valueOf()+this.email);
-}
+};
 
 userSchema.methods.hashPassword = function(){
   if(this.password && this.create_date && this.email){
@@ -64,22 +65,22 @@ userSchema.methods.hashPassword = function(){
     }
   }
   return false;
-}
+};
 
 userSchema.methods.findByFacebookId = function(fb_id, callback){
   return this.model('User').findOne({ provider: 'facebook',
                                       provider_id: fb_id }, callback);
-}
+};
 
 userSchema.methods.findByTwitterId = function(tw_id, callback){
   return this.model('User').findOne({ provider: 'twitter',
                                       provider_id: tw_id }, callback);
-}
+};
 
 userSchema.methods.findByGoogleId = function(google_id, callback){
   return this.model('User').findOne({ provider: 'google',
                                       provider_id: google_id }, callback);
-}
+};
 
 // userSchema.methods.confirmUniqueSocialUser = function(callback){
 //   return this.model('User').findOne({ provider_id: this.provider_id,
@@ -100,13 +101,7 @@ userSchema.pre('save', function(next){
   //set create & modify dates
   if(!this.create_date){
     this.create_date = Date.now();
-
-    if(this.provider_id){
-
-      // this.confirmUniqueSocialUser(function(err, res){
-      //   if(res) next(false);
-      // });
-    }
+    this.name = this.first_name + ' ' + this.last_name;
     if(this.password){
       if(!this.hashPassword()) next(false);
     }

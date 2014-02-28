@@ -126,6 +126,9 @@ _app.post('/oauth2/token', _prism_token);
 /* User Login/Authentication */
 _app.post('/oauth2/login', _gateway, _prism_user.login);
 
+/* Fetch All Users */
+_app.get('/users', _gateway, _prism_user.fetchAllUsers);
+
 /* Create/Register User Route */
 _app.post('/users', _gateway, _prism_user.register);
 
