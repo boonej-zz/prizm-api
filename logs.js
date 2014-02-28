@@ -18,7 +18,7 @@ var logger = new (_winston.Logger)({
 		new _winston.transports.Console({ filename: 'logs/prism.log', level: 'debug'}),
 		new _winston.transports.File({ filename: 'logs/prism.log'})
 	],
-	exceptionHandlers: (!process.env.NODE_ENV == 'test') ? exception_handlers : test_mode_exception_handlers
+	exceptionHandlers: (process.env.NODE_ENV !== 'test') ? exception_handlers : test_mode_exception_handlers
 });
 
 module.exports = logger;

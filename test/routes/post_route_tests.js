@@ -71,6 +71,19 @@ describe('Posts Route Unit Tests', function(done){
     });
   };
 
+  var executeAddCommentRequest = function(u_creator, post_id, cb){
+    _request({
+      method: 'POST',
+      strictSSL: false,
+      json: true,
+      url: 'https://localhost:3000/posts/' + post_id + '/comments',
+      headers: {"Authorization" : "Bearer " + test_token.access_token},
+      body: {creator: u_creator, text: 'test commenting on this post'}
+    }, function(err, result){
+      if(cb) cb(err, result.body);
+    });
+  };
+
   before(function(done){
     _t_helpers.destroyTestUser(function(){
       _t_helpers.createTestUser(function(testuser){
@@ -94,6 +107,7 @@ describe('Posts Route Unit Tests', function(done){
               test_post1 = test1;
               test_post2 = test2;
               test_post3 = test3;
+              // executeAddCommentRequest()
               done();
             });
           });
@@ -104,7 +118,6 @@ describe('Posts Route Unit Tests', function(done){
 
   after(function(done){
     _t_helpers.destroyTestUser(function(){
-
       done();
     });
   });
@@ -112,6 +125,41 @@ describe('Posts Route Unit Tests', function(done){
   describe('Testing Fetching a Post by Id', function(done){
     it('should return the entire post object', function(done){
       done();
+    });
+  });
+
+  describe('Testing Adding a Comment to a Post', function(done){
+    it('should add a comment to a specified post', function(done){
+      executeAddCommentRequest(test_user._id, test_post1._id, function(err, body){
+        _expect(body.metadata.success).to.equal(true);
+        _expect(body.data[0]).to.have.property('comments');
+        _expect(body.data[0]).to.have.property('comments_count');
+        _expect(body.data[0].comments).to.have.property('_id');
+        _expect(body.data[0].comments).to.have.property('creator');
+        _expect(body.data[0].comments).to.have.property('text');
+        _expect(body.data[0].comments).to.have.property('create_date');
+        _expect(body.data[0].comments_count).to.equal(1);
+        _expect(body.data[0].comments.creator).to.equal(test_user._id.toString());
+        _expect(body.data[0].comments.text).to.equal('test commenting on this post');
+        done();
+      });
+    });
+    it('should fetch comments from a specific post', function(done){
+      executeAddCommentRequest(edwardo._id, test_post1._id, function(err, body){
+        if(err) throw err;
+        _request({
+          method: 'GET',
+          json: true,
+          strictSSL: false,
+          headers: {"Authorization" : "Bearer " + test_token.access_token},
+          url: 'https://localhost:3000/posts/'+test_post1._id+'/comments'
+        }, function(err, result){
+          console.log(result);
+          console.log(err);
+          debugger;
+          done();
+        });
+      });
     });
   });
 
@@ -130,15 +178,17 @@ describe('Posts Route Unit Tests', function(done){
         strictSSL: false,
         headers: {"Authorization":"Bearer "+test_token.access_token}
       },function(err, result){
-        debugger;
-        // _expect(result.)
+        _expect(result.body.metadata.success).to.equal(true);
+        _expect(result.body.data.length).to.be.above(3);
+
+
         done();
       });
     });
   });
 
   describe('Testing Fetching A Post Like by Post Id && Requestor Id', function(done){
-    it('should ', function(done){
+    it('should return the post object with likes & count', function(done){
       executeLikeRequest('like', edwardo._id, test_post3._id, function(err, res){
         _request({
           method: 'GET',
@@ -147,7 +197,7 @@ describe('Posts Route Unit Tests', function(done){
           headers: {"Authorization" : "Bearer "+ test_token.access_token},
           url: 'https://localhost:3000/posts/'+test_post3._id+'/like/'+edwardo._id
         }, function(err, result){
-          _expect(result.body.metadata.success).to.be.true;
+          _expect(result.body.metadata.success).to.equal(true);
           _expect(result.body.data[0].likes_count).to.be.above(0);
           _expect(result.body.data[0].likes[0]._id).to.equal(edwardo._id.toString());
           done();
@@ -189,7 +239,7 @@ describe('Posts Route Unit Tests', function(done){
     it('should remove the like from the posts record on successful unlike', function(done){
       executeLikeRequest('unlike', test_user._id, test_post2._id, function(err, res){
         console.log('unlike result logged');
-        _expect(res.metadata.success).to.be.true;
+        _expect(res.metadata.success).to.equal(true);
         _expect(res.data[0].likes_count).to.equal(0);
         _expect(res.data[0].likes).to.be.empty;
         done();

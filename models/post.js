@@ -10,7 +10,17 @@ var _mongoose   = require('mongoose'),
     User        = require(process.env.PRISM_HOME + 'models/user').User;
 
 /**
- * Posts Model Schema
+ * Comment Model Schema
+ * @type {Mongoose.Schema}
+ */
+var commentSchema = new _mongoose.Schema({
+  text                : { type: String, default: null, required: true },
+  creator             : { type: _mongoose.Schema.Types.ObjectId, ref: 'User'},
+  create_date         : { type: Date, default: Date.now() }
+});
+
+/**
+ * Post Model Schema
  * @type {Mongoose.Schema}
  */
 var postSchema = new _mongoose.Schema({
@@ -31,7 +41,7 @@ var postSchema = new _mongoose.Schema({
   comments_count      : {type: Number, default: 0},
   tages_count         : {type: Number, default: 0},
   tags                : [],
-  comments            : [],
+  comments            : [commentSchema],
   likes               : []
 }, { versionKey: false});
 
@@ -50,6 +60,11 @@ postSchema.pre('save', function(next){
 	if(!this.create_date){
 		this.create_date = Date.now();
 	}
+
+  //check that counts are accurate to arrays, if not increment there values
+  if(this.likes.length !== this.likes_count) this.likes_count = this.likes.length;
+  if(this.comments.length !== this.comments_count) this.comments_count = this.comments.length;
+
 	next();
 });
 
@@ -65,4 +80,5 @@ postSchema.pre('update', function(next){
 	next();
 });
 
-exports.Post = _mongoose.model('Post', postSchema);
+exports.Post    = _mongoose.model('Post', postSchema);
+exports.Comment = _mongoose.model('Comment', commentSchema);

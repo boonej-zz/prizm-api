@@ -19,7 +19,7 @@ exports.prismEncrypt = function(string, salt_key){
   var crypted = cipher.update(string, 'utf8', 'hex');
   crypted     += cipher.final('hex');
   return crypted;
-}
+};
 
 /**
  * Standardizes HTTP Response messaging
@@ -35,9 +35,9 @@ exports.prismResponse = function(res, data, success, error, force_status_code){
   response.metadata = { success: success };
   response.data = (Array.isArray(data) ? data : [data]);
 
-  if(error && success == false){
-    response['error'] = error.error_info;
-    response['data'] = [];
+  if(error && success === false){
+    response.error = error.error_info;
+    response.data = [];
   }
 
   if(force_status_code){
@@ -83,7 +83,7 @@ exports.parsedQueryOptions = function(query_params) {
       options.sort = obj;
 
     }else {
-      obj['create_date'] = -1;
+      obj.create_date = -1;
       options.sort = obj;
     }
 
@@ -93,7 +93,7 @@ exports.parsedQueryOptions = function(query_params) {
   }else {
     return null;
   }
-}
+};
 
 /**
  * [buildQueryObject description]
@@ -121,7 +121,7 @@ exports.buildQueryObject = function(model, criteria, options, is_aggregate_query
     return null;
   }
   return null;
-}
+};
 
 /**
  * Explodes request path into an array
@@ -137,7 +137,7 @@ exports.requestPathArray = function(req){
     }
   }
   return false;
-}
+};
 
 /**
  * Checks for Basic Authorization header & decodes credentials
@@ -157,7 +157,7 @@ var credentials = function(header){
     }
   }
   return false;
-}
+};
 
 /**
  * Checks to ensure the client is authorzied to make
@@ -188,9 +188,9 @@ exports.authorizeClientRequest = function(req, callback){
         }else{
           callback(Error.accessDeniedExpiredToken, false, result);
         }
-      })
+      });
     }
     callback('Error parsing credentials', false, null);
   }
-}
+};
 

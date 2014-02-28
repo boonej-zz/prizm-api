@@ -141,6 +141,12 @@ _app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
 
+/* Add Comment to Post */
+_app.post('/posts/:id/comments', _gateway, _prism_post.createPostComment);
+
+/* Get A Post Comments */
+_app.get('/posts/:id/comments', _gateway, _prism_post.fetchPostComments);
+
 /* Like A Post */
 _app.post('/posts/:id/like', _gateway, _prism_post.likePost);
 
