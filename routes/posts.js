@@ -50,8 +50,14 @@ exports.createPostComment = function(req, res){
               _id: user._id,
               profile_photo_url: user.profile_photo_url
             };
-            comment.creator = comment_creator;
-            var response = {comments: comment, comments_count: saved.comments_count};
+            var comment_with_user = {
+              create_date: comment.create_date,
+              text: comment.text,
+              creator: comment_creator,
+              _id: comment._id
+            };
+
+            var response = {comments: comment_with_user, comments_count: saved.comments_count};
             _utils.prismResponse(res, response, true);
           });
         }
