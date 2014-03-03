@@ -32,7 +32,8 @@ exports.createPostComment = function(req, res){
       // var comment = {_id: req.body.creator, text: req.body.text, date: new Date()};
       var comment = new Comment({
         text: req.body.text,
-        creator: req.body.creator
+        creator: req.body.creator,
+        create_date: Date.now()
       });
 
       Post.findOne({_id: req.params.id}, function(err, post){
@@ -105,7 +106,9 @@ exports.fetchPostComments = function(req, res){
       query     = _utils.buildQueryObject(Post, criteria, options);
     }
 
-    var creator_populate = ['comments.creator', 'comments.creator.first_name comments.creator.last_name comments.creator.profile_photo_url comments.creator.name'];
+    var creator_select = 'comments.creator.first_name comments.creator.last_name'+
+                          ' comments.creator.profile_photo_url comments.creator.name';
+    var creator_populate = ['comments.creator', creator_select];
     query.populate(creator_populate).exec(function(err, comm){
       if(err) _utils.prismResponse(res,null,false,PrismError.ServerError);
 
