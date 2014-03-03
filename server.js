@@ -22,23 +22,17 @@ var _express        = require('express'),
     _gateway        = require(_prism_home + 'gateway'),
     _config         = require('config'),
     _e_winston      = require('express-winston'),
+    logger          = require('logs'),
     _winston        = require('winston');
 
 var _app            = _express();
 var _httpserver     = _express();
-
-try{
-  require(_prism_home + 'logs.js');
-}catch(e){
-  console.log('Error in requiring log.js');
-}
 
 //general settings */
 _app.use(_express.bodyParser());
 _app.use(_express.methodOverride());
 
 /* environment specific settings */
-if (_app.get('env') != 'test') {
   errorTransports = [
     new _winston.transports.File({
       filename: 'logs/prism_errors.log',
@@ -50,26 +44,11 @@ if (_app.get('env') != 'test') {
     new _winston.transports.File({
       filename: 'logs/prism_requests.log',
       json: true,
-      colorize: true
-    })
-  ];
-}
-else {
-  errorTransports = [
-    new _winston.transports.Console({
-      json: true,
       colorize: true,
       prettyPrint: true
     })
   ];
-  standardTransports = [
-    new _winston.transports.File({
-      filename: 'logs/prism_requests.log',
-      json: true,
-      colorize: true
-    })
-  ];
-}
+
 
 /* configure mongo connection */
 _mongoose.connect('mongodb://' + _config.mongo.host + '/' + _config.mongo.name);
@@ -78,10 +57,13 @@ _mongoose.connect('mongodb://' + _config.mongo.host + '/' + _config.mongo.name);
 _app.use(_e_winston.logger({
   transports: standardTransports,
   meta: true,
-  msg: "HTTP {{req.method}} {{req.url}}"
+  msg: "HTTP METHOD:{{req.method}}  URL:{{req.url}}  QUERY:{{JSON.stringify(req.query)}}  BODY:{{JSON.stringify(req.body)}}"
 }));
 
 _app.use(_app.router);
+
+logger.log('info', 'this is retarded');
+logger.log('error', 'does this error show up too>>??');
 
 /* express winston errorLogger after router */
 _app.use(_e_winston.errorLogger({

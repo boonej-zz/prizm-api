@@ -286,7 +286,7 @@ exports.fetchFollowing = function(req, res){
           {_id : {$in: following_array}},
           {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
           function(err, result){
-            console.log(result);
+            // console.log(result);
             _utils.prismResponse(res, result, true);
         });
       }
@@ -319,7 +319,7 @@ exports.fetchFollowers = function(req, res){
           {_id: {$in : followers_array}},
           {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
           function(err, result){
-            console.log(result);
+            // console.log(result);
             _utils.prismResponse(res, result, true);
         });
 

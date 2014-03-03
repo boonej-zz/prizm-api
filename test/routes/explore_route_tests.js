@@ -54,7 +54,6 @@ describe('Explore Route Unit Tests', function(done){
           strictSSL: false,
           headers: {"Authorization":auth_headers}
         }, function(err, expl){
-          console.log(expl.body);
           done();
         });
       });

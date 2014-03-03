@@ -113,7 +113,6 @@ describe('Follow Route Unit Tests', function(done){
     });
 
     it('should return a successful response with no data', function(done){
-      console.log(request_result);
       _expect(request_result.metadata.success).to.equal(true);
       done();
     });
@@ -174,8 +173,6 @@ describe('Follow Route Unit Tests', function(done){
       });
     });
     it('should unfollow a user with /users/:id/unfollow endpoint', function(done){
-      console.log(maryolin._id);
-      console.log(test_user._id);
       _request({
         method: 'POST',
         strictSSL: false,
@@ -239,7 +236,7 @@ describe('Follow Route Unit Tests', function(done){
         headers: {"Authorization": 'Bearer '+ test_token.access_token},
         url: base_url + test_user._id + '/followers'
       }, function(err, response){
-        console.log(JSON.stringify(response.body));
+        // console.log(JSON.stringify(response.body));
         done();
       });
 
@@ -252,7 +249,7 @@ describe('Follow Route Unit Tests', function(done){
         headers: {"Authorization": 'Bearer '+ test_token.access_token},
         url: base_url + test_user._id + '/following'
       }, function(err, response){
-        console.log(JSON.stringify(response.body));
+        // console.log(JSON.stringify(response.body));
         done();
       });
     });

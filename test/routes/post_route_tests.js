@@ -139,7 +139,7 @@ describe('Posts Route Unit Tests', function(done){
         _expect(body.data[0].comments).to.have.property('text');
         _expect(body.data[0].comments).to.have.property('create_date');
         _expect(body.data[0].comments_count).to.equal(1);
-        _expect(body.data[0].comments.creator).to.equal(test_user._id.toString());
+        _expect(body.data[0].comments.creator._id).to.equal(test_user._id.toString());
         _expect(body.data[0].comments.text).to.equal('test commenting on this post');
         done();
       });
@@ -154,9 +154,6 @@ describe('Posts Route Unit Tests', function(done){
           headers: {"Authorization" : "Bearer " + test_token.access_token},
           url: 'https://localhost:3000/posts/'+test_post1._id+'/comments'
         }, function(err, result){
-          console.log(result.body);
-          console.log(err);
-          debugger;
           done();
         });
       });
@@ -220,7 +217,6 @@ describe('Posts Route Unit Tests', function(done){
     });
     it('should return an error with no creator identifier in post body', function(done){
       executeLikeRequest('like', null, test_post1._id, function(err, res){
-        console.log(res);
         _expect(res.error).to.exist;
         _expect(res.error.error).to.equal('invalid_request');
         _expect(res.data).to.be.empty;
@@ -238,7 +234,6 @@ describe('Posts Route Unit Tests', function(done){
 
     it('should remove the like from the posts record on successful unlike', function(done){
       executeLikeRequest('unlike', test_user._id, test_post2._id, function(err, res){
-        console.log('unlike result logged');
         _expect(res.metadata.success).to.equal(true);
         _expect(res.data[0].likes_count).to.equal(0);
         _expect(res.data[0].likes).to.be.empty;

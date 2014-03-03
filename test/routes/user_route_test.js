@@ -187,7 +187,7 @@ describe('User Route Unit Tests', function(done){
                   category: 'experience'
                 }
         }, function(error, result){
-          console.log(result.body);
+          // console.log(result.body);
           _expect(result.body.data[0]).to.have.property('location_name');
           _expect(result.body.data[0]).to.have.property('location_longitude');
           _expect(result.body.data[0]).to.have.property('location_latitude');
@@ -241,7 +241,7 @@ describe('User Route Unit Tests', function(done){
             }else{
               var fi = new Date();
               var fetch_url = 'https://localhost:3000/users/'+user._id+'/posts?limit=5&feature_identifier='+fi.toISOString();
-              console.log(fetch_url);
+              // console.log(fetch_url);
               var auth_header = 'Bearer ' + testToken.access_token;
               _request({
                 method: 'GET',
@@ -310,7 +310,7 @@ describe('User Route Unit Tests', function(done){
           strictSSL: false,
           headers: {"Authorization" : auth_header}
         }, function(error, result, body){
-          console.log(result.body);
+          // console.log(result.body);
           _expect(result.body.data[0]).to.have.property('name');
           _expect(result.body.data[0]).to.have.property('first_name');
           _expect(result.body.data[0]).to.have.property('last_name');
