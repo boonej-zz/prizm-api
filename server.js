@@ -22,7 +22,7 @@ var _express        = require('express'),
     _gateway        = require(_prism_home + 'gateway'),
     _config         = require('config'),
     _e_winston      = require('express-winston'),
-    logger          = require('logs'),
+    logger          = require(_prism_home + 'logs.js'),
     _winston        = require('winston');
 
 var _app            = _express();
