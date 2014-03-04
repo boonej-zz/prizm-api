@@ -9,12 +9,11 @@ var _mongoose     = require('mongoose'),
     _prism_home   = process.env.PRISM_HOME,
     _auth_model   = require(_prism_home + 'models/auth'),
     _utils        = require(_prism_home + 'utils'),
-    // winston       = require('winston'),
     logger        = require('logs'),
     Code          = _auth_model.Code,
     Token         = _auth_model.Token,
     Client        = _auth_model.ClientApplication,
-    Error         = require(_prism_home + 'error');
+    PrismError    = require(_prism_home + 'error');
 
 module.exports = function(req, res, next){
   var path = _utils.requestPathArray(req);

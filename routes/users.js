@@ -6,8 +6,8 @@
 var _mongoose     = require('mongoose'),
     _prism_home   = process.env.PRISM_HOME,
     _utils        = require(_prism_home + 'utils'),
-    _logger       = require('winston'),
-    Error         = require(_prism_home + 'error'),
+    _logger       = require(_prism_home + 'logs'),
+    PrismError    = require(_prism_home + 'error'),
     Facebook      = require(_prism_home + 'classes/Facebook'),
     Twitter       = require(_prism_home + 'classes/Twitter'),
     User          = require(_prism_home + 'models/user').User,
@@ -39,7 +39,7 @@ exports.login = function(req, res){
                                   false,
                                   error);
           }else{
-            _utils.prismResponse( res, null, false, Error.invalidLoginUserDoesNotExist);
+            _utils.prismResponse( res, null, false, PrismError.invalidLoginUserDoesNotExist);
           }
         }else{
           //succesful login - send back returned user object
@@ -58,7 +58,7 @@ exports.login = function(req, res){
           _utils.prismResponse( res,
                                 null,
                                 false,
-                                Error.invalidLoginUserDoesNotExist);
+                                PrismError.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
             _utils.prismResponse(res, result, true, null, null);
@@ -66,13 +66,13 @@ exports.login = function(req, res){
            _utils.prismResponse(res,
                                 null,
                                 false,
-                                Error.invalidUserCredentials);
+                                PrismError.invalidUserCredentials);
           }
         }else{
           _utils.prismResponse( res,
                                 null,
                                 false,
-                                Error.invalidLoginUserDoesNotExist);
+                                PrismError.invalidLoginUserDoesNotExist);
         }
       });
     }
@@ -80,7 +80,7 @@ exports.login = function(req, res){
     _utils.prismResponse( res,
                           null,
                           false,
-                          Error.invalidLoginRequest);
+                          PrismError.invalidLoginRequest);
   }
 };
 
@@ -116,7 +116,7 @@ exports.register = function(req, res){
       handleSocialProviderRegistration(req.body, function(error, social){
         // console.log('error/social returned from handle in reg' + error + social);
         if(error && social === false){
-          _utils.prismResponse( res, null, false, error, error.status_code);
+          _utils.prismResponse( res, null, false, error, PrismError.status_code);
         }else if(social){
           newUser.provider = req.body.provider;
           newUser.provider_token = req.body.provider_token;
@@ -131,15 +131,15 @@ exports.register = function(req, res){
                _utils.prismResponse( res,
                                 null,
                                 false,
-                                Error.invalidRegisterUserExists,
-                                Error.invalidRegisterUserExists.status_code);
+                                PrismError.invalidRegisterUserExists,
+                                PrismError.invalidRegisterUserExists.status_code);
             }else{
               _utils.prismResponse(res, result, true);
             }
 
           });
         }else{
-          _utils.prismResponse( res, null, false, Error.serverError, Error.serverError.status_code);
+          _utils.prismResponse( res, null, false, PrismError.serverError, PrismError.serverPrismError.status_code);
         }
       });
     }else{
@@ -149,8 +149,8 @@ exports.register = function(req, res){
           _utils.prismResponse( res,
                                 null,
                                 false,
-                                Error.invalidRegisterUserExists,
-                                Error.invalidRegisterUserExists.status_code);
+                                PrismError.invalidRegisterUserExists,
+                                PrismError.invalidRegisterUserExists.status_code);
         }else{
           var user = result.toObject();
           delete user.password;
@@ -164,7 +164,7 @@ exports.register = function(req, res){
     }
 
   }else{
-    _utils.prismResponse(res, null, false, Error.invalidRequest, Error.invalidRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest, PrismError.invalidRequest.status_code);
   }
 };
 
@@ -202,7 +202,7 @@ exports.fetchAllUsers = function(req, res){
   query = _utils.buildQueryObject(User, criteria, options);
   query.select('name first_name last_name profile_photo_url').exec(function(err, users){
     if(err || !users){
-      _utils.prismResponse(res,null,false,Error.invalidUserRequest);
+      _utils.prismResponse(res,null,false,PrismError.invalidUserRequest);
     }else{
       _utils.prismResponse(res,users,true);
     }
@@ -221,8 +221,8 @@ exports.fetchUser = function(req, res){
     User.findOne({_id: req.params.id}, function(error, result){
       if(error){
         console.log('Error retrieving user by id: ' + req.params.id);
-        _utils.prismResponse(res, null, false, Error.invalidUserRequest,
-                                                Error.invalidUserRequest.status_code);
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
+                                                PrismError.invalidUserRequest.status_code);
       }else{
         var user = result.toObject();
           if(typeof(user.password) !== 'undefined') delete user.password;
@@ -236,8 +236,8 @@ exports.fetchUser = function(req, res){
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, Error.invalidUserRequest,
-                                            Error.invalidUserRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
+                                            PrismError.invalidUserRequest.status_code);
   }
 };
 
@@ -252,7 +252,7 @@ exports.fetchUserNewsFeed = function(req, res){
     User.findOne({_id: req.params.id}, function(err, user){
 
       if(err || !user){
-        _utils.prismResponse(res,null,false,Error.invalidUserRequest);
+        _utils.prismResponse(res,null,false,PrismError.invalidUserRequest);
 
       }else{
         //fetch all posts that are public & the user is following
@@ -289,7 +289,7 @@ exports.fetchUserNewsFeed = function(req, res){
           var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
           fetch_query.populate(fetch_populate).exec(function(err, feed){
             if(err){
-              _utils.prismResponse(res,null,false,Error.serverError);
+              _utils.prismResponse(res,null,false,PrismError.serverError);
 
             }else{
               _utils.prismResponse(res,feed,true);
@@ -311,7 +311,7 @@ exports.fetchUserNewsFeed = function(req, res){
       }
     });
   }else{
-    _utils.prismResponse(res,null,false,Error.invalidRequest);
+    _utils.prismResponse(res,null,false,PrismError.invalidRequest);
   }
 };
 
@@ -339,22 +339,26 @@ exports.createUserPost = function(req, res){
       if(req.body.text && req.body.text != 'undefined') post.text = req.body.text;
       if(req.body.scope != 'undefined') post.scope = req.body.scope;
 
+      if(req.body.hash_tags){
+        post.hash_tags = req.body.hash_tags;
+        post.hash_tags_count = req.body.hash_tags.length;
+      }
+
       User.findOne({_id: req.params.id}, function(error, user){
         if(error){
           console.log('Error retrieving user by id: ' + req.params.id);
-          _utils.prismResponse(res, null, false, Error.invalidUserRequest);
+          _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
 
         }else{
           post.target_id = user._id;
           post.save(function(error, user_post){
-
             if(error){
               _logger.log('error', 'Error trying to create/save a new post',
                           { post_object: post,
                             request_body: req.body,
                             user_object: user,
                             post_error: error });
-              _utils.prismResponse(res, null, false, Error.invalidUserRequest);
+              _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
 
             }else{
               Post.findOne({_id: user_post._id})
@@ -365,13 +369,13 @@ exports.createUserPost = function(req, res){
                 User.findOne({_id: req.body.creator}, function(err, c_user){
                   if(err){
                     console.log(err);
-                    _utils.prismResponse(res, null, false, Error.serverError);
+                    _utils.prismResponse(res, null, false, PrismError.serverError);
                   }else{
                     c_user.posts_count = c_user.posts_count+1;
                     c_user.save(function(err, updated_count){
                       if(err){
                         console.log(err);
-                        _utils.prismResponse(res, null, false, Error.serverError);
+                        _utils.prismResponse(res, null, false, PrismError.serverError);
                       }else{
                         _utils.prismResponse(res, usr, true);
                       }
@@ -386,15 +390,15 @@ exports.createUserPost = function(req, res){
     }else{
       _logger.error('Invalid Request for create posts.' +
                     ' Missing either text or file_path ', {request_body: req.body});
-      _utils.prismResponse(res, null, false, Error.invalidRequest,
-                                              Error.invalidRequest.status_code);
+      _utils.prismResponse(res, null, false, PrismError.invalidRequest,
+                                              PrismError.invalidRequest.status_code);
     }
 
   }else{
     _logger.error('Invalid request for create posts. '+
                   ' Missing user id', {request_params: req.params});
-    _utils.prismResponse(res, null, false, Error.invalidUserRequest,
-                                            Error.invalidUserRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
+                                            PrismError.invalidUserRequest.status_code);
   }
 };
 
@@ -439,7 +443,7 @@ exports.fetchUserPosts = function(req, res){
 
       if(error){
         _logger.error('error', 'Error retrieving by user_id: ', req.params.id);
-        _utils.prismResponse(res, null, false, Error.invalidUserRequest);
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
 
       }else{
 
@@ -447,8 +451,8 @@ exports.fetchUserPosts = function(req, res){
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, Error.invalidUserRequest,
-                                            Error.invalidUserRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
+                                            PrismError.invalidUserRequest.status_code);
   }
 };
 
@@ -540,15 +544,15 @@ var handleSocialProviderLogin = function(body, callback){
           User.findOne({provider_id: response.body.id}, function(error, response){
             // console.log('find user social provoder -- error: ' + error + ' && response: ' + JSON.stringify(response) );
             if(error){
-              callback(Error.invalidSocialUser, false);
+              callback(PrismError.invalidSocialUser, false);
             }else if(response && response._id){
               callback(false, response);
             }else{
-              callback(Error.invalidSocialUser, false);
+              callback(PrismError.invalidSocialUser, false);
             }
           });
         }else{
-          callback(Error.serverError, false);
+          callback(PrismError.serverError, false);
         }
       });
       break;
@@ -568,7 +572,7 @@ var handleSocialProviderLogin = function(body, callback){
             if(error){
               _logger.error('Error returned trying to find twitter user in prism.'+
                             ' Users does not exist.', {error: error, twitter_user: result});
-              callback(Error.invalidSocialUser, false);
+              callback(PrismError.invalidSocialUser, false);
 
             }else if(response && response._id){
               _logger.info('Found twitter user to validate login', {user: response});
@@ -576,14 +580,14 @@ var handleSocialProviderLogin = function(body, callback){
 
             }else{
               _logger.warn('Did not find an error or result in fetching twitter user');
-              callback(Error.invalidSocialUser, false);
+              callback(PrismError.invalidSocialUser, false);
             }
           });
 
         }else{
           _logger.error('A server error occured. No error or'+
                        ' result was retured from authorizing a twitter user');
-          callback(Error.serverError, false);
+          callback(PrismError.serverError, false);
         }
       });
       break;
@@ -591,7 +595,7 @@ var handleSocialProviderLogin = function(body, callback){
       _logger.log('A unsupported provider type was passed to user registration ',
                   {provider: body.provider});
 
-      callback(Error.unsupportedProviderType(body.provider), false);
+      callback(PrismError.unsupportedProviderType(body.provider), false);
       break;
   }
 };
@@ -640,7 +644,7 @@ var handleSocialProviderRegistration = function(body, callback){
       _logger.log('A unsupported provider type was passed to user registration ',
                   {provider: body.provider});
 
-      callback(Error.unsupportedProviderType(body.provider), false);
+      callback(PrismError.unsupportedProviderType(body.provider), false);
       break;
   }
 };

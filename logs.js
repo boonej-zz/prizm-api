@@ -19,9 +19,7 @@ var logger = new (_winston.Logger)({
 		new _winston.transports.File({
 			filename: 'logs/prism.log',
 			timestamp: true,
-			prettyPrint:true,
-			colorize:true,
-			json:true
+			colorize:true
 		}),
 	],
 	exceptionHandlers: (process.env.NODE_ENV !== 'test') ? exception_handlers : test_mode_exception_handlers

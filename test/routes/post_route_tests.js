@@ -160,6 +160,51 @@ describe('Posts Route Unit Tests', function(done){
     });
   });
 
+  describe('Testing Adding Hash Tags to a User Post', function(done){
+    it('should set an array of hash tags to a users post', function(done){
+      _request({
+        method: 'POST',
+        url: 'https://localhost:3000/users/'+test_user._id+'/posts',
+        strictSSL: false,
+        json:true,
+        headers: {"Authorization" : "Bearer "+ test_token.access_token},
+        body: {
+          creator: mark._id,
+          category: 'personal',
+          text: 'check this post out',
+          hash_tags: ['testing', 'coolio', 'dangerousMinds']
+        }
+      }, function(err, result){
+        _expect(result.body.metadata.success).to.equal(true);
+        _expect(result.body.data[0]).to.have.property('hash_tags');
+        _expect(result.body.data[0].hash_tags.length).to.be.above(0);
+        done();
+      });
+    });
+    it('should retrieve the array of hash_tags from a post obejct', function(done){
+      _request({
+        method: 'GET',
+        url: 'https://localhost:3000/users/'+test_user._id+'/posts',
+        strictSSL:false ,
+        json:true,
+        headers: {"Authorization" : "Bearer " + test_token.access_token}
+      }, function(err, result){
+        _expect(result.body.metadata.success).to.equal(true);
+        var data = result.body.data;
+        for(var i=0; i < data.length; i++){
+          _expect(data[i]).to.have.property('hash_tags');
+          if(data[i].hash_tags_count > 0){
+            var hashtags = data[i].hash_tags;
+            _expect(hashtags[0]).to.equal('testing');
+            _expect(hashtags[1]).to.equal('coolio');
+            _expect(hashtags[2]).to.equal('dangerousMinds');
+          }
+        }
+        done();
+      });
+    });
+  });
+
   describe('Testing A Users News Feed', function(done){
     //setup test_user to follow mark
     before(function(done){
@@ -177,8 +222,6 @@ describe('Posts Route Unit Tests', function(done){
       },function(err, result){
         _expect(result.body.metadata.success).to.equal(true);
         _expect(result.body.data.length).to.be.above(3);
-
-
         done();
       });
     });

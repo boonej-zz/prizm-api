@@ -163,9 +163,6 @@ _app.post('/users/:id/follow', _gateway, _prism_follow.follow);
 /* Unfollow a User */
 _app.post('/users/:id/unfollow', _gateway, _prism_follow.unfollow);
 
-/* UnFollow a User */
-// _app.post('/users/:id/unfollow', _gateway, _prism_follow.unfollow);
-
 /* Explore Route */
 _app.get('/explore', _gateway, _prism_explore);
 

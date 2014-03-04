@@ -42,7 +42,9 @@ var postSchema = new _mongoose.Schema({
   tages_count         : {type: Number, default: 0},
   tags                : [],
   comments            : [commentSchema],
-  likes               : []
+  likes               : [],
+  hash_tags           : [],
+  hash_tags_count     : {type: Number, default: 0}
 }, { versionKey: false});
 
 /**
