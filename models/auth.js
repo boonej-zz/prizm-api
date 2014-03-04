@@ -3,8 +3,8 @@
  *
  * @author DJ Hayden<dj.hayden@stablekernel.com>
  */
-var mongoose  = require('mongoose')
-  , uuid      = require('node-uuid');
+var mongoose  = require('mongoose'),
+    uuid      = require('node-uuid');
 
 Date.prototype.addMinutes = function(minutes){
   return this + minutes*60000;
@@ -56,14 +56,15 @@ var tokenSchema = new mongoose.Schema({
 
 tokenSchema.methods.expiresIn = function(){
   return (this.date_expires - Date.now())/1000;
-}
+};
 
 tokenSchema.methods.cleanJSON = function(){
   var cleaned = {
-      access_token  :   this.access_token,
-      expires_in    :   this.expiresIn(),
-      token_type    :   this.token_type
-    }
+    access_token  :   this.access_token,
+    expires_in    :   this.expiresIn(),
+    token_type    :   this.token_type
+  };
+
   if (this.grant_type == 'authorization_code' ||
            this.grant_type == 'refresh_token') {
       cleaned.refresh_token = this.refresh_token;
@@ -79,8 +80,8 @@ tokenSchema.pre('save', function(next){
   this.token_type = 'Bearer';
   this.date_created = dateNow;
   this.date_expires = dateNow + validFor;
-  if (this.grant_type == 'authorization_code'
-         || this.grant_type == 'refresh_token') {
+  if (this.grant_type == 'authorization_code' ||
+      this.grant_type == 'refresh_token') {
              this.refresh_token = uuid.v4();
            }
   next();
