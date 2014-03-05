@@ -208,6 +208,142 @@ exports.likePost = function(req, res){
 };
 
 /**
+ * [likeComment description]
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.likeComment = function(req,res){
+  if(req.params.id && req.params.comment_id && req.body.creator){
+    Post.findOne({
+      _id: req.params.id,
+      "comments._id": req.params.comment_id
+    })
+    .select('comments.$')
+    .exec(function(error, comment){
+      if(error || !comment) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+
+      var already_likes = false;
+      if(comment.comments[0].likes &&
+        comment.comments[0].likes.length > 0){
+        for(var i=0; i<comment.comments[0].likes.length; i++){
+          if(comment.comments[0].likes[i].creator === req.body.creator)
+            already_likes = true;
+        }
+      }
+
+      if(already_likes){
+        var like_error = {
+            status_code: 400,
+            error_info: {
+              error: 'already_liked',
+              error_description: 'The requestor has already liked this post'
+            }
+          };
+          _utils.prismResponse( res, null, false, like_error);
+
+      }else{
+        var like = { _id: req.body.creator};
+        comment.comments[0].likes.push(like);
+        comment.comments[0].likes_count = comment.comments[0].likes_count + 1;
+        comment.save(function(err, saved){
+          if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+          var response = { likes_count: saved.comments[0].likes_count,
+                           likes: saved.comments[0].likes[0] };
+          _utils.prismResponse(res, response, true);
+        });
+      }
+    });
+
+  }else{
+    _utils.prismResponse(res, null, false, PrismResponse.invalidRequest);
+  }
+};
+
+/**
+ * [unlikeComment description]
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.unlikeComment = function(req, res){
+  if(req.params.id && req.params.comment_id && req.body.creator){
+    Post.findOne({
+      _id: req.params.id,
+      "comments._id": req.params.comment_id,
+      "comments.likes._id": req.body.creator.toString()
+    })
+    .select('comments.$')
+    .exec(function(error, comment){
+      var unlike_error = {
+          status_code: 400,
+          error_info: {
+            error: 'unable_to_unlike_comment',
+            error_description: 'There are no qualifying likes available to unlike'
+          }
+        };
+
+      if(error || !comment) _utils.prismResponse(res, null, false, PrismError.serverError);
+      if(comment.comments[0].likes.length > 0){
+        var did_unlike = false;
+        for(var i=0; i < comment.comments[0].likes.length; i++){
+          if(comment.comments[0].likes[i]._id === req.body.creator.toString()){
+            comment.comments[0].likes.splice(i, 1);
+            comment.comments[0].likes_count--;
+            did_unlike = true;
+          }
+        }
+
+        if(!did_unlike){
+          _utils.prismResponse(res, null, false, unlike_error);
+
+        }else{
+          comment.save(function(error, saved){
+            if(error) _utils.prismResponse(res, null, false, PrismResponse.serverError);
+            var response = {
+              likes: [],
+              likes_count: saved.comments[0].likes_count
+            };
+            _utils.prismResponse(res, response, true);
+
+          });
+        }
+
+      }else{
+        _utils.prismResponse(res, null, false, unlike_error);
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismResponse.invalidRequest);
+  }
+};
+
+/**
+ * Fetches a specific comment in the comments array
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Function}     The return values get forwarded to the
+ *                        utility prismResponse method
+ */
+exports.fetchComment = function(req, res){
+  if(req.params.id && req.params.comment_id){
+    Post.find({
+      _id: req.params.id,
+      "comments._id": req.params.comment_id
+    })
+    .select('comments.$')
+    .populate('comments.creator', '_id first_name last_name name profile_photo_url')
+    .exec(function(error, result){
+      if(error) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+      _utils.prismResponse(res, result[0].comments[0], true);
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismResponse.invalidRequest);
+  }
+};
+
+/**
  * Destroys the requestors `like` association to the Post Object
  *
  * @param  {HTTPRequest} req The request object

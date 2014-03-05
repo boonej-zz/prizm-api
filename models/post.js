@@ -16,7 +16,9 @@ var _mongoose   = require('mongoose'),
 var commentSchema = new _mongoose.Schema({
   text                : { type: String, default: null, required: true },
   creator             : { type: _mongoose.Schema.Types.ObjectId, ref: 'User'},
-  create_date         : { type: Date, default: Date.now() }
+  create_date         : { type: Date, default: Date.now() },
+  likes               : [],
+  likes_count         : {type: Number, default: 0}
 });
 
 /**
@@ -59,13 +61,18 @@ var postSchema = new _mongoose.Schema({
 postSchema.pre('save', function(next){
 	//set create & modify dates
 	this.modify_date = Date.now();
-	if(!this.create_date){
-		this.create_date = Date.now();
+  if(!this.create_date){
+    if(this.create_date === null) this.create_date = Date.now();
 	}
 
   //check that counts are accurate to arrays, if not increment there values
-  if(this.likes.length !== this.likes_count) this.likes_count = this.likes.length;
-  if(this.comments.length !== this.comments_count) this.comments_count = this.comments.length;
+  if(typeof(this.likes) !== 'undefined'){
+    if(this.likes.length !== this.likes_count) this.likes_count = this.likes.length;
+  }
+
+  if(typeof(this.comments) !== 'undefined'){
+    if(this.comments.length !== this.comments_count) this.comments_count = this.comments.length;
+  }
 
 	next();
 });

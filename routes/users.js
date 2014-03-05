@@ -540,9 +540,8 @@ var handleSocialProviderLogin = function(body, callback){
           // console.log('authorize on login did error: ' + error);
           callback(error, false);
         }else if(response){
-          // console.log('authorize did have response. checking user with: ' + JSON.stringify(response.body));
+
           User.findOne({provider_id: response.body.id}, function(error, response){
-            // console.log('find user social provoder -- error: ' + error + ' && response: ' + JSON.stringify(response) );
             if(error){
               callback(PrismError.invalidSocialUser, false);
             }else if(response && response._id){

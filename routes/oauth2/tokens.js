@@ -4,13 +4,13 @@
  * Handles routing and token management for oauth2/token endpoint
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _mongoose     = require('mongoose')
-  , Error         = require(process.env.PRISM_HOME + 'error')
-  , _auth_model   = require(process.env.PRISM_HOME + 'models/auth')
-  , Client        = _auth_model.ClientApplication
-  , Token         = _auth_model.Token
-  , Code          = _auth_model.Code
-  , _utils	  = require(process.env.PRISM_HOME + 'utils');
+var _mongoose     = require('mongoose'),
+    Error         = require(process.env.PRISM_HOME + 'error'),
+    _auth_model   = require(process.env.PRISM_HOME + 'models/auth'),
+    Client        = _auth_model.ClientApplication,
+    Token         = _auth_model.Token,
+    Code          = _auth_model.Code,
+    _utils        = require(process.env.PRISM_HOME + 'utils');
 
 /**
  * Token Route module constructor
@@ -30,7 +30,7 @@ module.exports = function(req, res){
       res.send(400, Error.invalidRequest.error_info);
       break;
   }
-}
+};
 
 /**
  * Checks for Basic Authorization header & decodes credentials
@@ -50,7 +50,7 @@ var credentials = function(header){
     }
   }
   return false;
-}
+};
 
 /**
  * Checks to ensure the client is authorzied to make
@@ -74,7 +74,7 @@ var authorizeClientRequest = function(req, res, callback){
   }else{
     callback('Error parsing credentials', false, null);
   }
-}
+};
 
 /**
  * Constructor handler based on grant_type
@@ -83,10 +83,10 @@ var authorizeClientRequest = function(req, res, callback){
  * @param {HTTPResponse} res The response object
  */
 var createAuthorizationToken = function(req, res){
-  var grant_type    = req.body.grant_type
-    , code          = req.body.code
-    , redirect_uri  = req.body.redirect_uri
-    , refresh_token = req.body.refresh_token;
+  var grant_type    = req.body.grant_type,
+      code          = req.body.code,
+      redirect_uri  = req.body.redirect_uri,
+      refresh_token = req.body.refresh_token;
 
   switch(grant_type){
     case 'authorization_code':
@@ -101,19 +101,19 @@ var createAuthorizationToken = function(req, res){
     default:
       res.send(400, Error.invalidRequest.error_info);
       break;
-  } 
-}
+  }
+};
 
 /**
- * Handles token creation logic based on `authorization_code` 
+ * Handles token creation logic based on `authorization_code`
  * auth grant_type
  *
  * @param {HTTPRequest} req The request object
  * @param {HTTPResponse} res The response object
  */
 var handleAuthorizationCode = function(req, res){
-  var code          = req.body.code
-    , redirect_uri  = req.body.redirect_uri
+  var code          = req.body.code,
+      redirect_uri  = req.body.redirect_uri;
   if(code && redirect_uri){
     Code.findOne({code: code}, function(error, authCode){
       if(authCode){
@@ -124,8 +124,8 @@ var handleAuthorizationCode = function(req, res){
               Token.remove({code: code}, function(error){
                 if(error) console.log(error);
                 if(authCode.redirect_uri == redirect_uri){
-                  var token = new Token({grant_type: 'authorization_code', 
-                                        client_application: client, 
+                  var token = new Token({grant_type: 'authorization_code',
+                                        client_application: client,
                                         code: code});
 
                   token.save(function(error, newToken, count){
@@ -150,7 +150,7 @@ var handleAuthorizationCode = function(req, res){
   }else{
     res.send(400, Error.invalidRequest.error_info);
   }
-}
+};
 
 /**
  * Handles token creation logic based on `refresh_token` auth grant_type
@@ -165,22 +165,20 @@ var handleRefreshToken = function(req, res){
     if(client){
       refreshToken(client, req.body.code, function(result){
         // console.log("refresh token result: " + result + "refresh error: " + error);
-	      if(result){
-	        _utils.prismResponse(res, result.cleanJSON(), true);
-          //res.send(201, result.cleanJSON());
+        if(result){
+          _utils.prismResponse(res, result.cleanJSON(), true);
         }else{
-          _utils.prismResponse(res, null, false, Error.unauthorizedClient, Error.unauthorizedClient.status_code); 
-	        //res.send(401, Error.unauthorizedClient.error_info);
+          _utils.prismResponse(res, null, false, Error.unauthorizedClient, Error.unauthorizedClient.status_code);
         }
        });
     }else{
-      _utils.prismResponse(res, null, false, Error.unauthorizedClient, Error.unauthorizedClient.status_code); 
+      _utils.prismResponse(res, null, false, Error.unauthorizedClient, Error.unauthorizedClient.status_code);
       //res.send(401, Error.unauthorizedClient.error_info);
     }
   });
-}
+};
 
-//TODO: handle straight up client credentials auth -- 
+//TODO: handle straight up client credentials auth --
 //if we even want to authenticate this way.
 //var handleClientCredentials = function(req, res){}
 
@@ -200,7 +198,7 @@ var refreshToken = function(client, refresh, next){
       console.log(error);
       next(false);
     }else if(result){
-      var token = new Token({ grant_type: result.grant_type, 
+      var token = new Token({ grant_type: result.grant_type,
                               client_application: client,
                               code: result.code });
       token.save(function(error, newToken, count){
@@ -218,4 +216,4 @@ var refreshToken = function(client, refresh, next){
       next(false);
     }
   });
-}
+};

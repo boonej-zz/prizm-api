@@ -30,6 +30,7 @@ describe('Posts Route Unit Tests', function(done){
   var test_post1 = null;
   var test_post2 = null;
   var test_post3 = null;
+  var test_comment_id = null;
 
   var setupSocialNetworkUsers = function(cb){
     var users = _t_helpers.fetchFakeUsersArray();
@@ -71,6 +72,19 @@ describe('Posts Route Unit Tests', function(done){
     });
   };
 
+  var executeCommentLikeRequest = function(type, u_creator, post_id, comment_id, cb){
+    _request({
+      method: "POST",
+      strictSSL: false,
+      json:true,
+      url: 'https://localhost:3000/posts/'+post_id+'/comments/'+comment_id+'/'+type,
+      headers: {'Authorization':'Bearer ' + test_token.access_token},
+      body: {creator: u_creator}
+    }, function(err, response){
+      if(cb) cb(err, response.body);
+    });
+  };
+
   var executeAddCommentRequest = function(u_creator, post_id, cb){
     _request({
       method: 'POST',
@@ -94,12 +108,22 @@ describe('Posts Route Unit Tests', function(done){
           test_code = code;
           test_client = client;
           setupSocialNetworkUsers(function(c){
-            var social_network_followers = [mark, edwardo, cameron, erica, sean, maryolin];
+            var social_network_followers = [  mark,
+                                              edwardo,
+                                              cameron,
+                                              erica,
+                                              sean,
+                                              maryolin ];
+
             for(var i = 0; i < social_network_followers.length; i++){
 
-              executeFollowRequest(social_network_followers[i], test_user, null);
-              if(i !== 3) executeFollowRequest(test_user, social_network_followers[i], null);
-              // if(i == social_network_followers.length) done();
+              executeFollowRequest( social_network_followers[i],
+                                    test_user,
+                                    null);
+
+              if(i !== 3) executeFollowRequest( test_user,
+                                                social_network_followers[i],
+                                                null );
             }
             //setup fake posts
             var posts = _t_helpers.fetchFakePostsArray(mark, test_user);
@@ -141,6 +165,8 @@ describe('Posts Route Unit Tests', function(done){
         _expect(body.data[0].comments_count).to.equal(1);
         _expect(body.data[0].comments.creator._id).to.equal(test_user._id.toString());
         _expect(body.data[0].comments.text).to.equal('test commenting on this post');
+        //set comments id for to use for further test cases
+        test_comment_id = body.data[0].comments._id;
         done();
       });
     });
@@ -201,6 +227,69 @@ describe('Posts Route Unit Tests', function(done){
           }
         }
         done();
+      });
+    });
+  });
+
+  describe('Testing Fetching A Specific Comment', function(done){
+    it('should fetch a specific comment and return the comment ' +
+      ' object with populated creator', function(done){
+        _request({
+          method: 'GET',
+          url: 'https://localhost:3000/posts/'+test_post1._id+
+                '/comments/'+test_comment_id,
+          strictSSL:false,
+          json:true,
+          headers: {'Authorization' : 'Bearer ' + test_token.access_token}
+        }, function(err, result){
+          _expect(result.body.metadata.success).to.equal(true);
+          _expect(result.body.data[0]).to.have.property('_id');
+          _expect(result.body.data[0]).to.have.property('creator');
+          _expect(result.body.data[0]).to.have.property('likes_count');
+          _expect(result.body.data[0]).to.have.property('likes');
+          _expect(result.body.data[0]).to.have.property('create_date');
+          _expect(result.body.data[0]).to.have.property('text');
+          _expect(result.body.data[0].creator).to.have.property('_id');
+          _expect(result.body.data[0].creator).to.have.property('name');
+          _expect(result.body.data[0].creator).to.have.property('first_name');
+          _expect(result.body.data[0].creator).to.have.property('last_name');
+          _expect(result.body.data[0].creator).to.have.property('profile_photo_url');
+          _expect(result.body.data[0]._id).to.equal(test_comment_id.toString());
+          done();
+        });
+      });
+  });
+
+  describe('Testing Like A Specific Post Comment', function(done){
+    it('should like the comment adding creator to comments.like array', function(done){
+      executeCommentLikeRequest('like', mark._id, test_post1._id, test_comment_id, function(err, result){
+        if(err) throw err;
+        _expect(result.metadata.success).to.equal(true);
+        _expect(result.data[0]).to.have.property('likes');
+        _expect(result.data[0]).to.have.property('likes_count');
+        _expect(result.data[0].likes._id).to.equal(mark._id.toString());
+        _expect(result.data[0].likes_count).to.be.above(0);
+        done();
+      });
+    });
+  });
+
+  describe('Testing Unliking A Specific Post Comment', function(done){
+    it('should unlike the comment removing the creator _id from the comments.like array', function(done){
+      executeCommentLikeRequest('like', edwardo._id, test_post1._id, test_comment_id, function(error, second_comment){
+        if(error) throw error;
+        _expect(second_comment.metadata.success).to.equal(true);
+        _expect(second_comment.data[0].likes_count).to.equal(2);
+
+        executeCommentLikeRequest('unlike', mark._id, test_post1._id, test_comment_id, function(err, result){
+          if(err) throw err;
+          _expect(result.metadata.success).to.equal(true);
+          _expect(result.data[0]).to.have.property('likes');
+          _expect(result.data[0]).to.have.property('likes_count');
+          _expect(result.data[0].likes.length).to.equal(0);
+          _expect(result.data[0].likes_count).to.equal(1);
+          done();
+        });
       });
     });
   });

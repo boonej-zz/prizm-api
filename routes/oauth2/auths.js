@@ -1,14 +1,14 @@
 /**
- * Handles routing and auth management for the client 
+ * Handles routing and auth management for the client
  * authroization endpoint
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _mongoose   = require('mongoose')
-  , Token       = require(process.env.PRISM_HOME + 'models/auth').Token
-  , Client      = require(process.env.PRISM_HOME + 'models/auth').ClientApplication
-  , Code        = require(process.env.PRISM_HOME + 'models/auth').Code
-  , Error       = require(process.env.PRISM_HOME + 'error');
+var _mongoose   = require('mongoose'),
+    Token       = require(process.env.PRISM_HOME + 'models/auth').Token,
+    Client      = require(process.env.PRISM_HOME + 'models/auth').ClientApplication,
+    Code        = require(process.env.PRISM_HOME + 'models/auth').Code,
+    Error       = require(process.env.PRISM_HOME + 'error');
 
 /**
  * Auths Route module constructor & handler
@@ -28,19 +28,19 @@ module.exports = function(req, res){
       res.send(400, 'Invalid Request');
       break;
   }
-}
+};
 
 /**
- * Creates a new Authorization Code 
+ * Creates a new Authorization Code
  *
  * @param {HTTPRequest} req The request object
  * @param {HTTPResponse} res The response object
  */
 var createAuthorizationCode = function(req, res){
-  var client_id     = req.query.client_id
-    , response_type = req.query.response_type
-    , redirect_uri  = req.query.redirect_uri;
-  
+  var client_id     = req.query.client_id,
+      response_type = req.query.response_type,
+      redirect_uri  = req.query.redirect_uri;
+
   //check to make sure all 3 required params are provided.
   //if not, send error to redirect
   if(client_id && response_type && redirect_uri){
@@ -62,7 +62,7 @@ var createAuthorizationCode = function(req, res){
   }else{
     redirectAuthorizationError(res, Error.unsupportedResponseType.error_info, redirect_uri);
   }
-}
+};
 
 /**
  * Redirects uncovered error to specified destination
@@ -74,7 +74,7 @@ var createAuthorizationCode = function(req, res){
 var redirectAuthorizationError = function(res, obj, dest){
   dest += '?error=' + obj.error + '&error_description=' + obj.error_description;
   res.redirect(dest);
-}
+};
 
 /**
  * Redirects successful Authorization process to specified destination
@@ -86,4 +86,4 @@ var redirectAuthorizationError = function(res, obj, dest){
 var redirectSuccessfulAuthorizationCode = function(res, obj, dest){
   dest += '?code=' + obj.code + '&scope=' + 'all';
   res.redirect(dest);
-}
+};

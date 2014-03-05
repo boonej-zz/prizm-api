@@ -138,6 +138,15 @@ _app.post('/posts/:id/unlike', _gateway, _prism_post.unlikePost);
 /* Fetch A Posts Like by Request Identifier */
 _app.get('/posts/:id/like/:like_id', _gateway, _prism_post.fetchPostAndLikeById);
 
+/* Like A Comment */
+_app.post('/posts/:id/comments/:comment_id/like', _gateway, _prism_post.likeComment);
+
+/* Unlike A Comment */
+_app.post('/posts/:id/comments/:comment_id/unlike', _gateway, _prism_post.unlikeComment);
+
+/* Fetch A Comment */
+_app.get('/posts/:id/comments/:comment_id', _gateway, _prism_post.fetchComment);
+
 /* Fetch Users followers */
 _app.get('/users/:id/followers', _gateway, _prism_follow.fetchFollowers);
 
