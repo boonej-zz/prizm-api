@@ -16,6 +16,7 @@ var _mongoose     = require('mongoose'),
 module.exports = function(req, res){
   var fetch_criteria = {},
       fetch_options = null,
+      fetch_filter,
       fetch_query;
 
   if(req.query && req.query.limit || req.query.feature_identifier){
@@ -28,7 +29,10 @@ module.exports = function(req, res){
           fetch_criteria = {scope: 'public', create_date: { $gt: req.query.feature_identifier}};
         }
 
+        if(typeof(req.query.location_name) !== 'undefined')
+          fetch_criteria.location_name = req.query.location_name;
         fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+
       }
 
   }else{
