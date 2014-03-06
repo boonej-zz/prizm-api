@@ -160,7 +160,6 @@ exports.fetchPostComments = function(req, res){
     .populate('comments.creator', '_id first_name last_name profile_photo_url name')
     .exec(function(err, comm){
       if(err) _utils.prismResponse(res,null,false,PrismError.ServerError);
-
       // var comments = comm[0].comments;
       // var response = {comments: []};
       // for(var i=0; i < comments.length; i++){
