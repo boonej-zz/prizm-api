@@ -80,9 +80,10 @@ exports.parsedQueryOptions = function(query_params) {
 
     if(typeof(query_params.sort_field) !== 'undefined'){
       obj[query_params.sort_field] = -1;
+      obj.create_date = -1;
       options.sort = obj;
 
-    }else {
+    }else{
       obj.create_date = -1;
       options.sort = obj;
     }
