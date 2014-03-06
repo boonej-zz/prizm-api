@@ -274,12 +274,12 @@ exports.likeComment = function(req,res){
     .exec(function(error, comment){
       if(error || !comment) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
 
-      var already_likes = false;
+      var already_likes = true;
       if(comment.comments[0].likes &&
         comment.comments[0].likes.length > 0){
         for(var i=0; i<comment.comments[0].likes.length; i++){
           if(comment.comments[0].likes[i].creator === req.body.creator)
-            already_likes = true;
+            already_likes = false;
         }
       }
 
