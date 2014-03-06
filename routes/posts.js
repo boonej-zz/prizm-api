@@ -155,36 +155,38 @@ exports.fetchPostComments = function(req, res){
       query     = _utils.buildQueryObject(Post, criteria, options);
     }
 
-    var creator_select = 'comments.creator.first_name comments.creator.last_name'+
-                          ' comments.creator.profile_photo_url comments.creator.name';
-    var creator_populate = ['comments.creator', creator_select];
-    query.populate(creator_populate).exec(function(err, comm){
+    // var creator_select = '_id first_name last_name profile_photo_url name';
+    // var creator_populate = ['comments.creator', creator_select];
+    query
+    // .select('comments')
+    .populate('comments.creator', '_id first_name last_name profile_photo_url name')
+    .exec(function(err, comm){
       if(err) _utils.prismResponse(res,null,false,PrismError.ServerError);
 
-      var comments = comm[0].comments;
-      var response = {comments: []};
-      for(var i=0; i < comments.length; i++){
-        var stripped = {
-          creator: {_id: null, first_name:null,last_name:null,name:null,profile_photo_url:null},
-          _id: null,
-          text: null,
-          create_date: null
-        };
+      // var comments = comm[0].comments;
+      // var response = {comments: []};
+      // for(var i=0; i < comments.length; i++){
+      //   var stripped = {
+      //     creator: {_id: null, first_name:null,last_name:null,name:null,profile_photo_url:null},
+      //     _id: null,
+      //     text: null,
+      //     create_date: null
+      //   };
 
-        stripped.creator._id = comments[i].creator._id;
-        stripped.creator.first_name = comments[i].creator.first_name;
-        stripped.creator.last_name = comments[i].creator.last_name;
-        stripped.creator.name = comments[i].creator.name;
-        stripped.creator.profile_photo_url = comments[i].creator.profile_photo_url;
-        stripped.create_date = comments[i].create_date;
-        stripped._id = comments[i]._id;
-        stripped.text = comments[i].text;
-        response.comments.push(stripped);
-      }
+      //   stripped.creator._id = comments[i].creator._id;
+      //   stripped.creator.first_name = comments[i].creator.first_name;
+      //   stripped.creator.last_name = comments[i].creator.last_name;
+      //   stripped.creator.name = comments[i].creator.name;
+      //   stripped.creator.profile_photo_url = comments[i].creator.profile_photo_url;
+      //   stripped.create_date = comments[i].create_date;
+      //   stripped._id = comments[i]._id;
+      //   stripped.text = comments[i].text;
+      //   response.comments.push(stripped);
+      // }
 
-      response._id = comm[0]._id;
-      response.comments_count = comm[0].comments_count;
-      _utils.prismResponse(res,response,true);
+      // response._id = comm[0]._id;
+      // response.comments_count = comm[0].comments_count;
+      _utils.prismResponse(res,comm,true);
 
     });
   }else{
