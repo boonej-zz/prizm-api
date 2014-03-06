@@ -126,6 +126,9 @@ _app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
 /* Add Comment to Post */
 _app.post('/posts/:id/comments', _gateway, _prism_post.createPostComment);
 
+/* Delete Comment From Post */
+_app.delete('/posts/:id/comments/:comment_id', _gateway, _prism_post.removePostComment);
+
 /* Get A Post Comments */
 _app.get('/posts/:id/comments', _gateway, _prism_post.fetchPostComments);
 

@@ -70,6 +70,55 @@ exports.createPostComment = function(req, res){
 };
 
 /**
+ * [removePostComment description]
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+exports.removePostComment = function(req, res){
+  var before_count;
+  var delete_error = {
+    status_code: 400,
+    error_info: {
+      error: 'unable_to_delete_comment',
+      error_description: 'The requested comment has already been removed.'
+    }
+  };
+
+  if(req.params.id && req.params.comment_id){
+    Post.findOne({
+      _id: req.params.id,
+      "comments._id": req.params.comment_id
+    })
+    .exec(function(error, comment){
+      if(error || !comment) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+      before_count = comment.comments_count;
+      var deleted = false;
+      for(var i = 0; i < comment.comments.length; i++){
+        if(comment.comments[i]._id.toString() === req.params.comment_id){
+          comment.comments.splice(i, 1);
+          comment.comments_count--;
+          deleted = true;
+        }
+      }
+
+      if(deleted){
+        comment.save(function(error, saved){
+          if(error || saved.comments_count > before_count)
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+          var response = {comments_count: saved.comments_count, comments:[]};
+          _utils.prismResponse(res, response, true);
+        });
+      }else{
+        _utils.prismResponse(res, null, false, delete_error);
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
  * Fetches paged comments for a specified post
  *
  * The return object should also have the creators populated short user object

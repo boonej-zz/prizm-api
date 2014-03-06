@@ -98,6 +98,18 @@ describe('Posts Route Unit Tests', function(done){
     });
   };
 
+  var executeDeleteCommentRequest = function(post_id, comment_id, cb){
+    _request({
+      method: 'DELETE',
+      strictSSL: false,
+      json: true,
+      url: 'https://localhost:3000/posts/'+post_id+'/comments/'+comment_id,
+      headers: {'Authorization' : 'Bearer '+ test_token.access_token}
+    }, function(err, result){
+      if(cb) cb(err, result.body);
+    });
+  };
+
   before(function(done){
     _t_helpers.destroyTestUser(function(){
       _t_helpers.createTestUser(function(testuser){
@@ -151,7 +163,6 @@ describe('Posts Route Unit Tests', function(done){
       done();
     });
   });
-
   describe('Testing Adding a Comment to a Post', function(done){
     it('should add a comment to a specified post', function(done){
       executeAddCommentRequest(test_user._id, test_post1._id, function(err, body){
@@ -185,7 +196,6 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
   });
-
   describe('Testing Adding Hash Tags to a User Post', function(done){
     it('should set an array of hash tags to a users post', function(done){
       _request({
@@ -230,7 +240,6 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
   });
-
   describe('Testing Fetching A Specific Comment', function(done){
     it('should fetch a specific comment and return the comment ' +
       ' object with populated creator', function(done){
@@ -259,7 +268,22 @@ describe('Posts Route Unit Tests', function(done){
         });
       });
   });
-
+  describe('Testing Removing A Specific Comment', function(done){
+    it('should remove the comment from the posts comment array', function(done){
+      executeAddCommentRequest(cameron._id, test_post1._id, function(err, body){
+        if(err) throw err;
+        var delete_id = body.data[0].comments._id;
+        executeDeleteCommentRequest(test_post1._id, delete_id, function(error, delete_body){
+          _expect(delete_body.metadata.success).to.equal(true);
+          _expect(delete_body.data[0]).to.have.property('comments_count');
+          _expect(delete_body.data[0]).to.have.property('comments');
+          _expect(delete_body.data[0].comments_count).to.equal(2);
+          _expect(delete_body.data[0].comments.length).to.equal(0);
+          done();
+        });
+      });
+    });
+  });
   describe('Testing Like A Specific Post Comment', function(done){
     it('should like the comment adding creator to comments.like array', function(done){
       executeCommentLikeRequest('like', mark._id, test_post1._id, test_comment_id, function(err, result){
@@ -273,7 +297,6 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
   });
-
   describe('Testing Unliking A Specific Post Comment', function(done){
     it('should unlike the comment removing the creator _id from the comments.like array', function(done){
       executeCommentLikeRequest('like', edwardo._id, test_post1._id, test_comment_id, function(error, second_comment){
@@ -293,7 +316,6 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
   });
-
   describe('Testing A Users News Feed', function(done){
     //setup test_user to follow mark
     before(function(done){
@@ -315,7 +337,6 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
   });
-
   describe('Testing Fetching A Post Like by Post Id && Requestor Id', function(done){
     it('should return the post object with likes & count', function(done){
       executeLikeRequest('like', edwardo._id, test_post3._id, function(err, res){
@@ -334,7 +355,6 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
   });
-
   describe('Testing Like a Post', function(done){
     it('should update the posts record after a successful like', function(done){
       executeLikeRequest('like',mark._id, test_post1._id, function(err, res){
