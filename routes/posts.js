@@ -155,8 +155,6 @@ exports.fetchPostComments = function(req, res){
       query     = _utils.buildQueryObject(Post, criteria, options);
     }
 
-    // var creator_select = '_id first_name last_name profile_photo_url name';
-    // var creator_populate = ['comments.creator', creator_select];
     query
     // .select('comments')
     .populate('comments.creator', '_id first_name last_name profile_photo_url name')
