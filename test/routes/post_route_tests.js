@@ -31,6 +31,7 @@ describe('Posts Route Unit Tests', function(done){
   var test_post2 = null;
   var test_post3 = null;
   var test_comment_id = null;
+  var test_comment_id2 = null;
 
   var setupSocialNetworkUsers = function(cb){
     var users = _t_helpers.fetchFakeUsersArray();
@@ -286,6 +287,9 @@ describe('Posts Route Unit Tests', function(done){
   });
   describe('Testing Like A Specific Post Comment', function(done){
     it('should like the comment adding creator to comments.like array', function(done){
+      executeAddCommentRequest(sean._id, test_post1._id);
+      executeAddCommentRequest(erica._id, test_post1._id, function(err, erica_comment){
+        test_comment_id2 = erica_comment.data[0].comments._id;
       executeCommentLikeRequest('like', mark._id, test_post1._id, test_comment_id, function(err, result){
         if(err) throw err;
         _expect(result.metadata.success).to.equal(true);
@@ -293,7 +297,11 @@ describe('Posts Route Unit Tests', function(done){
         _expect(result.data[0]).to.have.property('likes_count');
         _expect(result.data[0].likes._id).to.equal(mark._id.toString());
         _expect(result.data[0].likes_count).to.be.above(0);
-        done();
+        executeCommentLikeRequest('like', sean._id, test_post1._id, test_comment_id2, function(err, test_result){
+          debugger;
+          done();
+        });
+        });
       });
     });
   });
@@ -304,7 +312,7 @@ describe('Posts Route Unit Tests', function(done){
         _expect(second_comment.metadata.success).to.equal(true);
         _expect(second_comment.data[0].likes_count).to.equal(2);
 
-        executeCommentLikeRequest('unlike', mark._id, test_post1._id, test_comment_id, function(err, result){
+        executeCommentLikeRequest('unlike', edwardo._id, test_post1._id, test_comment_id, function(err, result){
           if(err) throw err;
           _expect(result.metadata.success).to.equal(true);
           _expect(result.data[0]).to.have.property('likes');
@@ -394,13 +402,3 @@ describe('Posts Route Unit Tests', function(done){
     });
   });
 });
-
-
-
-
-
-
-
-
-
-

@@ -267,18 +267,35 @@ exports.likeComment = function(req,res){
       _id: req.params.id,
       "comments._id": req.params.comment_id
     })
-    .select('comments.$')
+    .select('comments')
     .exec(function(error, comment){
       if(error || !comment) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
 
-      var already_likes = true;
-      if(comment.comments[0].likes &&
-        comment.comments[0].likes.length > 0){
-        for(var i=0; i<comment.comments[0].likes.length; i++){
-          if(comment.comments[0].likes[i].creator === req.body.creator)
-            already_likes = false;
+  /********************** THIS NEEDS TO BE OPTIMIZED **************************/
+
+      var already_likes = false;
+      var comment_index = null;
+      if(comment.comments.length > 0){
+        for(var c = 0; c < comment.comments.length; c++){
+          if(comment.comments[c]._id.toString() === req.params.comment_id){
+            comment_index = c;
+            if(comment.comments[c].likes.length > 0){
+              for(var l = 0; l < comment.comments[c].likes.length; l++){
+                if(comment.comments[c].likes[l]._id.toString() === req.body.creator){
+                  already_likes = true;
+                }
+              }
+            }
+          }
         }
       }
+      // if(comment.comments[0].likes &&
+      //   comment.comments[0].likes.length > 0){
+      //   for(var i=0; i<comment.comments[0].likes.length; i++){
+      //     if(comment.comments[0].likes[i]._id === req.body.creator)
+      //       already_likes = true;
+      //   }
+      // }
 
       if(already_likes){
         var like_error = {
@@ -291,13 +308,17 @@ exports.likeComment = function(req,res){
           _utils.prismResponse( res, null, false, like_error);
 
       }else{
+        // if(comment_index)
         var like = { _id: req.body.creator};
-        comment.comments[0].likes.push(like);
-        comment.comments[0].likes_count = comment.comments[0].likes_count + 1;
+        comment.comments[comment_index].likes.push(like);
+        comment.comments[comment_index].likes_count++;
+  /********************** END OPTIMIZED AREA51 DO IT **************************/
+
         comment.save(function(err, saved){
           if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-          var response = { likes_count: saved.comments[0].likes_count,
-                           likes: saved.comments[0].likes[0] };
+          var like_index = saved.comments[comment_index].likes_count -1;
+          var response = { likes_count: saved.comments[comment_index].likes_count,
+                           likes: saved.comments[comment_index].likes[like_index] };
           _utils.prismResponse(res, response, true);
         });
       }
@@ -321,7 +342,7 @@ exports.unlikeComment = function(req, res){
       "comments._id": req.params.comment_id,
       "comments.likes._id": req.body.creator.toString()
     })
-    .select('comments.$')
+    .select('comments')
     .exec(function(error, comment){
       var unlike_error = {
           status_code: 400,
@@ -332,15 +353,33 @@ exports.unlikeComment = function(req, res){
         };
 
       if(error || !comment) _utils.prismResponse(res, null, false, PrismError.serverError);
-      if(comment.comments[0].likes.length > 0){
-        var did_unlike = false;
-        for(var i=0; i < comment.comments[0].likes.length; i++){
-          if(comment.comments[0].likes[i]._id === req.body.creator.toString()){
-            comment.comments[0].likes.splice(i, 1);
-            comment.comments[0].likes_count--;
-            did_unlike = true;
+      var did_unlike = false;
+      var comment_index = null;
+      if(comment.comments.length > 0){
+        for(var c = 0; c < comment.comments.length; c++){
+          if(comment.comments[c]._id.toString() === req.params.comment_id){
+            comment_index = c;
+            if(comment.comments[c].likes.length > 0){
+              for(var l = 0; l < comment.comments[c].likes.length; l++){
+                if(comment.comments[c].likes[l]._id === req.body.creator){
+                  comment.comments[c].likes.splice(l, 1);
+                  comment.comments[c].likes_count--;
+                  did_unlike = true;
+                }
+              }
+            }
           }
         }
+
+      // if(comment.comments[0].likes.length > 0){
+      //   var did_unlike = false;
+      //   for(var i=0; i < comment.comments[0].likes.length; i++){
+      //     if(comment.comments[0].likes[i]._id === req.body.creator.toString()){
+      //       comment.comments[0].likes.splice(i, 1);
+      //       comment.comments[0].likes_count--;
+      //       did_unlike = true;
+      //     }
+      //   }
 
         if(!did_unlike){
           _utils.prismResponse(res, null, false, unlike_error);
@@ -350,7 +389,7 @@ exports.unlikeComment = function(req, res){
             if(error) _utils.prismResponse(res, null, false, PrismResponse.serverError);
             var response = {
               likes: [],
-              likes_count: saved.comments[0].likes_count
+              likes_count: saved.comments[comment_index].likes_count
             };
             _utils.prismResponse(res, response, true);
 
@@ -484,9 +523,3 @@ exports.fetchPostAndLikeById = function(req, res){
                           PrismError.invalidRequest);
   }
 };
-
-
-
-
-
-
