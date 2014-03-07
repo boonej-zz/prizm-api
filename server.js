@@ -89,6 +89,7 @@ process.on('uncaughtException', function (err) {
     console.log(err);
 });
 
+
 /********************** API ROUTES ************************/
 /* Root Endpoint */
 _app.get('/', function(req,res){ res.send('Welcome to the Prism API'); });
