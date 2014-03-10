@@ -4,6 +4,7 @@ var _prism_home   = process.env.PRISM_HOME,
     Token         = _auth_models.Token,
     Client        = _auth_models.ClientApplication,
     Code          = _auth_models.Code,
+    Post          = require(_prism_home + 'models/post').Post,
     User          = require(_prism_home + 'models/user').User;
 
 exports.fetchAuthHeader = function(id, secret){
@@ -120,4 +121,11 @@ exports.destroyTestUser = function(callback){
 		if(err) throw err;
 		callback();
 	});
+};
+
+exports.destroyTestPost = function(callback){
+  Post.remove({}, function(err){
+    if(err) throw err;
+    callback();
+  })
 };

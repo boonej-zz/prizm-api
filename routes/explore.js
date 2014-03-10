@@ -23,16 +23,19 @@ module.exports = function(req, res){
     fetch_options = _utils.parsedQueryOptions(req.query);
     if(req.query.feature_identifier){
       if(req.query.direction){
-        fetch_criteria = {scope: 'public', create_date: { $lt: req.query.feature_identifier}};
+        fetch_criteria = { scope: 'public',
+                           create_date: { $lt: req.query.feature_identifier } };
 
         }else{
-          fetch_criteria = {scope: 'public', create_date: { $gt: req.query.feature_identifier}};
+          fetch_criteria = { scope: 'public',
+                             create_date: { $gt: req.query.feature_identifier } };
         }
 
         if(typeof(req.query.location_name) !== 'undefined')
           fetch_criteria.location_name = req.query.location_name;
-        fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
-
+          fetch_query = _utils.buildQueryObject(  Post,
+                                                  fetch_criteria,
+                                                  fetch_options );
       }
 
   }else{

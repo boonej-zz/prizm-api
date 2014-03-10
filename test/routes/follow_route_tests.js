@@ -70,7 +70,6 @@ describe('Follow Route Unit Tests', function(done){
   before(function(done){
     _t_helpers.createTestUser(function(testuser){
       test_user = testuser;
-
       _t_helpers.createTestToken(function(token, code, client){
         test_token = token;
         test_code = code;

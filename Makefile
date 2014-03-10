@@ -8,7 +8,7 @@ test:
 	@NODE_ENV=test node_modules/.bin/mocha --reporter $(REPORTER) --timeout $(MOCHA_TIMEOUT) --colors --recursive
 
 test-debug:
-	@NODE_ENV=test node_modules/.bin/mocha --reporter $(REPORTER) --timeout $(MOCHA_TIMEOUT) --colors --recursive debug
+	@NODE_ENV=test node_modules/.bin/mocha --reporter $(REPORTER) --timeout 50000 --colors --recursive debug
 
 start:
 	@NODE_ENV=$(NODE_ENV) node server.js
