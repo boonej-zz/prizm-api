@@ -42,15 +42,15 @@ describe('Explore Route Unit Tests', function(done){
 
   var setupPostsAndLikes = function(cb){
     var posts = [
-      {text: 'test test tes1', creator: mark._id, target_id: testUser._id, category: 'experience', create_date: Date.now() - 10 * 60 * 1000},
-      {text: 'test test tes2', creator: edwardo._id, target_id: testUser._id, category: 'experience',create_date: Date.now() - 60 * 60 * 100},
-      {text: 'test test tes3', creator: sean._id, target_id: testUser._id, category: 'experience',create_date: Date.now() + 60 * 60 * 1000},
-      {text: 'test test tes4', creator: cameron._id, target_id: testUser._id, category: 'experience',create_date: Date.now() + 1 * 60 * 60 * 1000},
-      {text: 'test test tes5', creator: erica._id, target_id: testUser._id, category: 'experience',create_date: Date.now() + 45 * 60 * 1000},
-      {text: 'test test tes6', creator: mark._id, target_id: testUser._id, category: 'experience',create_date: Date.now() + 10 * 60 * 1000},
-      {text: 'test test tes7', creator: mark._id, target_id: testUser._id, category: 'experience',create_date: Date.now() + 9 * 60 * 1000},
-      {text: 'test test tes8', creator: mark._id, target_id: testUser._id, category: 'experience',create_date: Date.now() + 8 * 60 * 1000},
-      {text: 'test test tes9', creator: mark._id, target_id: testUser._id, category: 'experience',create_date: Date.now() + 7 * 60 * 1000}
+      {text: 'test test tes1', creator: mark._id, target_id: testUser._id, category: 'experiences', create_date: Date.now() - 10 * 60 * 1000},
+      {text: 'test test tes2', creator: edwardo._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() - 60 * 60 * 100},
+      {text: 'test test tes3', creator: sean._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 60 * 60 * 1000},
+      {text: 'test test tes4', creator: cameron._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 1 * 60 * 60 * 1000},
+      {text: 'test test tes5', creator: erica._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 45 * 60 * 1000},
+      {text: 'test test tes6', creator: mark._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 10 * 60 * 1000},
+      {text: 'test test tes7', creator: mark._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 9 * 60 * 1000},
+      {text: 'test test tes8', creator: mark._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 8 * 60 * 1000},
+      {text: 'test test tes9', creator: mark._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 7 * 60 * 1000}
     ];
     Post.create(posts, function(err, p1, p2, p3, p4, p5, p6){
       if(err) throw err;

@@ -26,7 +26,6 @@ describe('Twitter Class Unit Tests', function(done){
     it('shoud verify & authorize a valid users twitter credentials', function(done){
       var tw = new Twitter(test_token, test_token_secret);
       tw.authorizeUser(function(error, result){
-        _expect(error).to.be.null;
         _expect(result).to.have.property('id');
         _expect(result).to.have.property('name');
         _expect(result).to.have.property('screen_name');
@@ -38,9 +37,8 @@ describe('Twitter Class Unit Tests', function(done){
       var tw = new Twitter('asdf248990808sdfss98098sdf', test_token_secret);
       tw.authorizeUser(function(error, result){
         _logger.info('logging error returned in test: ', error);
-        _expect(error).to.not.be.null;
         _expect(error.statusCode).to.equal(401);
-        _expect(JSON.parse(error.data).errors[0]["code"]).to.equal(89);
+        _expect(JSON.parse(error.data).errors[0].code).to.equal(89);
         _assert(typeof(result) == 'undefined', 'result returned as an actual object.');
         done();
       });

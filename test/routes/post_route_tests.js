@@ -298,7 +298,6 @@ describe('Posts Route Unit Tests', function(done){
         _expect(result.data[0].likes._id).to.equal(mark._id.toString());
         _expect(result.data[0].likes_count).to.be.above(0);
         executeCommentLikeRequest('like', sean._id, test_post1._id, test_comment_id2, function(err, test_result){
-          debugger;
           done();
         });
         });
@@ -401,4 +400,43 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
   });
+  describe('Testing Deleting a POST', function(done){
+    it('should delete (update status) a valid specified post', function(done){
+      _assert.ok(false, 'no test implemented');
+      done();
+    });
+  });
+  describe('Testing Flagging a Post `Inappropriate`', function(done){
+    it('should successfully add the reporter to the flagged_reporter array', function(done){
+      _assert.ok(false, 'no test implemented');
+      done();
+    });
+  });
+  describe('Testing Updating a Post', function(done){
+    it('should update the text field', function(done){
+      _assert.ok(false, 'not test implemented');
+      done();
+    });
+  });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

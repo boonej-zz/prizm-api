@@ -148,7 +148,8 @@ describe('User Route Unit Tests', function(done){
             body: {
               text: 'this is a test post',
               creator: testUser._id,
-              category: 'experience'
+              category: 'experiences'
+
             }
           }, function(error, post){
             console.log(error);
@@ -184,7 +185,7 @@ describe('User Route Unit Tests', function(done){
                   location_name: location_name,
                   location_latitude: location_latitude,
                   location_longitude: location_longitude,
-                  category: 'experience'
+                  category: 'experiences'
                 }
         }, function(error, result){
           // console.log(result.body);
@@ -214,7 +215,7 @@ describe('User Route Unit Tests', function(done){
           body:{
             text: 'im posting this test to make sure i see my posts increase',
             creator: user._id,
-            category: 'experience'
+            category: 'experiences'
           }
         }, function(err, result){
           _expect(result.body.metadata.success).to.equal(true);

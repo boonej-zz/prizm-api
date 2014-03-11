@@ -60,19 +60,19 @@ exports.fetchFakeUsersArray = function(){
 
 exports.fetchFakePostsArray = function(testUser, user){
   var posts = [
-            {text: 'test test tes1', creator: testUser._id, target_id: user._id, category: 'experience', create_date: Date.now() - 10 * 60 * 1000},
-            {text: 'test test tes2', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 60 * 60 * 100},
-            {text: 'test test tes3', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 60 * 60 * 1000},
-            {text: 'test test tes4', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 1 * 60 * 60 * 1000},
-            {text: 'test test tes5', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 45 * 60 * 1000},
-            {text: 'test test tes6', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 1000},
-            {text: 'test test tes7', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 2 * 10 * 60 * 1000},
-            {text: 'test test tes8', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 1 * 60 * 60 * 1000},
-            {text: 'test test tes9', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 60 * 1000},
-            {text: 'test test tes10', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 10 * 60 * 60 * 1000},
-            {text: 'test test tes11', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 30 * 60 * 1000},
-            {text: 'test test tes12', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 15 * 60 * 1000},
-            {text: 'test test tes13', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 100}
+            {text: 'test test tes1', creator: testUser._id, target_id: user._id, category: 'experiences', create_date: Date.now() - 10 * 60 * 1000 , scope: 'public'},
+            {text: 'test test tes2', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() - 60 * 60 * 100, scope: 'public'},
+            {text: 'test test tes3', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes4', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 1 * 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes5', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 45 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes6', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 10 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes7', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 2 * 10 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes8', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() - 1 * 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes9', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 10 * 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes10', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() - 10 * 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes11', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 30 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes12', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 15 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes13', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 10 * 60 * 100, scope: 'public'}
           ];
   return posts;
 };
@@ -127,5 +127,5 @@ exports.destroyTestPost = function(callback){
   Post.remove({}, function(err){
     if(err) throw err;
     callback();
-  })
+  });
 };

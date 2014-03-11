@@ -22,6 +22,16 @@ var commentSchema = new _mongoose.Schema({
 });
 
 /**
+ * Description of Post Status types
+ * @type {Object}
+ */
+var status_types = {
+  active:   'active',
+  deleted:  'deleted',
+  review:   'review'
+};
+
+/**
  * Post Model Schema
  * @type {Mongoose.Schema}
  */
@@ -41,13 +51,56 @@ var postSchema = new _mongoose.Schema({
   file_path           : {type: String, default: ''},
   likes_count         : {type: Number, default: 0},
   comments_count      : {type: Number, default: 0},
-  tages_count         : {type: Number, default: 0},
+  tags_count          : {type: Number, default: 0},
   tags                : [],
   comments            : [commentSchema],
   likes               : [],
   hash_tags           : [],
-  hash_tags_count     : {type: Number, default: 0}
+  hash_tags_count     : {type: Number, default: 0},
+  is_flagged          : {type: Boolean, default: false},
+  flagged_count       : {type: Number, default: 0},
+  flagged_reporters   : [{reporter_id: String, create_date: Date}]
 }, { versionKey: false});
+
+/**
+ * validates category property
+ * @param  {[type]} value [description]
+ * @return {[type]}       [description]
+ */
+postSchema.path('category').validate(function(value){
+  value.toLowerCase();
+  value = value.charAt(0).toUpperCase() + value.slice(1);
+  return /Aspirations|Passions|Experiences|Achievements|Inspirations|Personal/i.test(value);
+}, 'Invalid Category Type');
+
+/**
+ * validates scope property
+ * @param  {[type]} value [description]
+ * @return {[type]}       [description]
+ */
+// postSchema.path('scope').validate(function(value){
+//   value.toLowerCase();
+//   return /private|public/i.test(value);
+// }, 'Invalid Scope Type');
+
+postSchema.methods.flagPostValidation = function(){
+  if(this.flagged_reporters.length !== this.flagged_count){
+    this.flagged_count = this.flagged_reporters.length;
+  }
+
+  if(this.is_flagged === false && this.flagged_reporters.length > 0){
+    this.is_flagged = true;
+  }
+
+  if(this.flagged_reporters.length >= 5 && this.status !== 'review'){
+    this.status = status_types.review;
+  }
+};
+
+postSchema.methods.updateFields = function(){
+  return ['text', 'category', 'filepath', 'scope', 'location_name',
+          'location_longitude', 'location_latitude'];
+};
 
 /**
  * Pre Save/Creation Injection
@@ -72,6 +125,10 @@ postSchema.pre('save', function(next){
 
   if(typeof(this.comments) !== 'undefined'){
     if(this.comments.length !== this.comments_count) this.comments_count = this.comments.length;
+  }
+
+  if(typeof(this.flagged_reporters) !== 'undefined'){
+    if(this.flagged_reporters.length > 0) this.flagPostValidation();
   }
 
 	next();

@@ -36,7 +36,7 @@ exports.createPostComment = function(req, res){
         create_date: Date.now()
       });
 
-      Post.findOne({_id: req.params.id}, function(err, post){
+      Post.findOne({_id: req.params.id, status: 'active'}, function(err, post){
         if(err || !post){
           _utils.prismResponse(res,null,false,PrismError.invalidRequest);
         }else{
@@ -70,10 +70,14 @@ exports.createPostComment = function(req, res){
 };
 
 /**
- * [removePostComment description]
- * @param  {[type]} req [description]
- * @param  {[type]} res [description]
- * @return {[type]}     [description]
+ * Removes a post objects comment from the array
+ *
+ * `Note`: this DOES currently delete the array with no archive.
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Function}     The return values get forwarded to the
+ *                        utility prismResponse method
  */
 exports.removePostComment = function(req, res){
   var before_count;
@@ -88,7 +92,8 @@ exports.removePostComment = function(req, res){
   if(req.params.id && req.params.comment_id){
     Post.findOne({
       _id: req.params.id,
-      "comments._id": req.params.comment_id
+      "comments._id": req.params.comment_id,
+      status: 'active'
     })
     .exec(function(error, comment){
       if(error || !comment) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
@@ -119,6 +124,118 @@ exports.removePostComment = function(req, res){
 };
 
 /**
+ * Flags a post as innapropriate
+ *
+ * `Note`: if this is the 5th reported flag the status is updated from active to
+ * review.
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Function}     The return values get forwarded to the
+ *                        utility prismResponse method
+ */
+exports.flagPost = function(req, res){
+  if(req.params.id && req.body.reporter){
+    Post.findOne({_id: req.params.id, status: 'active'}, function(err, post){
+      if(err || !post) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+      post.flagged_reporters.push({reporter_id: req.body.reporter, create_date: Date.now()});
+      post.save(function(err, saved){
+        if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+        var res_message = {message: 'Post ' + post._id + ' Successfully Flagged'};
+        _utils.prismResponse(res, res_message, true);
+      });
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
+ * Removes a post object (updates the status field from active to deleted)
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Function}     The return values get forwarded to the
+ *                        utility prismResponse method
+ */
+exports.removePost = function(req, res){
+  var remove_error = {
+    status_code: 400,
+    error_info: {
+      error: 'unable_to_delete_post',
+      error_description: 'The requested post could not be deleted. '+
+      'The requesting user does not have access or the post was already deleted'
+    }
+  };
+
+  if(req.params.id && req.body.creator){
+    Post.findOne({
+      _id: req.params.id,
+      creator: req.body.creator,
+      status:'active'
+    }, function(err, post){
+      if(err) _utils.prismResponse(res, null, false, remove_error);
+      post.status = 'deleted';
+      post.delete_date = Date.now();
+      post.save(function(error, saved){
+        if(error) _utils.prismResponse(res, null, false, remove_error);
+        _utils.prismResponse(res, {message: 'Post Successfully removed'}, true);
+      });
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
+ * Updates the post object with availabilty to alter root document properties
+ *
+ * `updatable fields`: 'text', 'category', 'filepath', 'scope', 'location_name',
+ *                      'location_longitude', 'location_latitude'
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Function}     The return values get forwarded to the
+ *                        utility prismResponse method
+ */
+exports.updatePost = function(req, res){
+  var update_error = {
+    status_code: 400,
+    error_info: {
+      error: 'unable_to_update_post',
+      error_description: 'The requested post failed to update'
+    }
+  };
+
+  if(req.params.id && req.body.length > 1 && req.body.creator){
+    Post.findOne({
+      _id: req.params.id,
+      creator: req.body.creator,
+      status: 'active'
+    }, function( err, post){
+      if(err || !post) _utils.prismResponse(res, null, false, update_error);
+      if(typeof(req.body.text) !== 'undefined') post.text = req.body.text;
+      if(typeof(req.body.category) !== 'undefined') post.category = req.body.category;
+      if(typeof(req.body.filepath) !== 'undefined') post.filepath = req.body.filepath;
+      if(typeof(req.body.scope) !== 'undefined') post.scope = req.body.scope;
+      if(typeof(req.body.location_name) !== 'undefined')
+        post.location_name = req.body.location_name;
+      if(typeof(req.body.location_longitude) !== 'undefined')
+        post.location_longitude = req.body.location_longitude;
+      if(typeof(req.body.location_latitude) !== 'undefined')
+        post.location_latitude = req.body.location_latitude;
+      post.save(function(err, saved){
+        if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+        _utils.prismResponse(res, {message: 'Post Successfully Updated'}, true);
+      });
+    });
+
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
  * Fetches paged comments for a specified post
  *
  * The return object should also have the creators populated short user object
@@ -139,19 +256,21 @@ exports.fetchPostComments = function(req, res){
 
         criteria = {
           _id: req.params.id,
-          "comments.create_date" : { $lt : req.query.feature_identifer }
+          "comments.create_date" : { $lt : req.query.feature_identifer },
+          status: 'active'
         };
 
       }else{
         criteria = {
           _id: req.params.id,
-          "comments.create_date" : { $gt : req.query.feature_identifier }
+          "comments.create_date" : { $gt : req.query.feature_identifier },
+          status: 'active'
         };
       }
       query = _utils.buildQueryObject(Post, criteria, options);
 
     }else{
-      criteria  = { _id: req.params.id };
+      criteria  = { _id: req.params.id, status: 'active' };
       query     = _utils.buildQueryObject(Post, criteria, options);
     }
 
@@ -202,7 +321,7 @@ exports.fetchPostComments = function(req, res){
  */
 exports.likePost = function(req, res){
   if(req.params.id && req.body.creator){
-    Post.findOne({_id: req.params.id}, function(err, post){
+    Post.findOne({_id: req.params.id, status: 'active'}, function(err, post){
       if(err || !post){
         _utils.prismResponse( res,
                               null,
@@ -265,7 +384,8 @@ exports.likeComment = function(req,res){
   if(req.params.id && req.params.comment_id && req.body.creator){
     Post.findOne({
       _id: req.params.id,
-      "comments._id": req.params.comment_id
+      "comments._id": req.params.comment_id,
+      status: 'active'
     })
     .select('comments')
     .exec(function(error, comment){
@@ -340,7 +460,8 @@ exports.unlikeComment = function(req, res){
     Post.findOne({
       _id: req.params.id,
       "comments._id": req.params.comment_id,
-      "comments.likes._id": req.body.creator.toString()
+      "comments.likes._id": req.body.creator.toString(),
+      status: 'active'
     })
     .select('comments')
     .exec(function(error, comment){
@@ -417,7 +538,8 @@ exports.fetchComment = function(req, res){
   if(req.params.id && req.params.comment_id){
     Post.find({
       _id: req.params.id,
-      "comments._id": req.params.comment_id
+      "comments._id": req.params.comment_id,
+      status: 'active'
     })
     .select('comments.$')
     .populate('comments.creator', '_id first_name last_name name profile_photo_url')
@@ -440,7 +562,7 @@ exports.fetchComment = function(req, res){
  */
 exports.unlikePost = function(req, res){
   if(req.params.id && req.body.creator){
-    Post.findOne({_id: req.params.id}, function(err, post){
+    Post.findOne({_id: req.params.id, status: 'active'}, function(err, post){
       if(err || !post){
         _utils.prismResponse( res,
                               null,
@@ -500,7 +622,7 @@ exports.unlikePost = function(req, res){
  */
 exports.fetchPostAndLikeById = function(req, res){
   if(req.params.id && req.params.like_id){
-    Post.findOne({_id: req.params.id, "likes._id": req.params.like_id},
+    Post.findOne({_id: req.params.id, "likes._id": req.params.like_id, status:'active'},
                  {likes_count:1, "likes._id": 1},
                  function(err, post){
 

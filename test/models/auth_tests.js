@@ -79,7 +79,7 @@ describe('Auth Model Unit Tests', function(done){
         code = new Code({client_id: null})
         code.save(function(error, result){
           _expect(error).to.be.not.null
-          done()
+          done();
         })
       })
       it('should return a valid date_Created attribute when save is inovked', function(done){
