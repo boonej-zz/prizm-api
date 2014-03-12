@@ -70,7 +70,6 @@ _app.use(_e_winston.errorLogger({
   transports: errorTransports
 }));
 
-
 //Set SSL options for HTTPS traffic
 var ssl_options = {
   key:                  _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.key'),
