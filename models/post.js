@@ -70,7 +70,7 @@ var postSchema = new _mongoose.Schema({
 postSchema.path('category').validate(function(value){
   value.toLowerCase();
   value = value.charAt(0).toUpperCase() + value.slice(1);
-  return /Aspirations|Passions|Experiences|Achievements|Inspirations|Personal/i.test(value);
+  return /Aspirations|Aspiration|Passions|Passion|Experiences|Experience|Achievements|Achievement|Inspirations|Inspiration|Personal|Personals/i.test(value);
 }, 'Invalid Category Type');
 
 /**
