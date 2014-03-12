@@ -422,14 +422,22 @@ exports.fetchUserPosts = function(req, res){
       fetch_options = _utils.parsedQueryOptions(req.query);
       if(req.query.feature_identifier){
         if(req.query.direction && req.query.direction == 'older'){
-          fetch_criteria = {target_id: req.params.id, create_date: { $lt: req.query.feature_identifier}};
+          fetch_criteria = {
+            target_id: req.params.id,
+            create_date: { $lt: req.query.feature_identifier},
+            status: 'active'
+          };
         }else{
-          fetch_criteria = {target_id: req.params.id, create_date: { $gt: req.query.feature_identifier}};
+          fetch_criteria = {
+            target_id: req.params.id,
+            create_date: { $gt: req.query.feature_identifier},
+            status: 'active'
+          };
         }
 
         fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }else{
-        fetch_criteria = {target_id: req.params.id};
+        fetch_criteria = {target_id: req.params.id, status: 'active'};
         fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }
 
