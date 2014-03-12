@@ -129,7 +129,7 @@ _app.post('/posts/:id/comments', _gateway, _prism_post.createPostComment);
 /* Flag a Post An Inappropriate */
 _app.post('/posts/:id/flag', _gateway, _prism_post.flagPost);
 
-/* Delete Post */
+/* Delete Post   */
 _app.delete('/posts/:id', _gateway, _prism_post.removePost);
 
 /* Update a Post */
