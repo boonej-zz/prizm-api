@@ -137,13 +137,36 @@ exports.removePostComment = function(req, res){
 exports.flagPost = function(req, res){
   if(req.params.id && req.body.reporter){
     Post.findOne({_id: req.params.id, status: 'active'}, function(err, post){
-      if(err || !post) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
-      post.flagged_reporters.push({reporter_id: req.body.reporter, create_date: Date.now()});
-      post.save(function(err, saved){
-        if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-        var res_message = {message: 'Post ' + post._id + ' Successfully Flagged'};
-        _utils.prismResponse(res, res_message, true);
-      });
+      if(err || !post){
+        _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+      }else{
+        var already_flagged = false;
+        for(var i=0; i < post.flagged_reporters.length; i++){
+          if(post.flagged_reporters[i].reporter_id === req.body.reporter.toString()){
+            already_flagged = true;
+          }
+        }
+        if(!already_flagged){
+          post.flagged_reporters.push({reporter_id: req.body.reporter.toString(), create_date: Date.now()});
+          post.save(function(err, saved){
+            if(err || !saved){
+              _utils.prismResponse(res, null, false, PrismError.serverError);
+            }else{
+              var res_message = {message: 'Post ' + post._id + ' Successfully Flagged'};
+              _utils.prismResponse(res, res_message, true);
+            }
+          });
+        }else{
+          var flagged_error = {
+            status_code: 400,
+            error: {
+              error: 'unable_to_flag_post',
+              error_description: 'Requested reporter has already flagged this post.'
+            }
+          };
+          _utils.prismResponse(res, null, false, flagged_error);
+        }
+      }
     });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
@@ -174,13 +197,16 @@ exports.removePost = function(req, res){
       creator: req.body.creator,
       status:'active'
     }, function(err, post){
-      if(err) _utils.prismResponse(res, null, false, remove_error);
-      post.status = 'deleted';
-      post.delete_date = Date.now();
-      post.save(function(error, saved){
-        if(error) _utils.prismResponse(res, null, false, remove_error);
-        _utils.prismResponse(res, {message: 'Post Successfully removed'}, true);
-      });
+      if(err || !post){
+        _utils.prismResponse(res, null, false, remove_error);
+      }else{
+        post.status = 'deleted';
+        post.delete_date = Date.now();
+        post.save(function(error, saved){
+          if(error) _utils.prismResponse(res, null, false, remove_error);
+          _utils.prismResponse(res, {message: 'Post Successfully Removed'}, true);
+        });
+      }
     });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
