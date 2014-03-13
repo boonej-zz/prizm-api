@@ -21,7 +21,7 @@ var sortByCreateDate = function(a,b){
   return 0;
 };
 
-var searchHashTags = function(hash_tag, cb){
+var searchHashTags = function(hash_tag, limit, cb){
   var regex_hash_string = new RegExp(hash_tag, 'gi');
   Post.aggregate([
     {$unwind: "$hash_tags"},
@@ -41,7 +41,8 @@ var searchHashTags = function(hash_tag, cb){
         $push:"$hash_tags"
       }
     }
-  }
+  },
+  {$limit: limit}
   ], function(err, result){
     var sorted = [];
     var formated = {};
@@ -112,7 +113,8 @@ module.exports = function(req, res){
       fetch_filter,
       fetch_query;
   if(req.query.hash_tags){
-    searchHashTags(req.query.hash_tags, function(err, result){
+    var limit = (req.query.limit)? req.query.limit : 30;
+    searchHashTags(req.query.hash_tags, limit, function(err, result){
       if(err || !result){
         _utils.prismResponse(res,null,false,PrismError.serverError);
 
