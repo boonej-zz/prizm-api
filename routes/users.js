@@ -258,6 +258,30 @@ exports.updateUser = function(req, res){
         var body = req.body;
         if(typeof(body.first_name) !== 'undefined') user.first_name = body.first_name;
         if(typeof(body.last_name) !== 'undefined') user.last_name = body.last_name;
+        if(typeof(body.info) !== 'undefined') user.info = body.info;
+        if(typeof(body.website) !== 'undefined') user.website = body.website;
+        if(typeof(body.ethnicity) !== 'undefined') user.ethnicity = body.ethnicity;
+        if(typeof(body.affiliations) !== 'undefined') user.affliations = body.affliations;
+        if(typeof(body.religion) !== 'undefined') user.religion = body.religion;
+        if(typeof(body.gender) !== 'undefined') user.gender = body.gender;
+        if(typeof(body.zip_postal) !== 'undefined') user.zip_postal = body.zip_postal;
+        if(typeof(body.birthday) !== 'undefined') user.birthday = body.birthday;
+        // if(typeof(body.email) !== 'undefined') user.email = body.email;
+        user.save(function(err, saved){
+          if(err || !saved || saved.length === 0){
+            var error = {
+              status_code: 400,
+              error_info: {
+                error: 'unable_to_update_user',
+                error_description: 'An error occured while trying to update the user, please try again.'
+              }
+            };
+            _utils.prismResponse(res, null, false, error);
+
+          }else{
+            _utils.prismResponse(res, saved, true);
+          }
+        });
       }
     });
   }else{

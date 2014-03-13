@@ -47,9 +47,7 @@ var userSchema = new _mongoose.Schema({
   following             : [],
   followers             : [],
   following_count       : {type: Number, default: 0},
-  followers_count       : {type: Number, default: 0},
-  comments              : [],
-  likes                 : []
+  followers_count       : {type: Number, default: 0}
 },
 {
   versionKey          : false
@@ -86,11 +84,6 @@ userSchema.methods.findByGoogleId = function(google_id, callback){
   return this.model('User').findOne({ provider: 'google',
                                       provider_id: google_id }, callback);
 };
-
-// userSchema.methods.confirmUniqueSocialUser = function(callback){
-//   return this.model('User').findOne({ provider_id: this.provider_id,
-//                                       provider: this.provider }, callback);
-// }
 
 userSchema.methods.cleanUserJSON = function(){
   var user = this.toObject();
