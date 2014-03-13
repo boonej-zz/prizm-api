@@ -242,6 +242,30 @@ exports.fetchUser = function(req, res){
 };
 
 /**
+ * Updates available User object fields
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Post} Returns A Post Object array containing ..
+ */
+exports.updateUser = function(req, res){
+  if(req.params.id && req.body.length > 0){
+    User.findOne({_id: req.params.id, status: 0}, function(err, user){
+      if(err || !user || user.length === 0){
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+      }else{
+        //check updateable body fields & update them if they exist
+        var body = req.body;
+        if(typeof(body.first_name) !== 'undefined') user.first_name = body.first_name;
+        if(typeof(body.last_name) !== 'undefined') user.last_name = body.last_name;
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
  * [fetchUserNewsFeed description]
  * @param  {HTTPRequest} req The request object
  * @param  {HTTPResponse} res The response object

@@ -116,6 +116,9 @@ _app.post('/users', _gateway, _prism_user.register);
 /* Fetch User */
 _app.get('/users/:id', _gateway, _prism_user.fetchUser);
 
+/* Update User */
+_app.put('/users/:id', _gateway, _prism_user.updateUser);
+
 /* Fetch Users Posts */
 _app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
 

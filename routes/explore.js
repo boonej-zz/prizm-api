@@ -46,46 +46,51 @@ var searchHashTags = function(hash_tag, limit, cb){
   ], function(err, result){
     var sorted = [];
     var formated = {};
-    result.forEach(function(post){
-      formated._id = post._id._id;
-      formated.text = post._id.text;
-      formated.file_path = post._id.file_path;
-      formated.create_date = post._id.create_date;
-      formated.target_id = post._id.target_id;
-      formated.comments_count = post._id.comments_count;
-      formated.likes_count = post._id.likes_count;
-      formated.hash_tags = post.hash_tags;
-      formated.creator = post._id.creator;
-      sorted.push(formated);
-      formated = {};
-    });
+    if(err){
+      cab(err, null);
 
-    var exact_match = [];
-    var unmatched = [];
-    console.log(sorted);
-    for(var i =0; i < sorted.length; i++){
-      var withhash = (hash_tag.indexOf('#') === -1)? '#'+hash_tag : hash_tag;
-      var matched  =false;
-      console.log(sorted[i]);
-      if(sorted[i].hash_tags.indexOf(withhash) !== -1){
-        exact_match.push(sorted[i]);
+    }else{
+      result.forEach(function(post){
+        formated._id = post._id._id;
+        formated.text = post._id.text;
+        formated.file_path = post._id.file_path;
+        formated.create_date = post._id.create_date;
+        formated.target_id = post._id.target_id;
+        formated.comments_count = post._id.comments_count;
+        formated.likes_count = post._id.likes_count;
+        formated.hash_tags = post.hash_tags;
+        formated.creator = post._id.creator;
+        sorted.push(formated);
+        formated = {};
+      });
 
-      }else if(sorted[i].hash_tags.indexOf(hash_tag) !== -1 && !matched){
-        exact_match.push(sorted[i]);
+      var exact_match = [];
+      var unmatched = [];
+      console.log(sorted);
+      for(var i =0; i < sorted.length; i++){
+        var withhash = (hash_tag.indexOf('#') === -1)? '#'+hash_tag : hash_tag;
+        var matched  =false;
+        console.log(sorted[i]);
+        if(sorted[i].hash_tags.indexOf(withhash) !== -1){
+          exact_match.push(sorted[i]);
 
-      }else{
-        unmatched.push(sorted[i]);
+        }else if(sorted[i].hash_tags.indexOf(hash_tag) !== -1 && !matched){
+          exact_match.push(sorted[i]);
+
+        }else{
+          unmatched.push(sorted[i]);
+        }
       }
+      sorted = [];
+      if(unmatched.length > 0) unmatched.sort(sortByCreateDate);
+      if(exact_match.length > 0){
+        exact_match.sort(sortByCreateDate);
+        sorted.push(exact_match);
+      }
+      sorted = exact_match.concat(unmatched);
+      err = (!err)? null:err;
+      cb(err, sorted);
     }
-    sorted = [];
-    if(unmatched.length > 0) unmatched.sort(sortByCreateDate);
-    if(exact_match.length > 0){
-      exact_match.sort(sortByCreateDate);
-      sorted.push(exact_match);
-    }
-    sorted = exact_match.concat(unmatched);
-    err = (!err)? null:err;
-    cb(err, sorted);
   });
 };
 
@@ -113,7 +118,7 @@ module.exports = function(req, res){
       fetch_filter,
       fetch_query;
   if(req.query.hash_tags){
-    var limit = (req.query.limit)? req.query.limit : 30;
+    var limit = (req.query.limit)? parseInt(req.query.limit) : 30;
     searchHashTags(req.query.hash_tags, limit, function(err, result){
       if(err || !result){
         _utils.prismResponse(res,null,false,PrismError.serverError);

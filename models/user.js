@@ -17,6 +17,11 @@ var userSchema = new _mongoose.Schema({
                             required: true,
                             index: {unique: true}
                         },
+  info                  : {type: String, default: null},
+  website               : {type: String, default: null},
+  ethnicity             : {type: String, default: null},
+  religion              : {type: String, default: null},
+  affiliations          : [],
   password              : {type: String},
   provider              : {type: String},
   provider_id           : {type: String},
