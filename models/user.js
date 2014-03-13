@@ -97,6 +97,17 @@ userSchema.methods.cleanUserJSON = function(){
   return user;
 };
 
+userSchema.methods.shortUser = function(){
+  var short_user = {
+        _id: this._id,
+        name: this.name,
+        first_name: this.first_name,
+        last_name: this.last_name,
+        profile_photo_url: this.profile_photo_url
+      };
+  return short_user;
+};
+
 userSchema.pre('save', function(next){
   //set create & modify dates
   if(!this.create_date){

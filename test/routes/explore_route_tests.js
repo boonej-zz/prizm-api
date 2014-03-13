@@ -42,12 +42,60 @@ describe('Explore Route Unit Tests', function(done){
 
   var setupPostsAndLikes = function(cb){
     var posts = [
-      {text: 'test test tes1', creator: mark._id, target_id: testUser._id, category: 'experiences', create_date: Date.now() - 10 * 60 * 1000},
-      {text: 'test test tes2', creator: edwardo._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() - 60 * 60 * 100},
-      {text: 'test test tes3', creator: sean._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 60 * 60 * 1000},
-      {text: 'test test tes4', creator: cameron._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 1 * 60 * 60 * 1000},
-      {text: 'test test tes5', creator: erica._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 45 * 60 * 1000},
-      {text: 'test test tes6', creator: mark._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 10 * 60 * 1000},
+      {
+        text: 'test test tes1',
+        hash_tags: ['foo', 'bar', 'foozbar', 'thebar'],
+        hash_tags_count: 4,
+        creator: mark._id,
+        target_id: testUser._id,
+        category: 'experiences',
+        create_date: Date.now() - 10 * 60 * 1000
+      },
+      {
+        text: 'test test tes2',
+        hash_tags: ['#foo', '#bar', '#foozbar'],
+        hash_tags_count: 3,
+        creator: edwardo._id,
+        target_id: testUser._id,
+        category: 'experiences',
+        create_date: Date.now() - 60 * 60 * 100
+      },
+      {
+        text: 'test test tes3',
+        hash_tags: ['fooz', '#bar'],
+        hash_tags_count: 2,
+        creator: sean._id,
+        target_id: testUser._id,
+        category: 'experiences',
+        create_date: Date.now() + 60 * 60 * 1000
+      },
+      {
+        text: 'test test tes4',
+        hash_tags: ['#singularity'],
+        hash_tags_count: 1,
+        creator: cameron._id,
+        target_id: testUser._id,
+        category: 'experiences',
+        create_date: Date.now() + 1 * 60 * 60 * 1000
+      },
+      {
+        text: 'test test tes5',
+        hash_tags: ['#hashtagz', 'singular', '#realtalk'],
+        hash_tags_count: 3,
+        creator: erica._id,
+        target_id: testUser._id,
+        category: 'experiences',
+        create_date: Date.now() + 45 * 60 * 1000
+      },
+      {
+        text: 'test test tes6',
+        hash_tags: ['#ballin', '#rkelly'],
+        hash_tags_count: 2,
+        creator: mark._id,
+        target_id: testUser._id,
+        category: 'experiences',
+        create_date: Date.now() + 10 * 60 * 1000
+      },
       {text: 'test test tes7', creator: mark._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 9 * 60 * 1000},
       {text: 'test test tes8', creator: mark._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 8 * 60 * 1000},
       {text: 'test test tes9', creator: mark._id, target_id: testUser._id, category: 'experiences',create_date: Date.now() + 7 * 60 * 1000}
@@ -155,7 +203,19 @@ describe('Explore Route Unit Tests', function(done){
       done();
     });
   });
-
+  describe('Testing /explore hash_tags search', function(done){
+    it('should find posts that have the exact char set in the search string', function(done){
+      executeExploreRequestWithQueryString('?hash_tags=singularity', function(err, result){
+        _expect(result.data.length).to.equal(1);
+        _expect(result.data[0].hash_tags[0]).to.equal('#singularity');
+        _expect(result.data[0]._id.toString()).to.equal(post4._id.toString());
+        done();
+      });
+    });
+    it('should find posts that have `like` char set ordering in the search string', function(done){
+      _assert.ok(false, 'Test not implemented yet');
+    });
+  });
   describe('Testing /explore by popular posts', function(done){
     it('should return sorted by likes# desc vi sort_field', function(done){
       executeExploreRequestWithQueryString('?sort_field=likes_count', function(err,result){
@@ -198,7 +258,6 @@ describe('Explore Route Unit Tests', function(done){
       done();
     });
   });
-
   describe('Testing /explore fetching all posts for explore', function(done){
     it('should return all public posts sorted by a desc create_date', function(done){
       var auth_headers = 'Bearer ' + testToken.access_token;
@@ -212,6 +271,7 @@ describe('Explore Route Unit Tests', function(done){
           strictSSL: false,
           headers: {"Authorization":auth_headers}
         }, function(err, expl){
+          _assert.ok(false, 'Need to actually fill the testcases for this');
           done();
         });
       });
