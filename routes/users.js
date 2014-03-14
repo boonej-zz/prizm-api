@@ -250,8 +250,16 @@ exports.fetchUser = function(req, res){
  */
 exports.updateUser = function(req, res){
   if(req.params.id && req.body.length > 0){
-    User.findOne({_id: req.params.id, status: 0}, function(err, user){
-      if(err || !user || user.length === 0){
+    User.findOne({_id: req.params.id}, function(err, user){
+      var error = {
+        status_code: 400,
+        error_info: {
+          error: 'unable_to_update_user',
+          error_description: 'An error occured while trying to update the user, please try again.'
+        }
+      };
+
+      if(err || !user){
         _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
       }else{
         //check updateable body fields & update them if they exist
@@ -268,14 +276,7 @@ exports.updateUser = function(req, res){
         if(typeof(body.birthday) !== 'undefined') user.birthday = body.birthday;
         // if(typeof(body.email) !== 'undefined') user.email = body.email;
         user.save(function(err, saved){
-          if(err || !saved || saved.length === 0){
-            var error = {
-              status_code: 400,
-              error_info: {
-                error: 'unable_to_update_user',
-                error_description: 'An error occured while trying to update the user, please try again.'
-              }
-            };
+          if(err || !saved){
             _utils.prismResponse(res, null, false, error);
 
           }else{
