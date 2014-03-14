@@ -249,7 +249,7 @@ exports.fetchUser = function(req, res){
  * @return {Post} Returns A Post Object array containing ..
  */
 exports.updateUser = function(req, res){
-  if(req.params.id && req.body.length > 0){
+  if(req.params.id && Object.keys(req.body).length > 0){
     User.findOne({_id: req.params.id}, function(err, user){
       var error = {
         status_code: 400,
