@@ -233,7 +233,7 @@ exports.updatePost = function(req, res){
     }
   };
 
-  if(req.params.id && req.body.length > 1 && req.body.creator){
+  if(req.params.id && Object.keys(req.body).length > 1 && req.body.creator){
     Post.findOne({
       _id: req.params.id,
       creator: req.body.creator,
