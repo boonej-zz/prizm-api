@@ -135,7 +135,7 @@ _app.post('/posts/:id/flag', _gateway, _prism_post.flagPost);
 _app.delete('/posts/:id', _gateway, _prism_post.removePost);
 
 /* Update a Post */
-_app.put('/posts/:id/posts', _gateway, _prism_post.updatePost);
+_app.put('/posts/:id', _gateway, _prism_post.updatePost);
 
 /* Delete Comment From Post */
 _app.delete('/posts/:id/comments/:comment_id', _gateway, _prism_post.removePostComment);
