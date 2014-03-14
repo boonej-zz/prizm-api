@@ -70,7 +70,6 @@ _app.use(_e_winston.errorLogger({
   transports: errorTransports
 }));
 
-
 //Set SSL options for HTTPS traffic
 var ssl_options = {
   key:                  _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.key'),
@@ -117,6 +116,9 @@ _app.post('/users', _gateway, _prism_user.register);
 /* Fetch User */
 _app.get('/users/:id', _gateway, _prism_user.fetchUser);
 
+/* Update User */
+_app.put('/users/:id', _gateway, _prism_user.updateUser);
+
 /* Fetch Users Posts */
 _app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
 
@@ -126,6 +128,15 @@ _app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
 /* Add Comment to Post */
 _app.post('/posts/:id/comments', _gateway, _prism_post.createPostComment);
 
+/* Flag a Post An Inappropriate */
+_app.post('/posts/:id/flag', _gateway, _prism_post.flagPost);
+
+/* Delete Post   */
+_app.delete('/posts/:id', _gateway, _prism_post.removePost);
+
+/* Update a Post */
+_app.put('/posts/:id', _gateway, _prism_post.updatePost);
+
 /* Delete Comment From Post */
 _app.delete('/posts/:id/comments/:comment_id', _gateway, _prism_post.removePostComment);
 
@@ -134,6 +145,12 @@ _app.get('/posts/:id/comments', _gateway, _prism_post.fetchPostComments);
 
 /* Like A Post */
 _app.post('/posts/:id/like', _gateway, _prism_post.likePost);
+
+/* Fetch Post Likes */
+_app.get('/posts/:id/likes', _gateway, _prism_post.fetchPostLikes);
+
+/* Fetch Comment Likes */
+_app.get('/posts/:id/comments/:comment_id/likes', _gateway, _prism_post.fetchCommentLikes);
 
 /* Unlike A Post */
 _app.post('/posts/:id/unlike', _gateway, _prism_post.unlikePost);

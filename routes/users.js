@@ -242,6 +242,55 @@ exports.fetchUser = function(req, res){
 };
 
 /**
+ * Updates available User object fields
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Post} Returns A Post Object array containing ..
+ */
+exports.updateUser = function(req, res){
+  if(req.params.id && Object.keys(req.body).length > 0){
+    User.findOne({_id: req.params.id}, function(err, user){
+      var error = {
+        status_code: 400,
+        error_info: {
+          error: 'unable_to_update_user',
+          error_description: 'An error occured while trying to update the user, please try again.'
+        }
+      };
+
+      if(err || !user){
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+      }else{
+        //check updateable body fields & update them if they exist
+        var body = req.body;
+        if(typeof(body.first_name) !== 'undefined') user.first_name = body.first_name;
+        if(typeof(body.last_name) !== 'undefined') user.last_name = body.last_name;
+        if(typeof(body.info) !== 'undefined') user.info = body.info;
+        if(typeof(body.website) !== 'undefined') user.website = body.website;
+        if(typeof(body.ethnicity) !== 'undefined') user.ethnicity = body.ethnicity;
+        if(typeof(body.affiliations) !== 'undefined') user.affliations = body.affliations;
+        if(typeof(body.religion) !== 'undefined') user.religion = body.religion;
+        if(typeof(body.gender) !== 'undefined') user.gender = body.gender;
+        if(typeof(body.zip_postal) !== 'undefined') user.zip_postal = body.zip_postal;
+        if(typeof(body.birthday) !== 'undefined') user.birthday = body.birthday;
+        // if(typeof(body.email) !== 'undefined') user.email = body.email;
+        user.save(function(err, saved){
+          if(err || !saved){
+            _utils.prismResponse(res, null, false, error);
+
+          }else{
+            _utils.prismResponse(res, saved, true);
+          }
+        });
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
  * [fetchUserNewsFeed description]
  * @param  {HTTPRequest} req The request object
  * @param  {HTTPResponse} res The response object
@@ -422,14 +471,22 @@ exports.fetchUserPosts = function(req, res){
       fetch_options = _utils.parsedQueryOptions(req.query);
       if(req.query.feature_identifier){
         if(req.query.direction && req.query.direction == 'older'){
-          fetch_criteria = {target_id: req.params.id, create_date: { $lt: req.query.feature_identifier}};
+          fetch_criteria = {
+            target_id: req.params.id,
+            create_date: { $lt: req.query.feature_identifier},
+            status: 'active'
+          };
         }else{
-          fetch_criteria = {target_id: req.params.id, create_date: { $gt: req.query.feature_identifier}};
+          fetch_criteria = {
+            target_id: req.params.id,
+            create_date: { $gt: req.query.feature_identifier},
+            status: 'active'
+          };
         }
 
         fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }else{
-        fetch_criteria = {target_id: req.params.id};
+        fetch_criteria = {target_id: req.params.id, status: 'active'};
         fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }
 

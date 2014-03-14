@@ -82,7 +82,6 @@ exports.parsedQueryOptions = function(query_params) {
       obj[query_params.sort_field] = -1;
       obj.create_date = -1;
       options.sort = obj;
-
     }else{
       obj.create_date = -1;
       options.sort = obj;

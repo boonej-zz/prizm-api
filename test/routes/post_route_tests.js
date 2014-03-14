@@ -30,8 +30,26 @@ describe('Posts Route Unit Tests', function(done){
   var test_post1 = null;
   var test_post2 = null;
   var test_post3 = null;
+  var test_post4 = null;
+  var test_post5 = null;
+  var test_post6 = null;
+  var test_post7 = null;
+  var test_post8 = null;
   var test_comment_id = null;
   var test_comment_id2 = null;
+
+  var executeRequest = function(method, url, body, cb){
+    _request({
+      method: method,
+      strictSSL: false,
+      json: true,
+      url: 'https://localhost:3000/' + url,
+      headers: {"Authorization":"Bearer " + test_token.access_token},
+      body: (!body)? {} : body
+    }, function(err,result){
+      if(cb) cb(err, result.body);
+    });
+  };
 
   var setupSocialNetworkUsers = function(cb){
     var users = _t_helpers.fetchFakeUsersArray();
@@ -111,6 +129,24 @@ describe('Posts Route Unit Tests', function(done){
     });
   };
 
+  var executeDeletePostRequest = function(post_id, creator, cb){
+    executeRequest('DELETE', 'posts/'+post_id, {creator: creator}, function(err, res){
+      if(cb) cb(err, res);
+    });
+  };
+
+  var executeFlagPostRequest = function(post_id, reporter_id, cb){
+    executeRequest('POST', 'posts/'+post_id+'/flag', {reporter: reporter_id}, function(err, res){
+      if(cb) cb(err, res);
+    });
+  };
+
+  var executeUpdatePostRequest = function(post_id, updated_post, cb){
+    executeRequest('PUT', 'posts/'+post_id, updated_post, function(err, res){
+      if(cb) cb(err,res);
+    });
+  };
+
   before(function(done){
     _t_helpers.destroyTestUser(function(){
       _t_helpers.createTestUser(function(testuser){
@@ -140,10 +176,15 @@ describe('Posts Route Unit Tests', function(done){
             }
             //setup fake posts
             var posts = _t_helpers.fetchFakePostsArray(mark, test_user);
-            Post.create(posts, function(err, test1, test2, test3){
+            Post.create(posts, function(err, test1, test2, test3, test4, test5, test6, test7, test8){
               test_post1 = test1;
               test_post2 = test2;
               test_post3 = test3;
+              test_post4 = test4;
+              test_post5 = test5;
+              test_post6 = test6;
+              test_post7 = test7;
+              test_post8 = test8;
               // executeAddCommentRequest()
               done();
             });
@@ -155,7 +196,9 @@ describe('Posts Route Unit Tests', function(done){
 
   after(function(done){
     _t_helpers.destroyTestUser(function(){
-      done();
+      _t_helpers.destroyTestPost(function(){
+        done();
+      });
     });
   });
 
@@ -298,7 +341,6 @@ describe('Posts Route Unit Tests', function(done){
         _expect(result.data[0].likes._id).to.equal(mark._id.toString());
         _expect(result.data[0].likes_count).to.be.above(0);
         executeCommentLikeRequest('like', sean._id, test_post1._id, test_comment_id2, function(err, test_result){
-          debugger;
           done();
         });
         });
@@ -401,4 +443,135 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
   });
+  describe('Testing Deleting a POST', function(done){
+    var delete_error, delete_result, post_to_delete, post_to_delete_updated;
+
+    before(function(done){
+      post_to_delete = test_post4;
+      executeDeletePostRequest(post_to_delete._id, mark._id, function(err, result){
+        delete_error = err;
+        delete_result = result;
+        done();
+      });
+    });
+
+    it('should succesfully "remove" a specified post & return message', function(done){
+      _expect(delete_result.metadata.success).to.equal(true);
+      _expect(delete_result.data[0]).to.have.property('message');
+      _expect(delete_result.data[0].message).to.equal('Post Successfully Removed');
+      done();
+    });
+    it('should update the status of that document to deleted', function(done){
+      Post.findOne({_id: post_to_delete}, function(err, post){
+        post_to_delete_updated = post;
+        _expect(post.status).to.equal('deleted');
+        done();
+      });
+    });
+    it('should update the delete_date when deleted', function(done){
+      var tdate = Date.now();
+      post_to_delete_updated.delete_date.valueOf()
+      .should.be.within(tdate.valueOf() -10, tdate.valueOf() + 10);
+      done();
+    });
+    it('should return false with error when not passed a creator in body', function(done){
+      executeDeletePostRequest(post_to_delete._id, null, function(err, result){
+        _expect(result.metadata.success).to.equal(false);
+        _expect(result.data.length).to.equal(0);
+        _expect(result.error.error).to.equal('invalid_request');
+        done();
+      });
+    });
+    it('should return false with an error when passed an invalid post_id', function(done){
+      executeDeletePostRequest('123123jhjsdf', mark._id, function(err, result){
+        _expect(result.metadata.success).to.equal(false);
+        _expect(result.data.length).to.equal(0);
+        _expect(result.error.error).to.equal('unable_to_delete_post');
+        done();
+      });
+    });
+    it('should return false with error when sent a creator id that didnt create the post', function(done){
+      executeDeletePostRequest(post_to_delete._id, sean._id, function(err, result){
+        _expect(result.metadata.success).to.equal(false);
+        _expect(result.data.length).to.equal(0);
+        _expect(result.error.error).to.equal('unable_to_delete_post');
+        done();
+      });
+    });
+  });
+  describe('Testing Flagging a Post `Inappropriate`', function(done){
+    var post_to_flag, fresult, ferror, fpost;
+    before(function(done){
+      post_to_flag = test_post5;
+      executeFlagPostRequest(post_to_flag._id, maryolin._id, function(err, result){
+        ferror = err;
+        fresult = result;
+        Post.findOne({_id: post_to_flag._id}, function(error, post){
+          if(error) throw error;
+          fpost = post;
+          done();
+        });
+      });
+    });
+    it('should successfully return true with valid post_id in message', function(done){
+      var message_to_validate = 'Post ' + post_to_flag._id.toString() + ' Successfully Flagged';
+      _expect(fresult.metadata.success).to.equal(true);
+      _expect(fresult.data[0]).to.have.property('message');
+      _expect(fresult.data[0].message).to.equal(message_to_validate);
+      done();
+    });
+    it('should successfully add the reporter to the flagged_reporter array', function(done){
+      _expect(fpost.flagged_reporters[0].reporter_id).to.equal(maryolin._id.toString());
+      done();
+    });
+    it('should succesfully add a create_date to the reporters object in flagged_reporters array', function(done){
+      var testdate = Date.now();
+      _expect(fpost.flagged_reporters[0]).to.have.property('create_date');
+      fpost.flagged_reporters[0].create_date.valueOf()
+      .should.be.within(testdate.valueOf() -10, testdate.valueOf()+10);
+      done();
+    });
+    it('should update the is_flagged property', function(done){
+      _expect(fpost.is_flagged).to.equal(true);
+      done();
+    });
+    it('should increment the flagged_count property by 1', function(done){
+      _expect(fpost.flagged_count).to.equal(1);
+      done();
+    });
+    it('need to add a few more tests...', function(done){
+      _assert.ok(false, 'Need to add test for 5 flags');
+      _assert.ok(false, 'Need to add test for status change');
+      _assert.ok(false, 'Need to add test for if you have already flagged');
+      _assert.ok(false, 'Need to add test to ensure post does return in reg search results');
+      done();
+    });
+  });
+  describe('Testing Updating a Post', function(done){
+    it('should update the text field', function(done){
+      _assert.ok(false, 'not test implemented');
+      done();
+    });
+  });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,44 +1,44 @@
 /**
  * Facebook social auth & integration
- * 
+ *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _config 		= require('config')
-	, _request 		= require('request')
-	, _prism_home	= process.env.PRISM_HOME
-	, _utils			= require(_prism_home + 'utils')
-	, Error 			= require(_prism_home + 'error')
-	, User 				= require(_prism_home + 'models/user');
+var _config		= require('config'),
+	_request		= require('request'),
+	_prism_home	= process.env.PRISM_HOME,
+	_utils			= require(_prism_home + 'utils'),
+	PrismError	= require(_prism_home + 'error'),
+	User				= require(_prism_home + 'models/user');
 
 /**
  * Facebook Class
  *
  * Handles facebook user functionality & authorization
- * 
+ *
  * @param {String} fb_id The facebook user identifier
  * @param {String} fb_access_token The facebook user accesstoken
  */
 function Facebook(fb_access_token){
-	this.fb_id 						= null;
-	this.fb_access_token 	= fb_access_token;
+	this.fb_id						= null;
+	this.fb_access_token	= fb_access_token;
 	this.fb_profile				= null;
 }
 
 /**
  * Authorizes the passed user against facebook graph
- * 
+ *
  * @param  {Function} callback The callback function to be invoked
  * @return {Error} First object sent to the callback is an error
- * 									if an error is present
+ *                 if an error is present
  * @return {Object} Second object sent to the callback is the
- * 									response object from the fb request 
+ *                  response object from the fb request
  */
 Facebook.prototype.authorizeUser = function(callback){
 	if(this.fb_access_token){
 		//construct request url
 		var url = _config.social.facebook.base_uri + '/me?access_token=' + this.fb_access_token;
 
-		//construct & execute fb user request					
+		//construct & execute fb user request
 		_request({
 			method: 'GET',
 			url: url,
@@ -59,7 +59,7 @@ Facebook.prototype.authorizeUser = function(callback){
 					};
 					callback(fb_auth_error, response);
 				}else{
-					
+
 					this.fb_id = response.body.id;
 					this.fb_profile = response.body;
 					console.log('fb authorize good, sending callback :' + JSON.stringify(response.body));
@@ -76,7 +76,7 @@ Facebook.prototype.authorizeUser = function(callback){
 /**
  * Checks to see if the validated facebook user id is associated to
  * a prism user object
- * 
+ *
  * @param  {Function} callback The callback block to be invoked
  * @return {Error} The error object if produced
  * @return {Object} The located existing user object

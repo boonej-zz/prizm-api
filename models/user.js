@@ -17,6 +17,11 @@ var userSchema = new _mongoose.Schema({
                             required: true,
                             index: {unique: true}
                         },
+  info                  : {type: String, default: null},
+  website               : {type: String, default: null},
+  ethnicity             : {type: String, default: null},
+  religion              : {type: String, default: null},
+  affiliations          : [],
   password              : {type: String},
   provider              : {type: String},
   provider_id           : {type: String},
@@ -42,9 +47,7 @@ var userSchema = new _mongoose.Schema({
   following             : [],
   followers             : [],
   following_count       : {type: Number, default: 0},
-  followers_count       : {type: Number, default: 0},
-  comments              : [],
-  likes                 : []
+  followers_count       : {type: Number, default: 0}
 },
 {
   versionKey          : false
@@ -82,11 +85,6 @@ userSchema.methods.findByGoogleId = function(google_id, callback){
                                       provider_id: google_id }, callback);
 };
 
-// userSchema.methods.confirmUniqueSocialUser = function(callback){
-//   return this.model('User').findOne({ provider_id: this.provider_id,
-//                                       provider: this.provider }, callback);
-// }
-
 userSchema.methods.cleanUserJSON = function(){
   var user = this.toObject();
           delete user.password;
@@ -95,6 +93,17 @@ userSchema.methods.cleanUserJSON = function(){
           delete user.provider_token;
           delete user.provider_token_secret;
   return user;
+};
+
+userSchema.methods.shortUser = function(){
+  var short_user = {
+        _id: this._id,
+        name: this.name,
+        first_name: this.first_name,
+        last_name: this.last_name,
+        profile_photo_url: this.profile_photo_url
+      };
+  return short_user;
 };
 
 userSchema.pre('save', function(next){
@@ -108,6 +117,9 @@ userSchema.pre('save', function(next){
     next();
   }else{
     this.modify_date = Date.now();
+    if(this.name !== this.first_name + ' ' + this.last_name){
+      this.name = this.first_name + ' ' + this.last_name;
+    }
     next();
   }
 });
