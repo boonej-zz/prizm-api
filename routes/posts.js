@@ -401,6 +401,128 @@ exports.likePost = function(req, res){
 };
 
 /**
+ * Fetch Posts Likes w/ populated shortUsers creator references
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Function}     The return values get forwarded to the
+ *                        utility prismResponse method
+ */
+exports.fetchPostLikes = function(req, res){
+  if(req.params.id){
+    Post.findOne(
+      {_id: req.params.id, status: 'active'},
+      {likes:1, likes_count:1},
+      function(err, post){
+
+      if(err || !post){
+        _utils.prismResponse(res, null , false, PrismError.serverError);
+      }else{
+        var likes_error = {
+            status_code: 400,
+            error_info:{
+              error: 'unable_to_fetch_post_likes',
+              error_description: 'post does not currently have any likes'
+            }
+          };
+
+        if(post.likes_count > 0){
+          var likes_users = [];
+          var users_response = [];
+
+          post.likes.forEach(function(likes){
+            likes_users.push(likes._id);
+          });
+
+          if(likes_users.length > 0){
+            User.find({_id: {$in : likes_users}}, function(err, users){
+              if(users.length === likes_users.length){
+                users.forEach(function(user){
+                  users_response.push(user.shortUser());
+                });
+
+                _utils.prismResponse(res, {likes_count: post.likes_count,
+                                            likes: users_response}, true);
+              }else{
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+              }
+            });
+          }else{
+            _utils.prismResponse(res, null, false, likes_error);
+          }
+        }else{
+          _utils.prismResponse(res, null, false, likes_error);
+        }
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
+ * Fetch Post Comment Likes w/ populated shortUsers creator referencea
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Function}     The return values get forwarded to the
+ *                        utility prismResponse method
+ */
+exports.fetchCommentLikes = function(req, res){
+  if(req.params.id && req.params.comment_id){
+    Post.find({
+      _id: req.params.id,
+      "comments._id": req.params.comment_id
+    },
+    {comments:1}, function(err, post){
+      var comments_likes_error = {
+        status_code: 400,
+        error_info: {
+          error: 'unable_to_fetch_comment_likes',
+          error_description: 'The requested comment does not currently have any likes'
+        }
+      };
+
+      if(err || !post){
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+
+      }else{
+        if(post[0].comments.length === 1 && post[0].comments[0].likes_count >0){
+          var likes_users = [];
+          var likes_user_ids = [];
+
+          post[0].comments[0].likes.forEach(function(like){
+            likes_user_ids.push(like._id);
+          });
+          if(likes_user_ids.length > 0){
+            User.find({_id: {$in: likes_user_ids}}, function(err, users){
+              if(users.length === likes_user_ids.length){
+                users.forEach(function(user){
+                  likes_users.push(user.shortUser());
+                });
+                var response = {likes_count: post[0].comments[0].likes_count,
+                                likes: likes_users};
+                _utils.prismResponse(res, response, true);
+
+              }else{
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+              }
+            });
+          }else{
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+          }
+
+        }else{
+          _utils.prismResponse(res, null, false, comments_likes_error);
+        }
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
  * [likeComment description]
  * @param  {[type]} req [description]
  * @param  {[type]} res [description]
