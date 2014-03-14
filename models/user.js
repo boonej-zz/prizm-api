@@ -117,6 +117,9 @@ userSchema.pre('save', function(next){
     next();
   }else{
     this.modify_date = Date.now();
+    if(this.name !== this.first_name + ' ' + this.last_name){
+      this.name = this.first_name + ' ' + this.last_name;
+    }
     next();
   }
 });
