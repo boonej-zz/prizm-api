@@ -3,19 +3,19 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _mongoose     = require('mongoose')
-  , _request      = require('request')
-  , _chai         = require('chai')
-  , _expect       = _chai.expect
-  , _should       = _chai.should()
-  , _assert       = _chai.assert
-  , _thisapp      = require(process.cwd() + '/server')
-  , _prism_home   = process.env.PRISM_HOME
-  , _auth_model   = require(_prism_home + 'models/auth')
-  , _user_route   = require(_prism_home + 'routes/users')
-  , _t_helpers    = require(_prism_home + 'test/test_helpers')
-  , Post          = require(_prism_home + 'models/post').Post
-  , User          = require(_prism_home + 'models/user').User;
+var _mongoose     = require('mongoose'),
+    _request      = require('request'),
+    _chai         = require('chai'),
+    _expect       = _chai.expect,
+    _should       = _chai.should(),
+    _assert       = _chai.assert,
+    _thisapp      = require(process.cwd() + '/server'),
+    _prism_home   = process.env.PRISM_HOME,
+    _auth_model   = require(_prism_home + 'models/auth'),
+    _user_route   = require(_prism_home + 'routes/users'),
+    _t_helpers    = require(_prism_home + 'test/test_helpers'),
+    Post          = require(_prism_home + 'models/post').Post,
+    User          = require(_prism_home + 'models/user').User;
 
 describe('User Route Unit Tests', function(done){
   var testUser = null;
@@ -23,7 +23,7 @@ describe('User Route Unit Tests', function(done){
   var testCode = null;
   var testToken = null;
 
-  beforeEach(function(done){
+  before(function(done){
     _t_helpers.createTestUser(function(user){
       testUser = user;
       _t_helpers.createTestToken(function(token, code, client){
@@ -35,7 +35,7 @@ describe('User Route Unit Tests', function(done){
     });
   });
 
-  afterEach(function(done){
+  after(function(done){
     _t_helpers.destroyTestUser(function(){
       _t_helpers.destroyTestToken(function(){
         _t_helpers.destroyTestCode(function(){
@@ -265,6 +265,73 @@ describe('User Route Unit Tests', function(done){
           done();
         }
       });
+    });
+  });
+  describe('Testing Reposting a User Post', function(done){
+    var test_user;
+    var test_repost_user = null;
+    var test_repost_origin = null;
+    var test_repost_result = null;
+    before(function(done){
+      _t_helpers.destroyTestUser(function(){
+
+        //create test user
+        _t_helpers.createTestUser(function(user){
+          test_user = user;
+          //create repost user
+          _t_helpers.createTestUser(function(second_user){
+            test_repost_user = second_user;
+            //create origin post
+            var origin_post = new Post({
+              text: 'origin post playa!!',
+              creator: user._id,
+              category: 'personal',
+              target_id: user._id
+            }).save(function(err, org_post){
+              if(err) throw err;
+              test_repost_origin = org_post;
+              //request to create repost
+              _request({
+                method: 'POST',
+                headers: {'Authorization':'Bearer '+ testToken.access_token},
+                url: 'https://localhost:3000/users/'+second_user._id+'/posts',
+                strictSSL:false,
+                json:true,
+                body:{
+                  text: org_post.text,
+                  creator: second_user._id,
+                  category: org_post.category,
+                  target_id: second_user._id,
+                  origin_post_id: org_post._id
+                }
+              }, function(err, result){
+                if(err) throw err;
+                test_repost_result = result.body;
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+    it('should set the origin_post_id with the origin post_id', function(done){
+      _expect(test_repost_result.data[0].origin_post_id.toString()).to.equal(test_repost_origin._id.toString());
+      done();
+    });
+    it('should set the is_repost property to true', function(done){
+      _expect(test_repost_result.data[0].is_repost).to.equal(true);
+      done();
+    });
+    it('should set the origin post creator short user object in the post return', function(done){
+      _expect(test_repost_result.data[0]).to.have.property('origin_post_creator');
+      var post_creator = test_repost_result.data[0].origin_post_creator;
+      _expect(post_creator).to.have.property('_id');
+      _expect(post_creator).to.have.property('name');
+      _expect(post_creator).to.have.property('first_name');
+      _expect(post_creator).to.have.property('last_name');
+      _expect(post_creator).to.have.property('profile_photo_url');
+      _expect(post_creator._id.toString()).to.equal(test_user._id.toString());
+      done();
     });
   });
   describe('Testing Fetching User', function(done){

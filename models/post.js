@@ -59,7 +59,9 @@ var postSchema = new _mongoose.Schema({
   hash_tags_count     : {type: Number, default: 0},
   is_flagged          : {type: Boolean, default: false},
   flagged_count       : {type: Number, default: 0},
-  flagged_reporters   : [{reporter_id: String, create_date: Date}]
+  flagged_reporters   : [{reporter_id: String, create_date: Date}],
+  is_repost           : {type: Boolean, default: false},
+  origin_post_id      : {type: String, default: null}
 }, { versionKey: false});
 
 /**
@@ -100,6 +102,15 @@ postSchema.methods.flagPostValidation = function(){
 postSchema.methods.updateFields = function(){
   return ['text', 'category', 'filepath', 'scope', 'location_name',
           'location_longitude', 'location_latitude'];
+};
+
+postSchema.methods.fetchRepostShortUser = function(post_id, cb){
+  this.model('Post').findOne({_id: post_id}, function(err, org){
+    if(err) throw err;
+    User.findOne({_id: org.creator}, function(err, user){
+      cb(err, user.shortUser());
+    });
+  });
 };
 
 /**

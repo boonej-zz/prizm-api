@@ -419,9 +419,9 @@ describe('Posts Route Unit Tests', function(done){
     });
     it('should return an error with no creator identifier in post body', function(done){
       executeLikeRequest('like', null, test_post1._id, function(err, res){
-        _expect(res.error).to.exist;
+        _assert.ok(res.error, 'Result Error does not exist');
         _expect(res.error.error).to.equal('invalid_request');
-        _expect(res.data).to.be.empty;
+        _assert.lengthOf(res.data, 0, 'Result data should be empty');
         done();
       });
     });
@@ -438,7 +438,7 @@ describe('Posts Route Unit Tests', function(done){
       executeLikeRequest('unlike', test_user._id, test_post2._id, function(err, res){
         _expect(res.metadata.success).to.equal(true);
         _expect(res.data[0].likes_count).to.equal(0);
-        _expect(res.data[0].likes).to.be.empty;
+        _assert.lengthOf(res.data[0].likes, 0, 'Likes array should be empty');
         done();
       });
     });

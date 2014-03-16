@@ -393,6 +393,11 @@ exports.createUserPost = function(req, res){
         post.hash_tags_count = req.body.hash_tags.length;
       }
 
+      if(typeof req.body.origin_post_id !== 'undefined'){
+        post.origin_post_id = req.body.origin_post_id;
+        post.is_repost = true;
+      }
+
       User.findOne({_id: req.params.id}, function(error, user){
         if(error){
           console.log('Error retrieving user by id: ' + req.params.id);
@@ -426,7 +431,15 @@ exports.createUserPost = function(req, res){
                         console.log(err);
                         _utils.prismResponse(res, null, false, PrismError.serverError);
                       }else{
-                        _utils.prismResponse(res, usr, true);
+                        if(usr.is_repost){
+                          usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
+                            usr = usr.toObject();
+                            usr.origin_post_creator = org_user;
+                            _utils.prismResponse(res, usr, true);
+                          });
+                        }else{
+                          _utils.prismResponse(res, usr, true);
+                        }
                       }
                     });
                   }
