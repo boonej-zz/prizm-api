@@ -9,6 +9,32 @@ var _mongoose   = require('mongoose'),
     _prism_home = process.env.PRISM_HOME,
     _utils      = require(_prism_home + 'utils');
 
+var trustSchema = new _mongoose.Schema({
+  user_id             : {type: _mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+  status              : {type: String, required: true},
+  is_owner            : {type: Boolean, required: true},
+  create_date         : {type: Date, default: null},
+  modify_date         : {type: Date, default: null},
+  delete_date         : {type: Date, default: null}
+},
+{
+  versionKey          : false
+});
+
+trustSchema.path('status').validate(function(value){
+  value.toLowerCase();
+  value = value.charAt(0).toUpperCase() + value.slice(1);
+  return /Accepted|Rejected|Pending|Canceled/i.test(value);
+});
+
+trustSchema.pre('save', function(next){
+  if(!this.create_date){
+    this.create_date = new Date();
+  }
+   this.modify_date = new Date();
+   next();
+});
+
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
 	first_name            : {type: String, required: true},
@@ -47,7 +73,8 @@ var userSchema = new _mongoose.Schema({
   following             : [],
   followers             : [],
   following_count       : {type: Number, default: 0},
-  followers_count       : {type: Number, default: 0}
+  followers_count       : {type: Number, default: 0},
+  trusts                : [trustSchema]
 },
 {
   versionKey          : false
@@ -125,3 +152,4 @@ userSchema.pre('save', function(next){
 });
 
 exports.User = _mongoose.model('User', userSchema);
+exports.Trust = _mongoose.model('Trust', trustSchema);
