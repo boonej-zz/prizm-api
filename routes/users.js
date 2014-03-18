@@ -274,6 +274,8 @@ exports.updateUser = function(req, res){
         if(typeof(body.gender) !== 'undefined') user.gender = body.gender;
         if(typeof(body.zip_postal) !== 'undefined') user.zip_postal = body.zip_postal;
         if(typeof(body.birthday) !== 'undefined') user.birthday = body.birthday;
+        if(typeof(body.profile_photo_url) !== 'undefined') user.profile_photo_url = body.profile_photo_url;
+        if(typeof(body.cover_photo_url) !== 'undefined') user.cover_photo_url = body.cover_photo_url;
         // if(typeof(body.email) !== 'undefined') user.email = body.email;
         user.save(function(err, saved){
           if(err || !saved){
