@@ -74,7 +74,8 @@ var userSchema = new _mongoose.Schema({
   followers             : [],
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
-  trusts                : [trustSchema]
+  trusts                : [trustSchema],
+  trusts_count          : {type: Number, default: 0}
 },
 {
   versionKey          : false
@@ -110,6 +111,19 @@ userSchema.methods.findByTwitterId = function(tw_id, callback){
 userSchema.methods.findByGoogleId = function(google_id, callback){
   return this.model('User').findOne({ provider: 'google',
                                       provider_id: google_id }, callback);
+};
+
+userSchema.methods.doesTrustExist = function(user_id){
+  if(this.trusts_count === 0){
+    return false;
+  }else{
+    for(var i = 0; i < this.trusts.length; i++){
+      if(this.trusts[i].user_id.toString() === user_id.toString()){
+        return true;
+      }
+    }
+    return false;
+  }
 };
 
 userSchema.methods.cleanUserJSON = function(){

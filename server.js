@@ -12,12 +12,13 @@ var _express        = require('express'),
     _fs             = require('fs'),
     _https          = require('https'),
     _prism_home     = process.env.PRISM_HOME,
-    _prism_auth     = require(_prism_home + 'routes/oauth2/auths'),
-    _prism_token    = require(_prism_home + 'routes/oauth2/tokens'),
-    _prism_user     = require(_prism_home + 'routes/users'),
-    _prism_explore  = require(_prism_home + 'routes/explore'),
-    _prism_follow   = require(_prism_home + 'routes/follow'),
-    _prism_post     = require(_prism_home + 'routes/posts'),
+    _auth           = require(_prism_home + 'routes/oauth2/auths'),
+    _token          = require(_prism_home + 'routes/oauth2/tokens'),
+    _user           = require(_prism_home + 'routes/users'),
+    _explore        = require(_prism_home + 'routes/explore'),
+    _follow         = require(_prism_home + 'routes/follow'),
+    _post           = require(_prism_home + 'routes/posts'),
+    _trust          = require(_prism_home + 'routes/trusts'),
     _utils          = require(_prism_home + 'utils'),
     _gateway        = require(_prism_home + 'gateway'),
     _config         = require('config'),
@@ -93,7 +94,7 @@ process.on('uncaughtException', function (err) {
 _app.get('/', function(req,res){ res.send('Welcome to the Prism API'); });
 
 /* Authentication Code Endpoint */
-_app.get('/oauth2/authorize', _prism_auth);
+_app.get('/oauth2/authorize', _auth);
 
 /* Default Authorization Code RedirectUri Callback Endpoint - FOR PRISM MOBILE USE ONLY */
 _app.get('/callback', function(req, res){
@@ -102,98 +103,110 @@ _app.get('/callback', function(req, res){
 });
 
 /* Token Request Endpoint */
-_app.post('/oauth2/token', _prism_token);
+_app.post('/oauth2/token', _token);
 
 /* User Login/Authentication */
-_app.post('/oauth2/login', _gateway, _prism_user.login);
+_app.post('/oauth2/login', _gateway, _user.login);
 
 /* Fetch All Users */
-_app.get('/users', _gateway, _prism_user.fetchAllUsers);
+_app.get('/users', _gateway, _user.fetchAllUsers);
 
 /* Create/Register User Route */
-_app.post('/users', _gateway, _prism_user.register);
+_app.post('/users', _gateway, _user.register);
 
 /* Fetch User */
-_app.get('/users/:id', _gateway, _prism_user.fetchUser);
+_app.get('/users/:id', _gateway, _user.fetchUser);
 
 /* Update User */
-_app.put('/users/:id', _gateway, _prism_user.updateUser);
+_app.put('/users/:id', _gateway, _user.updateUser);
 
 /* Fetch Users Posts */
-_app.get('/users/:id/posts', _gateway, _prism_user.fetchUserPosts);
+_app.get('/users/:id/posts', _gateway, _user.fetchUserPosts);
 
 /* Add Post to User */
-_app.post('/users/:id/posts', _gateway, _prism_user.createUserPost);
+_app.post('/users/:id/posts', _gateway, _user.createUserPost);
 
 /* Add Comment to Post */
-_app.post('/posts/:id/comments', _gateway, _prism_post.createPostComment);
+_app.post('/posts/:id/comments', _gateway, _post.createPostComment);
 
 /* Flag a Post An Inappropriate */
-_app.post('/posts/:id/flag', _gateway, _prism_post.flagPost);
+_app.post('/posts/:id/flag', _gateway, _post.flagPost);
 
 /* Delete Post   */
-_app.delete('/posts/:id', _gateway, _prism_post.removePost);
+_app.delete('/posts/:id', _gateway, _post.removePost);
 
 /* Update a Post */
-_app.put('/posts/:id', _gateway, _prism_post.updatePost);
+_app.put('/posts/:id', _gateway, _post.updatePost);
 
 /* Delete Comment From Post */
-_app.delete('/posts/:id/comments/:comment_id', _gateway, _prism_post.removePostComment);
+_app.delete('/posts/:id/comments/:comment_id', _gateway, _post.removePostComment);
 
 /* Get A Post Comments */
-_app.get('/posts/:id/comments', _gateway, _prism_post.fetchPostComments);
+_app.get('/posts/:id/comments', _gateway, _post.fetchPostComments);
 
 /* Like A Post */
-_app.post('/posts/:id/like', _gateway, _prism_post.likePost);
+_app.post('/posts/:id/like', _gateway, _post.likePost);
 
 /* Fetch Post Likes */
-_app.get('/posts/:id/likes', _gateway, _prism_post.fetchPostLikes);
+_app.get('/posts/:id/likes', _gateway, _post.fetchPostLikes);
 
 /* Fetch Comment Likes */
-_app.get('/posts/:id/comments/:comment_id/likes', _gateway, _prism_post.fetchCommentLikes);
+_app.get('/posts/:id/comments/:comment_id/likes', _gateway, _post.fetchCommentLikes);
 
 /* Unlike A Post */
-_app.post('/posts/:id/unlike', _gateway, _prism_post.unlikePost);
+_app.post('/posts/:id/unlike', _gateway, _post.unlikePost);
 
 /* Fetch A Posts Like by Request Identifier */
-_app.get('/posts/:id/like/:like_id', _gateway, _prism_post.fetchPostAndLikeById);
+_app.get('/posts/:id/like/:like_id', _gateway, _post.fetchPostAndLikeById);
 
 /* Like A Comment */
-_app.post('/posts/:id/comments/:comment_id/like', _gateway, _prism_post.likeComment);
+_app.post('/posts/:id/comments/:comment_id/like', _gateway, _post.likeComment);
 
 /* Unlike A Comment */
-_app.post('/posts/:id/comments/:comment_id/unlike', _gateway, _prism_post.unlikeComment);
+_app.post('/posts/:id/comments/:comment_id/unlike', _gateway, _post.unlikeComment);
 
 /* Fetch A Comment */
-_app.get('/posts/:id/comments/:comment_id', _gateway, _prism_post.fetchComment);
+_app.get('/posts/:id/comments/:comment_id', _gateway, _post.fetchComment);
 
 /* Fetch Users followers */
-_app.get('/users/:id/followers', _gateway, _prism_follow.fetchFollowers);
+_app.get('/users/:id/followers', _gateway, _follow.fetchFollowers);
 
 /* Fetch Users following */
-_app.get('/users/:id/following', _gateway, _prism_follow.fetchFollowing);
+_app.get('/users/:id/following', _gateway, _follow.fetchFollowing);
 
 /* Fetch Users News Feed */
-_app.get('/users/:id/feed', _gateway, _prism_user.fetchUserNewsFeed);
+_app.get('/users/:id/feed', _gateway, _user.fetchUserNewsFeed);
+
+/* Create Trust */
+_app.post('/users/:id/trusts', _gateway, _trust.createTrust);
+
+/* Update Trust */
+_app.put('/users/:id/trusts/:trust_id', _gateway, _trust.updateTrust);
+
+/* Fetch Users Trusts */
+_app.get('/users/:id/trusts', _gateway, _trust.fetchTrusts);
+
+/* Delete User Trust */
+_app.delete('/users/:id/trusts/:trust_id', _gateway, _trust.deleteTrust);
 
 /* Fetch is User Following By Following Identifier */
 _app.get( '/users/:id/following/:following_id',
           _gateway,
-          _prism_follow.fetchIsFollowingById );
+          _follow.fetchIsFollowingById );
 
 /* Fetch is User Follower By Follower Identifier */
 _app.get( '/users/:id/followers/:follower_id',
           _gateway,
-          _prism_follow.fetchIsFollowersById );
+          _follow.fetchIsFollowersById );
 
 /* Follow a User */
-_app.post('/users/:id/follow', _gateway, _prism_follow.follow);
+_app.post('/users/:id/follow', _gateway, _follow.follow);
 
 /* Unfollow a User */
-_app.post('/users/:id/unfollow', _gateway, _prism_follow.unfollow);
+_app.post('/users/:id/unfollow', _gateway, _follow.unfollow);
 
 /* Explore Route */
-_app.get('/explore', _gateway, _prism_explore);
+_app.get('/explore', _gateway, _explore);
 
 /* Testing Endpoints only */
 if(_app.get('env')  == 'test'){
