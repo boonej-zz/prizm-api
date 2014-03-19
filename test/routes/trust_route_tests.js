@@ -394,7 +394,6 @@ describe('Trust Route Unit/Integration Tests ', function(done){
                                       });
         });
       });
-
       it('should update a users requested trust successfully', function(done){
         _expect(update_result.metadata.success).to.equal(true);
         _expect(update_result.data.length).to.be.above(0);
