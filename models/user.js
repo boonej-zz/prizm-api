@@ -126,6 +126,26 @@ userSchema.methods.doesTrustExist = function(user_id){
   }
 };
 
+userSchema.methods.fetchTrustIndex = function(trust_id, cb){
+  if(this.trusts_count > 0){
+    for(var i=0; i <= this.trusts.length; i++){
+      if(this.trusts[i]._id.toString() === trust_id.toString()){
+        cb(i);
+        return;
+      }
+    }
+  }else{
+    cb(null);
+  }
+};
+
+userSchema.methods.refresh = function(cb){
+  this.model('User').findOne({_id: this._id}, function(err, user){
+    if(err) throw err;
+    cb(user);
+  });
+};
+
 userSchema.methods.cleanUserJSON = function(){
   var user = this.toObject();
           delete user.password;

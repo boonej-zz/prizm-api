@@ -161,7 +161,20 @@ var createTrust = function(req, res){
  */
 var fetchTrusts = function(req, res){
   validateTrustRequest(req, res, function(){
-    var fetch = User.findOne({_id: req.params.id});
+    var criteria = {_id: req.params.id};
+
+    //check to see if status filter is set
+    // if(typeof(req.query.status) !== 'undefined'){
+    //   // criteria["trusts.status"] = req.query.status;
+    //   criteria = {_id: req.params.id, "trusts.status": req.query.status};
+    // }
+
+    // //check to see if owner filter is set
+    // if(typeof(req.query.owner) !== 'undefined'){
+    //   criteria["trusts.owner"] = req.query.owner;
+    // }
+
+    var fetch = User.findOne(criteria);
     fetch.populate('trusts.user_id', '_id name first_name last_name profile_photo_url');
     fetch.exec(function(err, result){
       if(err){
@@ -177,7 +190,24 @@ var fetchTrusts = function(req, res){
           };
           _utils.prismResponse(res, null, false, error);
         }else{
-          _utils.prismResponse(res, {trusts_count: result.trusts_count, trusts: result.trusts}, true);
+          var filtered_trusts = [];
+          if(typeof(req.query.status) !== 'undefined'){
+            for(var i =0; i < result.trusts.length; i++){
+              if(result.trusts[i].status === req.query.status){
+                filtered_trusts.push(result.trusts[i]);
+              }
+            }
+          }
+
+          if(typeof(req.query.owner) !== 'undefined'){
+            for(var o = 0; o < result.trusts.length; o++){
+              if(result.trusts[o].is_owner.toString() === req.query.owner){
+                filtered_trusts.push(result.trusts[o]);
+              }
+            }
+          }
+          if(filtered_trusts.length === 0) filtered_trusts = result.trusts;
+          _utils.prismResponse(res, {trusts_count: result.trusts_count, trusts: filtered_trusts}, true);
         }
       }
     });
@@ -225,7 +255,6 @@ var updateTrust = function(req, res){
                   if(requestor.trusts[i].user_id.toString() === user._id.toString()){
                     requestor.trusts[i].status = req.body.status;
                     found = true;
-
                   }
                 }
                 if(!found){

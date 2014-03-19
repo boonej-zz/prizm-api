@@ -400,9 +400,43 @@ describe('Trust Route Unit/Integration Tests ', function(done){
         _expect(update_result.data[0].status).to.equal('accepted');
         done();
       });
+      it('should update the associated users trust successfully', function(done){
+        sean.refresh(function(user){
+          sean = user;
+          _expect(sean.trusts[0].status).to.equal('accepted');
+          done();
+        });
+      });
       it('should not return an error with a successful update', function(done){
         _assert.isNull(update_error, 'UpdateError from Trust Update should be null');
         done();
+      });
+    });
+    describe('Testing Fetching Users Trusts with filter options', function(done){
+      var test_result = null;
+      before(function(done){
+        executeCreateTrustRequest(mark._id, cameron._id, function(err, result){
+          if(err) throw err;
+          test_result = result;
+          done();
+        });
+      });
+      it('should filter fetch by status on requested user', function(done){
+        executeRequest('GET', 'users/'+mark._id+'/trusts?status=pending', null, function(err, res){
+          _expect(res.metadata.success).to.equal(true);
+          _expect(res.data[0].trusts.length).to.equal(2);
+          _expect(res.data[0].trusts[0].status).to.equal('pending');
+          _expect(res.data[0].trusts[1].status).to.equal('pending');
+          done();
+        });
+      });
+      it('should filter fetch by owner on requested user', function(done){
+        executeRequest('GET', 'users/'+mark._id+'/trusts?owner=true', null, function(err, res){
+          _expect(res.metadata.success).to.equal(true);
+          _expect(res.data[0].trusts.length).to.equal(1);
+          _expect(res.data[0].trusts[0].is_owner).to.equal(true);
+          done();
+        });
       });
     });
   });
