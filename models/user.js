@@ -7,6 +7,7 @@ var _mongoose   = require('mongoose'),
     _serial     = require('serializer'),
     _crypt      = require('crypto'),
     _prism_home = process.env.PRISM_HOME,
+    // Activity    = require(process.env.PRISM_HOME + 'models/activity').Activity,
     _utils      = require(_prism_home + 'utils');
 
 var trustSchema = new _mongoose.Schema({
@@ -138,6 +139,32 @@ userSchema.methods.fetchTrustIndex = function(trust_id, cb){
     cb(null);
   }
 };
+
+// userSchema.methods.trackActivity = function(type, user, target, options, cb){
+//   if(type && user && target){
+//     var activity = new Activity({
+//       type: type,
+//       user: user,
+//       target: target
+//     });
+
+//     if( typeof options.scope !== 'undefined') activity.scope = options.scope;
+//     if( typeof options.text !== 'undefined') activity.text = options.text;
+//     if( typeof options.route !== 'undefined') activity.route = options.route;
+//     if( typeof options.object !== 'undefined') activity.object = options.object;
+
+//     activity.save(function(err, saved){
+//       if(err){
+//         console.log(err);
+//         if(cb) cb(err);
+//       }else{
+//         if(cb) cb(saved);
+//       }
+//     });
+//   }else{
+//     if(cb) cb(null);
+//   }
+// };
 
 userSchema.methods.refresh = function(cb){
   this.model('User').findOne({_id: this._id}, function(err, user){

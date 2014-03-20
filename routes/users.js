@@ -221,23 +221,83 @@ exports.fetchUser = function(req, res){
     User.findOne({_id: req.params.id}, function(error, result){
       if(error){
         console.log('Error retrieving user by id: ' + req.params.id);
-        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
-                                                PrismError.invalidUserRequest.status_code);
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
       }else{
         var user = result.toObject();
-          if(typeof(user.password) !== 'undefined') delete user.password;
-          if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
-          if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
-          delete user.posts;
-          delete user.likes;
-          delete user.comments;
+        if(typeof(user.password) !== 'undefined') delete user.password;
+        if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
+        if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
 
-        _utils.prismResponse(res, user, true);
+        if(req.body.creator){
+          creator = req.body.creator;
+          var trust, following, followers;
+          //check if a trusts array is available check for creator id
+          if(user.trusts_count > 0){
+            for(var t = 0; t < user.trusts_count; t++){
+              console.log(user.trusts[t].user_id.toString());
+              console.log(creator.toString());
+
+              if(user.trusts[t].user_id.toString() === creator.toString()){
+                trust = [user.trusts[t]];
+              }
+            }
+          }
+
+          //check if following array is available & loop for creator id
+          if(user.following_count > 0){
+            for(var fo = 0; fo < user.following_count; fo++){
+              if(user.following[fo]._id.toString() === creator.toString()){
+                following = [user.following[fo]];
+              }
+            }
+          }
+
+          //check if followers array is available & loop for creator
+          if(user.followers_count > 0){
+            for(var fr = 0; fr < user.followers_count; fr++){
+              if(user.followers[fr]._id.toString() === creator.toString()){
+                followers = [user.followers[fr]];
+              }
+            }
+          }
+
+          //check if trusts, followers, or following is set then set the value
+          //or empty array for the returned user object
+          if(trust || following || followers){
+            User.findOne({_id:creator}, function(err, result){
+              if(err){
+                _logger.log(  'error',
+                              'Error fetching creators user object',
+                              {error: err, creator: creator});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+
+              }else{
+                var short_creator = result.shortUser();
+                if(following) following[0]._id = short_creator;
+                if(followers) followers[0]._id = short_creator;
+                if(trust) trust[0].user_id = short_creator;
+                user.following = (following) ? following : [];
+                user.followers = (followers) ? followers : [];
+                user.trusts = (trust) ? trust : [];
+                _utils.prismResponse(res, user, true);
+              }
+            });
+          }else{
+            user.following = [];
+            user.trusts = [];
+            user.followers = [];
+            _utils.prismResponse(res, user, true);
+          }
+        }else{
+          user.following = [];
+          user.trusts = [];
+          user.followers = [];
+         _utils.prismResponse(res, user, true);
+        }
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
-                                            PrismError.invalidUserRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
   }
 };
 
@@ -441,7 +501,12 @@ exports.createUserPost = function(req, res){
                           usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
                             usr = usr.toObject();
                             usr.origin_post_creator = org_user;
-                            // process.emit('activity', {type: 'post', user: req.params.id, target: req.body.creator});
+                            // process.emit('activity', {
+                            //   type: 'post',
+                            //   action: 'create',
+                            //   user: req.body.creator,
+                            //   target: req.params.id
+                            // });
                             _utils.prismResponse(res, usr, true);
                           });
                         }else{

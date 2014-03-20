@@ -438,6 +438,23 @@ describe('Trust Route Unit/Integration Tests ', function(done){
           done();
         });
       });
+      it('should show creator `shortUser` object when creator fetches a user profile', function(done){
+        executeRequest('GET', 'users/'+mark._id, {creator: sean._id.toString()}, function(err, res){
+          _expect(res.data[0].trusts.length).to.equal(1);
+          _expect(res.data[0].trusts[0]).to.have.property('_id');
+          _expect(res.data[0].trusts[0]).to.have.property('user_id');
+          _expect(res.data[0].trusts[0]).to.have.property('create_date');
+          _expect(res.data[0].trusts[0]).to.have.property('modify_date');
+          _expect(res.data[0].trusts[0]).to.have.property('status');
+          _expect(res.data[0].trusts[0].user_id).to.have.property('name');
+          _expect(res.data[0].trusts[0].user_id).to.have.property('_id');
+          _expect(res.data[0].trusts[0].user_id).to.have.property('first_name');
+          _expect(res.data[0].trusts[0].user_id).to.have.property('last_name');
+          _expect(res.data[0].trusts[0].user_id).to.have.property('profile_photo_url');
+          _expect(res.data[0].trusts[0].user_id._id.toString()).to.equal(sean._id.toString());
+          done();
+        });
+      });
     });
   });
 
