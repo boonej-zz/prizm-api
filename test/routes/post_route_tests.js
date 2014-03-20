@@ -367,24 +367,56 @@ describe('Posts Route Unit Tests', function(done){
     });
   });
   describe('Testing A Users News Feed', function(done){
+    var test_user_post;
+    var feed_result;
+    var feed_error;
+
+    //create a user post to ensure it shows up in the news feed
+    var createTestUserPost = function(cb){
+      new Post({
+        text: 'test user post',
+        category: 'aspirations',
+        creator: test_user._id,
+        target_id: test_user._id
+      }).save(function(err, result){
+        if(err) throw err;
+        test_user_post = result;
+        cb();
+      });
+    };
+
     //setup test_user to follow mark
     before(function(done){
       //make the assumption everything is fine
       executeFollowRequest(test_user, mark);
-      done();
+      createTestUserPost(function(){
+        _request({
+          method: 'GET',
+          url: 'https://localhost:3000/users/' + test_user._id+'/feed',
+          json: true,
+          strictSSL: false,
+          headers: {"Authorization":"Bearer "+test_token.access_token}
+        },function(err, result){
+          feed_error = err;
+          feed_result = result.body;
+          done();
+        });
+      });
     });
     it('should fetch a users news feed', function(done){
-      _request({
-        method: 'GET',
-        url: 'https://localhost:3000/users/' + test_user._id+'/feed',
-        json: true,
-        strictSSL: false,
-        headers: {"Authorization":"Bearer "+test_token.access_token}
-      },function(err, result){
-        _expect(result.body.metadata.success).to.equal(true);
-        _expect(result.body.data.length).to.be.above(3);
-        done();
-      });
+      _expect(feed_result.metadata.success).to.equal(true);
+      _expect(feed_result.data.length).to.be.above(3);
+      done();
+    });
+    it('should include the users posts', function(done){
+      var users_post_in_results = false;
+      for(var i = 0; i < feed_result.data.length; i++){
+        if(feed_result.data[i]._id.toString() === test_user_post._id.toString()){
+          users_post_in_results = true;
+        }
+      }
+      _assert.isTrue(users_post_in_results, 'Users Post _id should be returned home feed');
+      done();
     });
   });
   describe('Testing Fetching A Post Like by Post Id && Requestor Id', function(done){

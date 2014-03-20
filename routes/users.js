@@ -313,6 +313,10 @@ exports.fetchUserNewsFeed = function(req, res){
           following_array.push(user.following[i]._id);
         }
 
+        //user should see its own posts, so add the user to the following_array
+        //which is used in the search criteria
+        following_array.push(user._id);
+
         if(following_array.length > 0){
 
           if(req.query){
@@ -437,6 +441,7 @@ exports.createUserPost = function(req, res){
                           usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
                             usr = usr.toObject();
                             usr.origin_post_creator = org_user;
+                            // process.emit('activity', {type: 'post', user: req.params.id, target: req.body.creator});
                             _utils.prismResponse(res, usr, true);
                           });
                         }else{
