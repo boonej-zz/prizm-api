@@ -92,7 +92,7 @@ var createTrust = function(req, res){
           if(was_cancelled && was_cancelled >= 0){
             var send_index = sender.fetchTrustIndexByUserId(receiver._id.toString());
             if(send_index){
-              sender.trusts[i].status = trust_status.pending;
+              sender.trusts[send_index].status = trust_status.pending;
               _logger.log('info', 'sender create cancel convert before save');
               sender.save(function(err, send_saved){
                 _logger.log('info', 'sender create cancel convert after save', {error: err, result:send_saved});
@@ -100,7 +100,7 @@ var createTrust = function(req, res){
                   _utils.prismResponse(res, null, false, PrismError.serverError);
                 }else{
                   var rec_index = receiver.fetchTrustIndexByUserId(sender._id.toString());
-                  receiver.trusts[i].status = trust_status.pending;
+                  receiver.trusts[rec_index].status = trust_status.pending;
                   _logger.log('info', 'receiver create cancel convert before save');
                   sender.save(function(err, rec_saved){
                     _logger.log('info', 'receiver create cancel convert after save', {error: err, result:rec_saved});
