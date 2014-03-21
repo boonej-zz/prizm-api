@@ -93,24 +93,33 @@ var createTrust = function(req, res){
             var send_index = sender.fetchTrustIndexByUserId(receiver._id.toString());
             if(send_index){
               sender.trusts[i].status = trust_status.pending;
+              _logger.log('info', 'sender create cancel convert before save');
               sender.save(function(err, send_saved){
+                _logger.log('info', 'sender create cancel convert after save', {error: err, result:send_saved});
                 if(err){
                   _utils.prismResponse(res, null, false, PrismError.serverError);
                 }else{
                   var rec_index = receiver.fetchTrustIndexByUserId(sender._id.toString());
                   receiver.trusts[i].status = trust_status.pending;
+                  _logger.log('info', 'receiver create cancel convert before save');
                   sender.save(function(err, rec_saved){
+                    _logger.log('info', 'receiver create cancel convert after save', {error: err, result:rec_saved});
                     var rec_response = null;
-                    rec.trusts.forEach(function(trust){
-                      if(trust._id === receiver.trusts[i]._id){
-                        rec_response = trust.toObject;
-                        rec_response.user_id = sender.shortUser();
-                      }
-                    });
-                    if(rec_response){
-                      _utils.prismResponse(res, rec_response, true);
-                    }else{
+                     if(err){
                       _utils.prismResponse(res, null, false, PrismError.serverError);
+                     }else{
+                      rec_saved.trusts.forEach(function(trust){
+                        if(trust._id === receiver.trusts[i]._id){
+                          rec_response = trust.toObject;
+                          rec_response.user_id = sender.shortUser();
+                        }
+                      });
+
+                      if(rec_response){
+                        _utils.prismResponse(res, rec_response, true);
+                      }else{
+                        _utils.prismResponse(res, null, false, PrismError.serverError);
+                      }
                     }
                   });
                 }
