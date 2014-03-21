@@ -133,7 +133,7 @@ userSchema.methods.previousTrustCancelled = function(user_id){
   }else{
     for(var i = 0; i < this.trusts.length; i++){
       if(this.trusts[i].user_id.toString() === user_id.toString()){
-        if(this.trusts[i].status === 'cancelled') return true;
+        if(this.trusts[i].status === 'cancelled' || this.trusts[i].status === 'canceled') return true;
       }
     }
   }
@@ -143,7 +143,7 @@ userSchema.methods.previousTrustCancelled = function(user_id){
 userSchema.methods.fetchTrustIndexByUserId = function(user_id){
   if(this.trusts_count > 0){
     for(var i=0; i <= this.trusts.length; i++){
-      if(this.trusts[i]._id.toString() === trust_id.toString()) return i;
+      if(this.trusts[i].user_id.toString() === user_id.toString()) return i;
     }
   }else{
     return false;
