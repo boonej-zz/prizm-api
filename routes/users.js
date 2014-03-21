@@ -49,7 +49,6 @@ exports.login = function(req, res){
           delete user.followers;
           delete user.following;
           if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
-          if(typeof(user.password) !== 'undefined') delete user.password;
           _utils.prismResponse( res, user , true);
         }
       });
@@ -62,7 +61,13 @@ exports.login = function(req, res){
                                 PrismError.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
-            _utils.prismResponse(res, result, true, null, null);
+            usr = result.toObject();
+            delete usr.provider_token;
+            delete usr.provider_token_secret;
+            delete usr.trusts;
+            delete usr.followers;
+            delete usr.following;
+            _utils.prismResponse(res, usr, true, null, null);
           }else{
            _utils.prismResponse(res,
                                 null,
