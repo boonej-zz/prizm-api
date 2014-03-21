@@ -90,7 +90,7 @@ var createTrust = function(req, res){
 
           var was_cancelled = sender.previousTrustCancelled(receiver._id.toString());
           if(was_cancelled && was_cancelled >= 0){
-            var send_index = sender.fetchTrustIndexByUserId(recevier._id.toString());
+            var send_index = sender.fetchTrustIndexByUserId(receiver._id.toString());
             if(send_index){
               sender.trusts[i].status = trust_status.pending;
               sender.save(function(err, send_saved){
