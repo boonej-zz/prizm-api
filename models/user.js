@@ -127,6 +127,30 @@ userSchema.methods.doesTrustExist = function(user_id){
   }
 };
 
+userSchema.methods.previousTrustCancelled = function(user_id){
+  if(this.trusts_count === 0){
+    return false;
+  }else{
+    for(var i = 0; i < this.trusts.length; i++){
+      if(this.trusts[i].user_id.toString() === user_id.toString()){
+        if(this.trusts[i].status === 'cancelled') return true;
+      }
+    }
+  }
+  return false;
+};
+
+userSchema.methods.fetchTrustIndexByUserId = function(user_id){
+  if(this.trusts_count > 0){
+    for(var i=0; i <= this.trusts.length; i++){
+      if(this.trusts[i]._id.toString() === trust_id.toString()) return i;
+    }
+  }else{
+    return false;
+  }
+  return false;
+};
+
 userSchema.methods.fetchTrustIndex = function(trust_id, cb){
   if(this.trusts_count > 0){
     for(var i=0; i <= this.trusts.length; i++){

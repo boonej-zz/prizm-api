@@ -88,9 +88,38 @@ var createTrust = function(req, res){
             sender = users[0];
           }
 
-          if(!receiver.doesTrustExist(sender._id.toString()) &&
+          var was_cancelled = sender.previousTrustCancelled(receiver._id.toString());
+          if(was_cancelled && was_cancelled >= 0){
+            var send_index = sender.fetchTrustIndexByUserId(recevier._id.toString());
+            if(send_index){
+              sender.trusts[i].status = trust_status.pending;
+              sender.save(function(err, send_saved){
+                if(err){
+                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                }else{
+                  var rec_index = receiver.fetchTrustIndexByUserId(sender._id.toString());
+                  receiver.trusts[i].status = trust_status.pending;
+                  sender.save(function(err, rec_saved){
+                    var rec_response = null;
+                    rec.trusts.forEach(function(trust){
+                      if(trust._id === receiver.trusts[i]._id){
+                        rec_response = trust.toObject;
+                        rec_response.user_id = sender.shortUser();
+                      }
+                    });
+                    if(rec_response){
+                      _utils.prismResponse(res, rec_response, true);
+                    }else{
+                      _utils.prismResponse(res, null, false, PrismError.serverError);
+                    }
+                  });
+                }
+              });
+            }
+          }else if(!receiver.doesTrustExist(sender._id.toString()) &&
             !sender.doesTrustExist(receiver._id.toString())){
             //set the trust object for the receiver
+
             var trust_receiver = new Trust({
               user_id: sender._id,
               status: trust_status.pending,
