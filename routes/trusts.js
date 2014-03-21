@@ -103,18 +103,19 @@ var createTrust = function(req, res){
                   var rec_index = receiver.fetchTrustIndexByUserId(sender._id.toString());
                   receiver.trusts[rec_index].status = trust_status.pending;
                   _logger.log('info', 'receiver create cancel convert before save');
-                  sender.save(function(err, rec_saved){
+                  receiver.save(function(err, rec_saved){
                     _logger.log('info', 'receiver create cancel convert after save', {error: err, result:rec_saved});
                     var rec_response = null;
                      if(err){
                       _utils.prismResponse(res, null, false, PrismError.serverError);
                      }else{
                       for(var i = 0; i < rec_saved.trusts.length; i++){
-                        if(rec_saved.trusts[i].user_id.toString() === receiver._id.toString()){
+                        if(rec_saved.trusts[i].user_id.toString() === sender._id.toString()){
                           rec_response = rec_saved.trusts[i].toObject();
                           rec_response.user_id = sender.shortUser();
                         }
                       }
+
                       if(rec_response){
                         _utils.prismResponse(res, rec_response, true);
                       }else{

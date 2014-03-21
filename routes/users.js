@@ -374,37 +374,62 @@ exports.fetchUserNewsFeed = function(req, res){
       }else{
         //fetch all posts that are public & the user is following
         var following_array = [];
+        var trusts_array = [];
         for(var i = 0; i < user.following.length; i++){
-
           following_array.push(user.following[i]._id);
+        }
+
+        for(var t=0; t < user.trusts.length; t++){
+          trusts_array.push(user.trusts[t].user_id.toString());
         }
 
         //user should see its own posts, so add the user to the following_array
         //which is used in the search criteria
-        following_array.push(user._id);
+        // following_array.push(user._id);
 
-        if(following_array.length > 0){
-
+        if(following_array.length > 0 || trusts_array > 0 || user.posts_count > 0){
+          var fetch_criteria_self, fetch_criteria_trusts;
+          var fetch_self_query, fetch_trusts_query;
           if(req.query){
-            fetch_options = _utils.parsedQueryOptions(req.query);
+            var fetch_options = _utils.parsedQueryOptions(req.query);
             if(req.query.feature_identifier){
               if(req.query.direction && req.query.direction == 'older'){
                 fetch_criteria = {scope: 'public', creator: {$in : following_array},
                                   create_date: { $lt: req.query.feature_identifier}};
+                fetch_criteria_self = { creator: user._id,
+                                        create_date: {$lt: req.query.feature_identifier}};
+                fetch_criteria_trusts = { scope: 'trust',
+                                          creator: {$in: trusts_array},
+                                          create_date: {$lt: req.query.feature_identifier}};
               }else{
                 fetch_criteria = {scope: 'public', creator: {$in : following_array},
                                   create_date: { $gt: req.query.feature_identifier}};
+                fetch_criteria_self = { creator: user._id,
+                                        create_date: {$gt: req.query.feature_identifier}};
+                fetch_criteria_trusts = { scope: 'trust',
+                                          creator: {$in: trusts_array},
+                                          create_date: {$gt: req.query.feature_identifier}};
               }
 
               fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+              fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self, fetch_options);
+              fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts, fetch_options);
             }else{
               fetch_criteria = {scope: 'public', creator: {$in : following_array}};
+              fetch_criteria_self = {creator: user._id};
+              fetch_criteria_trusts = {scope: 'trust', creator: {$in : trusts_array}};
               fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+              fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self, fetch_options);
+              fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts, fetch_options);
             }
 
           }else{
             fetch_criteria = {scope: 'public', creator: {$in : following_array}};
+            fetch_criteria_self = {creator: user._id};
+            fetch_criteria_trusts = {scope: 'trust', creator: {$in : trusts_array}};
             fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
+            fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self);
+            fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts);
           }
 
           var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
@@ -413,7 +438,29 @@ exports.fetchUserNewsFeed = function(req, res){
               _utils.prismResponse(res,null,false,PrismError.serverError);
 
             }else{
-              _utils.prismResponse(res,feed,true);
+              fetch_self_query.populate(fetch_populate).exec(function(err, self_feed){
+                if(err){
+                  _utils.prismResponse(res,null,false,PrismError.serverError);
+
+                }else{
+                  fetch_trusts_query.populate(fetch_populate).exec(function(err, trust_feed){
+                    if(err){
+                      _utils.prismResponse(res,null,false,PrismError.serverError);
+
+                    }else{
+                      var all = feed.concat(self_feed.concat(trust_feed));
+                      var response = [];
+                      for(var i=0; i < all.length; i++){
+                        var iteration = all[i].toObject();
+                        iteration.creator = all[i].creator.shortUser();
+                        response.push(iteration);
+                      }
+                      _utils.prismResponse(res,response,true);
+                    }
+                  });
+                }
+              });
+              // _utils.prismResponse(res,feed,true);
             }
           });
 
