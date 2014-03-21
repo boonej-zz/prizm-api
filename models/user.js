@@ -25,7 +25,7 @@ var trustSchema = new _mongoose.Schema({
 trustSchema.path('status').validate(function(value){
   value.toLowerCase();
   value = value.charAt(0).toUpperCase() + value.slice(1);
-  return /Accepted|Rejected|Pending|Canceled/i.test(value);
+  return /Accepted|Rejected|Pending|Canceled|Cancelled/i.test(value);
 });
 
 trustSchema.pre('save', function(next){
