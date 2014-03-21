@@ -394,19 +394,23 @@ exports.fetchUserNewsFeed = function(req, res){
             var fetch_options = _utils.parsedQueryOptions(req.query);
             if(req.query.feature_identifier){
               if(req.query.direction && req.query.direction == 'older'){
-                fetch_criteria = {scope: 'public', creator: {$in : following_array},
+                fetch_criteria = {scope: 'public', status: 'active', creator: {$in : following_array},
                                   create_date: { $lt: req.query.feature_identifier}};
-                fetch_criteria_self = { creator: user._id,
+                fetch_criteria_self = { creator: user._id, status: 'active',
                                         create_date: {$lt: req.query.feature_identifier}};
-                fetch_criteria_trusts = { scope: 'trust',
+                fetch_criteria_trusts = { scope: 'trust', status: 'active',
                                           creator: {$in: trusts_array},
                                           create_date: {$lt: req.query.feature_identifier}};
               }else{
-                fetch_criteria = {scope: 'public', creator: {$in : following_array},
+                fetch_criteria = {scope: 'public',
+                                  status: 'active',
+                                  creator: {$in : following_array},
                                   create_date: { $gt: req.query.feature_identifier}};
                 fetch_criteria_self = { creator: user._id,
+                                        status: 'active',
                                         create_date: {$gt: req.query.feature_identifier}};
                 fetch_criteria_trusts = { scope: 'trust',
+                                          status: 'active',
                                           creator: {$in: trusts_array},
                                           create_date: {$gt: req.query.feature_identifier}};
               }
@@ -415,18 +419,18 @@ exports.fetchUserNewsFeed = function(req, res){
               fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self, fetch_options);
               fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts, fetch_options);
             }else{
-              fetch_criteria = {scope: 'public', creator: {$in : following_array}};
-              fetch_criteria_self = {creator: user._id};
-              fetch_criteria_trusts = {scope: 'trust', creator: {$in : trusts_array}};
+              fetch_criteria = {scope: 'public', status: 'active', creator: {$in : following_array}};
+              fetch_criteria_self = {creator: user._id, status: 'active'};
+              fetch_criteria_trusts = {scope: 'trust', status: 'active', creator: {$in : trusts_array}};
               fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
               fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self, fetch_options);
               fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts, fetch_options);
             }
 
           }else{
-            fetch_criteria = {scope: 'public', creator: {$in : following_array}};
-            fetch_criteria_self = {creator: user._id};
-            fetch_criteria_trusts = {scope: 'trust', creator: {$in : trusts_array}};
+            fetch_criteria = {scope: 'public', status: 'active',creator: {$in : following_array}};
+            fetch_criteria_self = {creator: user._id, status: 'active'};
+            fetch_criteria_trusts = {scope: 'trust', status: 'active', creator: {$in : trusts_array}};
             fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
             fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self);
             fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts);
