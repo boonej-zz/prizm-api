@@ -25,7 +25,7 @@ var searchHashTags = function(hash_tag, limit, cb){
   var regex_hash_string = new RegExp(hash_tag, 'gi');
   Post.aggregate([
     {$unwind: "$hash_tags"},
-    {$match: {hash_tags: regex_hash_string}},
+    {$match: {hash_tags: regex_hash_string, status: 'active'}},
     {$group: {
       _id:{
         "_id":"$_id",
@@ -157,11 +157,13 @@ module.exports = function(req, res){
       if(req.query.feature_identifier){
         if(req.query.direction){
           fetch_criteria = { scope: 'public',
+                             status: 'active',
                              create_date: { $lt: req.query.feature_identifier } };
 
           }else{
-            fetch_criteria = { scope: 'public',
-                               create_date: { $gt: req.query.feature_identifier } };
+            fetch_criteria = {  scope: 'public',
+                                status: 'active',
+                                create_date: { $gt: req.query.feature_identifier } };
           }
 
           if(typeof(req.query.location_name) !== 'undefined')
@@ -174,7 +176,7 @@ module.exports = function(req, res){
 
     }else{
       if(!fetch_options) fetch_options = _utils.parsedQueryOptions(req.query);
-      if(fetch_criteria == {}) fetch_criteria = {scope: 'public'};
+      if(fetch_criteria == {}) fetch_criteria = {scope: 'public', status: 'active'};
       fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
     }
 

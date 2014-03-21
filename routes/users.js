@@ -44,10 +44,10 @@ exports.login = function(req, res){
         }else{
           //succesful login - send back returned user object
           var user = result.toObject();
-          delete user.posts;
-          delete user.likes;
-          delete user.comments;
           delete user.provider_token;
+          delete user.trusts;
+          delete user.followers;
+          delete user.following;
           if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
           _utils.prismResponse( res, user , true);
         }
@@ -61,7 +61,13 @@ exports.login = function(req, res){
                                 PrismError.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
-            _utils.prismResponse(res, result, true, null, null);
+            usr = result.toObject();
+            delete usr.provider_token;
+            delete usr.provider_token_secret;
+            delete usr.trusts;
+            delete usr.followers;
+            delete usr.following;
+            _utils.prismResponse(res, usr, true, null, null);
           }else{
            _utils.prismResponse(res,
                                 null,
@@ -221,23 +227,83 @@ exports.fetchUser = function(req, res){
     User.findOne({_id: req.params.id}, function(error, result){
       if(error){
         console.log('Error retrieving user by id: ' + req.params.id);
-        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
-                                                PrismError.invalidUserRequest.status_code);
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
       }else{
         var user = result.toObject();
-          if(typeof(user.password) !== 'undefined') delete user.password;
-          if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
-          if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
-          delete user.posts;
-          delete user.likes;
-          delete user.comments;
+        if(typeof(user.password) !== 'undefined') delete user.password;
+        if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
+        if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
 
-        _utils.prismResponse(res, user, true);
+        if(req.query.creator){
+          creator = req.query.creator;
+          var trust, following, followers;
+          //check if a trusts array is available check for creator id
+          if(user.trusts_count > 0){
+            for(var t = 0; t < user.trusts_count; t++){
+              console.log(user.trusts[t].user_id.toString());
+              console.log(creator.toString());
+
+              if(user.trusts[t].user_id.toString() === creator.toString()){
+                trust = [user.trusts[t]];
+              }
+            }
+          }
+
+          //check if following array is available & loop for creator id
+          if(user.following_count > 0){
+            for(var fo = 0; fo < user.following_count; fo++){
+              if(user.following[fo]._id.toString() === creator.toString()){
+                following = [user.following[fo]];
+              }
+            }
+          }
+
+          //check if followers array is available & loop for creator
+          if(user.followers_count > 0){
+            for(var fr = 0; fr < user.followers_count; fr++){
+              if(user.followers[fr]._id.toString() === creator.toString()){
+                followers = [user.followers[fr]];
+              }
+            }
+          }
+
+          //check if trusts, followers, or following is set then set the value
+          //or empty array for the returned user object
+          if(trust || following || followers){
+            User.findOne({_id:creator}, function(err, result){
+              if(err){
+                _logger.log(  'error',
+                              'Error fetching creators user object',
+                              {error: err, creator: creator});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+
+              }else{
+                var short_creator = result.shortUser();
+                if(following) following[0]._id = short_creator;
+                if(followers) followers[0]._id = short_creator;
+                if(trust) trust[0].user_id = short_creator;
+                user.following = (following) ? following : [];
+                user.followers = (followers) ? followers : [];
+                user.trusts = (trust) ? trust : [];
+                _utils.prismResponse(res, user, true);
+              }
+            });
+          }else{
+            user.following = [];
+            user.trusts = [];
+            user.followers = [];
+            _utils.prismResponse(res, user, true);
+          }
+        }else{
+          user.following = [];
+          user.trusts = [];
+          user.followers = [];
+         _utils.prismResponse(res, user, true);
+        }
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
-                                            PrismError.invalidUserRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
   }
 };
 
@@ -274,6 +340,8 @@ exports.updateUser = function(req, res){
         if(typeof(body.gender) !== 'undefined') user.gender = body.gender;
         if(typeof(body.zip_postal) !== 'undefined') user.zip_postal = body.zip_postal;
         if(typeof(body.birthday) !== 'undefined') user.birthday = body.birthday;
+        if(typeof(body.profile_photo_url) !== 'undefined') user.profile_photo_url = body.profile_photo_url;
+        if(typeof(body.cover_photo_url) !== 'undefined') user.cover_photo_url = body.cover_photo_url;
         // if(typeof(body.email) !== 'undefined') user.email = body.email;
         user.save(function(err, saved){
           if(err || !saved){
@@ -306,33 +374,66 @@ exports.fetchUserNewsFeed = function(req, res){
       }else{
         //fetch all posts that are public & the user is following
         var following_array = [];
+        var trusts_array = [];
         for(var i = 0; i < user.following.length; i++){
-
           following_array.push(user.following[i]._id);
         }
 
-        if(following_array.length > 0){
+        for(var t=0; t < user.trusts.length; t++){
+          trusts_array.push(user.trusts[t].user_id.toString());
+        }
 
+        //user should see its own posts, so add the user to the following_array
+        //which is used in the search criteria
+        // following_array.push(user._id);
+
+        if(following_array.length > 0 || trusts_array > 0 || user.posts_count > 0){
+          var fetch_criteria_self, fetch_criteria_trusts;
+          var fetch_self_query, fetch_trusts_query;
           if(req.query){
-            fetch_options = _utils.parsedQueryOptions(req.query);
+            var fetch_options = _utils.parsedQueryOptions(req.query);
             if(req.query.feature_identifier){
               if(req.query.direction && req.query.direction == 'older'){
-                fetch_criteria = {scope: 'public', creator: {$in : following_array},
+                fetch_criteria = {scope: 'public', status: 'active', creator: {$in : following_array},
                                   create_date: { $lt: req.query.feature_identifier}};
+                fetch_criteria_self = { creator: user._id, status: 'active',
+                                        create_date: {$lt: req.query.feature_identifier}};
+                fetch_criteria_trusts = { scope: 'trust', status: 'active',
+                                          creator: {$in: trusts_array},
+                                          create_date: {$lt: req.query.feature_identifier}};
               }else{
-                fetch_criteria = {scope: 'public', creator: {$in : following_array},
+                fetch_criteria = {scope: 'public',
+                                  status: 'active',
+                                  creator: {$in : following_array},
                                   create_date: { $gt: req.query.feature_identifier}};
+                fetch_criteria_self = { creator: user._id,
+                                        status: 'active',
+                                        create_date: {$gt: req.query.feature_identifier}};
+                fetch_criteria_trusts = { scope: 'trust',
+                                          status: 'active',
+                                          creator: {$in: trusts_array},
+                                          create_date: {$gt: req.query.feature_identifier}};
               }
 
               fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+              fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self, fetch_options);
+              fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts, fetch_options);
             }else{
-              fetch_criteria = {scope: 'public', creator: {$in : following_array}};
+              fetch_criteria = {scope: 'public', status: 'active', creator: {$in : following_array}};
+              fetch_criteria_self = {creator: user._id, status: 'active'};
+              fetch_criteria_trusts = {scope: 'trust', status: 'active', creator: {$in : trusts_array}};
               fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
+              fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self, fetch_options);
+              fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts, fetch_options);
             }
 
           }else{
-            fetch_criteria = {scope: 'public', creator: {$in : following_array}};
+            fetch_criteria = {scope: 'public', status: 'active',creator: {$in : following_array}};
+            fetch_criteria_self = {creator: user._id, status: 'active'};
+            fetch_criteria_trusts = {scope: 'trust', status: 'active', creator: {$in : trusts_array}};
             fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
+            fetch_self_query = _utils.buildQueryObject(Post, fetch_criteria_self);
+            fetch_trusts_query = _utils.buildQueryObject(Post, fetch_criteria_trusts);
           }
 
           var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
@@ -341,7 +442,29 @@ exports.fetchUserNewsFeed = function(req, res){
               _utils.prismResponse(res,null,false,PrismError.serverError);
 
             }else{
-              _utils.prismResponse(res,feed,true);
+              fetch_self_query.populate(fetch_populate).exec(function(err, self_feed){
+                if(err){
+                  _utils.prismResponse(res,null,false,PrismError.serverError);
+
+                }else{
+                  fetch_trusts_query.populate(fetch_populate).exec(function(err, trust_feed){
+                    if(err){
+                      _utils.prismResponse(res,null,false,PrismError.serverError);
+
+                    }else{
+                      var all = feed.concat(self_feed.concat(trust_feed));
+                      var response = [];
+                      for(var i=0; i < all.length; i++){
+                        var iteration = all[i].toObject();
+                        iteration.creator = all[i].creator.shortUser();
+                        response.push(iteration);
+                      }
+                      _utils.prismResponse(res,response,true);
+                    }
+                  });
+                }
+              });
+              // _utils.prismResponse(res,feed,true);
             }
           });
 
@@ -393,6 +516,11 @@ exports.createUserPost = function(req, res){
         post.hash_tags_count = req.body.hash_tags.length;
       }
 
+      if(typeof req.body.origin_post_id !== 'undefined'){
+        post.origin_post_id = req.body.origin_post_id;
+        post.is_repost = true;
+      }
+
       User.findOne({_id: req.params.id}, function(error, user){
         if(error){
           console.log('Error retrieving user by id: ' + req.params.id);
@@ -426,7 +554,31 @@ exports.createUserPost = function(req, res){
                         console.log(err);
                         _utils.prismResponse(res, null, false, PrismError.serverError);
                       }else{
-                        _utils.prismResponse(res, usr, true);
+                        if(usr.is_repost){
+                          usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
+                            usr = usr.toObject();
+                            usr.origin_post_creator = org_user;
+                            process.emit('activity', {
+                              type: 'repost',
+                              action: 'create',
+                              user: req.body.creator,
+                              target: req.params.id,
+                              scope: usr.scope,
+                              object: usr
+                            });
+                            _utils.prismResponse(res, usr, true);
+                          });
+                        }else{
+                          process.emit('activity', {
+                              type: 'post',
+                              action: 'create',
+                              user: req.body.creator,
+                              target: req.params.id,
+                              scope: usr.scope,
+                              object: usr
+                            });
+                          _utils.prismResponse(res, usr, true);
+                        }
                       }
                     });
                   }

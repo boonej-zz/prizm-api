@@ -7,6 +7,18 @@ var _prism_home   = process.env.PRISM_HOME,
     Post          = require(_prism_home + 'models/post').Post,
     User          = require(_prism_home + 'models/user').User;
 
+var test_client, test_code, test_token;
+
+exports.fetchTestToken = function(cb){
+  if(!test_client && !test_code){
+    this.createTestToken(function(){
+      cb(test_token);
+    });
+  }else{
+    cb(test_token);
+  }
+};
+
 exports.fetchAuthHeader = function(id, secret){
   return "Basic " + (new Buffer(id + ':' + secret).toString('base64'));
 };
@@ -85,12 +97,15 @@ exports.createTestToken = function(callback){
 	});
   testClient.save(function(error, client){
     if(error) throw error;
+    test_client = client;
     var testCode = new Code({client_id: client.client_id});
     testCode.save(function(error, code){
       if(error) throw error;
+      test_code = code;
       var testToken = new Token({code: code.code, client_application: client, grant_type: 'authorization_code'})
       .save(function(error, token){
         if(error) throw error;
+        test_token = token;
         callback(token, testCode, testClient);
       });
     });

@@ -7,7 +7,34 @@ var _mongoose   = require('mongoose'),
     _serial     = require('serializer'),
     _crypt      = require('crypto'),
     _prism_home = process.env.PRISM_HOME,
+    // Activity    = require(process.env.PRISM_HOME + 'models/activity').Activity,
     _utils      = require(_prism_home + 'utils');
+
+var trustSchema = new _mongoose.Schema({
+  user_id             : {type: _mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+  status              : {type: String, required: true},
+  is_owner            : {type: Boolean, required: true},
+  create_date         : {type: Date, default: null},
+  modify_date         : {type: Date, default: null},
+  delete_date         : {type: Date, default: null}
+},
+{
+  versionKey          : false
+});
+
+trustSchema.path('status').validate(function(value){
+  value.toLowerCase();
+  value = value.charAt(0).toUpperCase() + value.slice(1);
+  return /Accepted|Rejected|Pending|Canceled|Cancelled/i.test(value);
+});
+
+trustSchema.pre('save', function(next){
+  if(!this.create_date){
+    this.create_date = new Date();
+  }
+   this.modify_date = new Date();
+   next();
+});
 
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
@@ -47,7 +74,9 @@ var userSchema = new _mongoose.Schema({
   following             : [],
   followers             : [],
   following_count       : {type: Number, default: 0},
-  followers_count       : {type: Number, default: 0}
+  followers_count       : {type: Number, default: 0},
+  trusts                : [trustSchema],
+  trusts_count          : {type: Number, default: 0}
 },
 {
   versionKey          : false
@@ -83,6 +112,89 @@ userSchema.methods.findByTwitterId = function(tw_id, callback){
 userSchema.methods.findByGoogleId = function(google_id, callback){
   return this.model('User').findOne({ provider: 'google',
                                       provider_id: google_id }, callback);
+};
+
+userSchema.methods.doesTrustExist = function(user_id){
+  if(this.trusts_count === 0){
+    return false;
+  }else{
+    for(var i = 0; i < this.trusts.length; i++){
+      if(this.trusts[i].user_id.toString() === user_id.toString()){
+        return true;
+      }
+    }
+    return false;
+  }
+};
+
+userSchema.methods.previousTrustCancelled = function(user_id){
+  if(this.trusts_count === 0){
+    return false;
+  }else{
+    for(var i = 0; i < this.trusts.length; i++){
+      if(this.trusts[i].user_id.toString() === user_id.toString()){
+        if(this.trusts[i].status === 'cancelled' || this.trusts[i].status === 'canceled') return true;
+      }
+    }
+  }
+  return false;
+};
+
+userSchema.methods.fetchTrustIndexByUserId = function(user_id){
+  if(this.trusts_count > 0){
+    for(var i=0; i <= this.trusts.length; i++){
+      if(this.trusts[i].user_id.toString() === user_id.toString()) return i;
+    }
+  }else{
+    return false;
+  }
+  return false;
+};
+
+userSchema.methods.fetchTrustIndex = function(trust_id, cb){
+  if(this.trusts_count > 0){
+    for(var i=0; i <= this.trusts.length; i++){
+      if(this.trusts[i]._id.toString() === trust_id.toString()){
+        cb(i);
+        return;
+      }
+    }
+  }else{
+    cb(null);
+  }
+};
+
+// userSchema.methods.trackActivity = function(type, user, target, options, cb){
+//   if(type && user && target){
+//     var activity = new Activity({
+//       type: type,
+//       user: user,
+//       target: target
+//     });
+
+//     if( typeof options.scope !== 'undefined') activity.scope = options.scope;
+//     if( typeof options.text !== 'undefined') activity.text = options.text;
+//     if( typeof options.route !== 'undefined') activity.route = options.route;
+//     if( typeof options.object !== 'undefined') activity.object = options.object;
+
+//     activity.save(function(err, saved){
+//       if(err){
+//         console.log(err);
+//         if(cb) cb(err);
+//       }else{
+//         if(cb) cb(saved);
+//       }
+//     });
+//   }else{
+//     if(cb) cb(null);
+//   }
+// };
+
+userSchema.methods.refresh = function(cb){
+  this.model('User').findOne({_id: this._id}, function(err, user){
+    if(err) throw err;
+    cb(user);
+  });
 };
 
 userSchema.methods.cleanUserJSON = function(){
@@ -125,3 +237,4 @@ userSchema.pre('save', function(next){
 });
 
 exports.User = _mongoose.model('User', userSchema);
+exports.Trust = _mongoose.model('Trust', trustSchema);
