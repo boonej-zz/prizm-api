@@ -439,7 +439,7 @@ describe('Trust Route Unit/Integration Tests ', function(done){
         });
       });
       it('should show creator `shortUser` object when creator fetches a user profile', function(done){
-        executeRequest('GET', 'users/'+mark._id, {creator: sean._id.toString()}, function(err, res){
+        executeRequest('GET', 'users/'+mark._id+'?creator='+sean._id.toString(), null, function(err, res){
           _expect(res.data[0].trusts.length).to.equal(1);
           _expect(res.data[0].trusts[0]).to.have.property('_id');
           _expect(res.data[0].trusts[0]).to.have.property('user_id');

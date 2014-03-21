@@ -44,11 +44,12 @@ exports.login = function(req, res){
         }else{
           //succesful login - send back returned user object
           var user = result.toObject();
-          delete user.posts;
-          delete user.likes;
-          delete user.comments;
           delete user.provider_token;
+          delete user.trusts;
+          delete user.followers;
+          delete user.following;
           if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
+          if(typeof(user.password) !== 'undefined') delete user.password;
           _utils.prismResponse( res, user , true);
         }
       });
@@ -228,8 +229,8 @@ exports.fetchUser = function(req, res){
         if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
         if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
 
-        if(req.body.creator){
-          creator = req.body.creator;
+        if(req.query.creator){
+          creator = req.query.creator;
           var trust, following, followers;
           //check if a trusts array is available check for creator id
           if(user.trusts_count > 0){
@@ -501,15 +502,25 @@ exports.createUserPost = function(req, res){
                           usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
                             usr = usr.toObject();
                             usr.origin_post_creator = org_user;
-                            // process.emit('activity', {
-                            //   type: 'post',
-                            //   action: 'create',
-                            //   user: req.body.creator,
-                            //   target: req.params.id
-                            // });
+                            process.emit('activity', {
+                              type: 'repost',
+                              action: 'create',
+                              user: req.body.creator,
+                              target: req.params.id,
+                              scope: usr.scope,
+                              object: usr
+                            });
                             _utils.prismResponse(res, usr, true);
                           });
                         }else{
+                          process.emit('activity', {
+                              type: 'post',
+                              action: 'create',
+                              user: req.body.creator,
+                              target: req.params.id,
+                              scope: usr.scope,
+                              object: usr
+                            });
                           _utils.prismResponse(res, usr, true);
                         }
                       }
