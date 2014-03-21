@@ -216,12 +216,6 @@ var fetchTrusts = function(req, res){
 
 var updateTrust = function(req, res){
   validateTrustRequest(req, res, function(){
-
-    // Trust.find({_id: req.params.trusts_id}, function(err, result){
-
-    //  console.log(result);
-    //  debugger;
-    // });
     User.findOne({_id: req.params.id})
       .populate('trusts.user_id', '_id name first_name last_name profile_photo_url')
       .exec(function(err, user){
@@ -236,7 +230,7 @@ var updateTrust = function(req, res){
       }
 
       if(index >= 0){
-        if(user.trusts[index].user_id._id == user._id && req.body.status !== 'canceled' ){
+        if(user.trusts[index].user_id._id !== user._id && !req.body.status){
           var self_update_error = {
 
           };
