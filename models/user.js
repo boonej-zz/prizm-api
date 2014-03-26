@@ -83,6 +83,25 @@ var userSchema = new _mongoose.Schema({
 }
 );
 
+userSchema.statics.derived = function(){
+  return [
+    {following: {identifier: '_id' , model: 'User'}},
+    {followers: {identifier: '_id' , model: 'User'}},
+    {trusts: {identifier: 'user_id', model: 'User'}}
+  ];
+};
+
+userSchema.methods.short = function(fields){
+  var response = this.shortUser();
+  
+  if(fields){
+    for(var index in fields){
+      response[fields[index]] = this[fields[index]];
+    }
+  }
+  return response;
+};
+
 userSchema.methods.createUserSalt = function(){
   return _serial.stringify(this._id+this.create_date.valueOf()+this.email);
 };
