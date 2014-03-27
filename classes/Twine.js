@@ -127,83 +127,148 @@ Twine.prototype.$__resolveFilterProperties = function $__resolveFilterProperties
   if(this.$__isBodySet()) findFilterProperties(this.Request.body, this.model_keys, this.filters);
 };
 
-Twine.prototype.$__applyDerived = function $__applyDerived(result, cb){
+Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
   var distinct = [];
-  var derived_body;
-  var derived_identifier;
-  var derived_model;
-  var derived_format;
-  var derived_model_properties;
-  var derived_model_objects;
+  var resolve_body;
+  var resolve_identifier;
+  var resolve_model;
+  var resolve_format;
+  var resolve_model_properties;
+  var resolve_model_objects;
   var key;
+  var resolve_key;
   var index;
+  var queries = [];
 
-  if(this.$__isBodySet() && doesObjectKeyExist(this.Request.body, 'derived')){
-    derived_body = this.Request.body.derived;
-    derived_model_objects = this.Model.derived();
-    if(derived_model_objects){
-      for(var derived in derived_model_objects){
-        derived_key = Object.keys(derived_model_objects[derived])[0];
+  if(this.$__isBodySet() && doesObjectKeyExist(this.Request.body, 'resolve')){
+    resolve_body = this.Request.body.resolve;
+    resolve_model_objects = this.Model.canResolve();
+    if(resolve_model_objects){
+      for(var r_idx in resolve_model_objects){
+        key = Object.keys(resolve_model_objects[r_idx])[0];
 
-        if(doesObjectKeyExist(this.Request.body.derived, derived_key) &&
-          doesObjectKeyExist(result[0], derived_key)){
-          key = derived_key;
+        if(doesObjectKeyExist(this.Request.body.resolve, key) &&
+          doesObjectKeyExist(result[0], key)){
+          resolve_key = key;
 
-          var rs = result[0][derived_key];
-          derived_identifier = derived_model_objects[derived][derived_key].identifier;
+          var rs = result[0][resolve_key];
+          resolve_identifier = resolve_model_objects[r_idx][resolve_key].identifier;
 
           for(var i = 0; i < rs.length; i++){
-            distinct.push(rs[i][derived_identifier].toString());
-            /**
-            if(distinct.length === 0){
-              distinct.push(rs[i][derived_identifier].toString());
-            }else if(distinct.indexOf(rs[i][derived_identifier].toString()) !== -1){
-              distinct.push(rs[i][derived_identifier].toString());
-            }
-            */
+            distinct.push(rs[i][resolve_identifier].toString());
           }
 
-          if(distinct.length > 0)
-            derived_model = _mongoose.model(derived_model_objects[derived][derived_key].model);
-          continue;
+          if(distinct.length > 0){
+            resolve_model = _mongoose.model(resolve_model_objects[r_idx][resolve_key].model);
+            queries.push({
+              model: resolve_model,
+              distinct: distinct,
+              resolve_identifier: resolve_identifier,
+              resolve_key: resolve_key});
+          }
         }
+
+        resolve_model = null;
+        key = null;
+        resolve_key = null;
+        distinct = [];
+        resolve_identifier = null;
       }
     }
   }
 
-  if(distinct.length > 0 && derived_identifier && derived_model){
+  var response = {resolve: {}};
+  var error = null;
+  
+  var processResolve = function processResolve(array, callback){
     var criteria = {};
-    criteria[derived_identifier] = {$in: distinct};
-    derived_model.find(criteria, function(err, res){
-      if(err){
-        cb(err, false);
+    var object_to_resolve = array.shift();
+    criteria[object_to_resolve.resolve_identifier] = {$in: object_to_resolve.distinct};
+    object_to_resolve.model.find(criteria, function(err, res){
+
+      if(err) error = err;
+      var fields = (doesObjectKeyExist(resolve_body[object_to_resolve.resolve_key], 'fields')) ?
+          resolve_body[object_to_resolve.resolve_key].fields : null;
+
+      //set response key inside root object & set the value to an empty array
+      response.resolve[object_to_resolve.resolve_key] = [];
+      for(var item in res){
+        var format = {};
+        format[res[item][object_to_resolve.resolve_identifier].toString()] = res[item].short(fields);
+        response.resolve[object_to_resolve.resolve_key].push(format);
+      }
+
+      //if there is another value left in the array recursively call itself with current params
+      if(array.length > 0){
+        processResolve(array, callback);
 
       }else{
-        debugger;
-        if(doesObjectKeyExist(derived_body[key], 'format')){
-          var response = {derived: []};
-          var fields = (doesObjectKeyExist(derived_body[key], 'fields')) ?
-            derived_body[key].fields : null;
-
-          for(var d in res){
-            var format = {};
-            format[res[d]._id.toString()] = res[d].short(fields);
-            response.derived.push(format);
-          }
-          cb(null, response);
-
-        }else{
-          cb(false);
-        }
+        callback();
       }
+      // //check if a format has been set in the child tree of the resolve_key
+      // if(doesObjectKeyExist(resolve_body[resolve_key], 'format')){
+      //   var fields = (doesObjectKeyExist(resolve_body[resolve_key], 'fields')) ?
+      //     resolve_body[resolve_key].fields : null;
+      // //otherwise just set the resolve_identifier key and result in response object
+      // }else{
+      //   response[object_to_resolve.resolve_key] =
+      // }
     });
+  };
+
+  if(queries.length > 0){
+    processResolve(queries, function(){
+      //invoke the  callback block
+      cb(error, response);
+    });
+
   }else{
-    cb(false);
+    //should throw error
+    cb(error, response);
   }
 };
 
-Twine.prototype.$__applyContext = function $__applyContext(){
 
+
+Twine.prototype.$__applyContains = function $__applyContains(result, cb){
+  var contains_key;
+  var contains_identifier;
+  var contains_value;
+  var contains;
+
+  var unsetContainsArrays = function(object, exception_identifier){
+    for(var property in object){
+      if(Array.isArray(property) && property !== exception_identifier){
+        object[property] = [];
+      }
+    }
+    return object;
+  };
+
+  //check if contains property is set in body
+  if(doesObjectKeyExist(this.Request.body, 'contains')){
+    //set contains lookup property key
+    contains_key = Object.keys(this.Request.body.contains)[0];
+    //set contains identifier and value
+    for(var key in this.Request.body.contains[contains_key]){
+      contains_identifier = key;
+      contains_value = this.Request.body.contains[contains_key][contains_identifier];
+    }
+
+    //loop through the result value and return contains array value if in array
+    //or unset the array to empty
+    contains = result[0][contains_key];
+    for(var i=0; i < contains.length; i++){
+      if(contains[i][contains_identifier].toString() === contains_value)
+        result[0][contains_key] = contains[i];
+        //var response = unsetContextArray(result[0], )
+        cb(null, result);
+
+    }
+  }else{
+    //return false
+    cb(null, false);
+  }
 };
 
 /**
@@ -251,43 +316,31 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
   //TODO: add getter & setter for default limit
   //set the limit -- default limit is set to 30
   this.fetch.limit(this.limit);
-  debugger;
 
   var self = this;
   this.fetch.exec(function(err, result){
     var response = {};
-    self.
-    self.$__applyDerived(result, function(err, derived){
+    self.$__applyResolved(result, function(err, resolved){
       if(err){
         self.cb(err, null);
       }else{
         //set derived if exists
-        if(derived) response = derived; 
+        if(resolved) response = resolved;
 
         //apply context
-        self.$__applyContext(result, function(err, context){
+        self.$__applyContains(result, function(err, contains){
           if(err){
             self.cb(err, null);
+
+          }else{
+            //format return object
+            response.data = contains;
+            self.cb(null, response);
           }
+
         });
       }
     });
   });
-
 };
-
-// var criteria = User.find({_id: 'asdfasdfasdf'});
-// new Twine('User', {first_name: 'dj', scope: 'active'}, {Request: 'asdf'}, null, function(err, result){
-
-// });
-
-
-
-
-
-
-
-
-
-
 

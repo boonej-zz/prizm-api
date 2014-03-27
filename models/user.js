@@ -38,9 +38,9 @@ trustSchema.pre('save', function(next){
 
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
-	first_name            : {type: String, required: true},
-	last_name             : {type: String, required: true},
-	email                 : { type: String,
+  first_name            : {type: String, required: true},
+  last_name             : {type: String, required: true},
+  email                 : { type: String,
                             required: true,
                             index: {unique: true}
                         },
@@ -83,7 +83,7 @@ var userSchema = new _mongoose.Schema({
 }
 );
 
-userSchema.statics.derived = function(){
+userSchema.statics.canResolve = function(){
   return [
     {following: {identifier: '_id' , model: 'User'}},
     {followers: {identifier: '_id' , model: 'User'}},
@@ -93,7 +93,7 @@ userSchema.statics.derived = function(){
 
 userSchema.methods.short = function(fields){
   var response = this.shortUser();
-  
+
   if(fields){
     for(var index in fields){
       response[fields[index]] = this[fields[index]];

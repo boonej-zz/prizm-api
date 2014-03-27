@@ -1,4 +1,4 @@
-/**
+/*
  * Utility/Helper Methods
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>

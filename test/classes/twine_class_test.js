@@ -3,6 +3,7 @@
  *
  * @author  DJ Hayden <dj.hayden@stablekernel.com>
  */
+/*jshint -W087 */
 var _thisapp    = require(process.cwd() + '/server.js'),
     _request    = require('request'),
     _mongoose   = require('mongoose'),
@@ -228,13 +229,16 @@ describe('Twine Class Unit Tests', function(done){
           status: 0,
           sort: 1,
           sort_by:'create_date',
-          derived: {
+          resolve: {
             following: {
               format:'short',
               fields: ['create_date', 'test']
+            },
+            followers: {
+              format: 'short'
             }
           },
-          context: {
+          contains: {
             following: {
               _id: sean._id.toString()
             }
@@ -243,8 +247,9 @@ describe('Twine Class Unit Tests', function(done){
       };
 
       new Twine('User', {_id: mark._id.toString()}, req, null, function(err, result){
+        console.log(result);
         debugger;
-
+        done();
       });
     });
   });
