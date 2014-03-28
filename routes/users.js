@@ -279,8 +279,11 @@ exports.fetchUser = function(req, res){
 
               }else{
                 var short_creator = result.shortUser();
-                if(following) following[0]._id = short_creator;
-                if(followers) followers[0]._id = short_creator;
+                // if(following) following[0]._id = short_creator;
+                // if(followers) followers[0]._id = short_creator;
+                // if(trust) trust[0].user_id = short_creator;      //HACK FOR 3/28/2014 DEV DEPLOY
+                if(following) following[0] = short_creator;
+                if(followers) followers[0] = short_creator;
                 if(trust) trust[0].user_id = short_creator;
                 user.following = (following) ? following : [];
                 user.followers = (followers) ? followers : [];
