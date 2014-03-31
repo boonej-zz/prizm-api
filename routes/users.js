@@ -11,11 +11,14 @@ var _mongoose     = require('mongoose'),
     Facebook      = require(_prism_home + 'classes/Facebook'),
     Twitter       = require(_prism_home + 'classes/Twitter'),
     User          = require(_prism_home + 'models/user').User,
+    Twine         = require(_prism_home + 'classes/Twine'),
     Post          = require(_prism_home + 'models/post').Post;
 
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
  */
+
+/*jshint -W087*/
 
 /**
  * Handles authenticating user login request
@@ -224,11 +227,15 @@ exports.fetchAllUsers = function(req, res){
  */
 exports.fetchUser = function(req, res){
   if(req.params.id){
-    User.findOne({_id: req.params.id}, function(error, result){
+    //User.findOne({_id: req.params.id}, function(error, result){
+    var criteria = {_id: req.params.id};
+    new Twine('User', criteria, req, null, function(error, result){
       if(error){
-        console.log('Error retrieving user by id: ' + req.params.id);
+        _logger.log('Error', 'Error retrieving user by id: ' + req.params.id);
         _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
       }else{
+        _utils.prismResponse(res, result, true);
+        /**
         var user = result.toObject();
         if(typeof(user.password) !== 'undefined') delete user.password;
         if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
@@ -240,8 +247,6 @@ exports.fetchUser = function(req, res){
           //check if a trusts array is available check for creator id
           if(user.trusts_count > 0){
             for(var t = 0; t < user.trusts_count; t++){
-              console.log(user.trusts[t].user_id.toString());
-              console.log(creator.toString());
 
               if(user.trusts[t].user_id.toString() === creator.toString()){
                 trust = [user.trusts[t]];
@@ -302,7 +307,7 @@ exports.fetchUser = function(req, res){
           user.trusts = [];
           user.followers = [];
          _utils.prismResponse(res, user, true);
-        }
+        }*/
       }
     });
   }else{

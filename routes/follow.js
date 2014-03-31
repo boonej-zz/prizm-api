@@ -11,6 +11,7 @@ var _mongoose     = require('mongoose'),
     Facebook      = require(_prism_home + 'classes/Facebook'),
     Twitter       = require(_prism_home + 'classes/Twitter'),
     User          = require(_prism_home + 'models/user').User,
+    Twine         = require(_prism_home + 'classes/Twine'),
     Post          = require(_prism_home + 'models/post').Post;
 
 /**
@@ -272,6 +273,14 @@ exports.fetchIsFollowersById = function(req, res){
  */
 exports.fetchFollowing = function(req, res){
   if(req.params.id){
+    new Twine('User', {_id: req.params.id}, req, {fields: 'following'}, function(err, result){
+      if(err){
+        _utils.prismResponse(res, null, false, PrismError.ServerError);
+      }else{
+        _utils.prismResponse(res, result, true);
+      }
+    });
+    /**
     User.find({_id: req.params.id}, {following: 1}, function(error, user){
       if(error){
         _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
@@ -290,7 +299,7 @@ exports.fetchFollowing = function(req, res){
             _utils.prismResponse(res, result, true);
         });
       }
-    });
+    });*/
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
@@ -304,6 +313,15 @@ exports.fetchFollowing = function(req, res){
  */
 exports.fetchFollowers = function(req, res){
   if(req.params.id){
+    new Twine('User', {_id: req.params.id}, req, {fields: 'followers'}, function(err, result){
+      if(err){
+        _utils.prismResponse(res, null, false, PrismError.ServerError);
+      }else{
+        _utils.prismResponse(res, result, true);
+      }
+    });
+
+    /**
     User.find({_id: req.params.id}, {followers : 1}, function(error, user){
       // debugger;
       if(error){
@@ -325,7 +343,7 @@ exports.fetchFollowers = function(req, res){
 
         // _utils.prismResponse(res, user, true);
       }
-    });
+    });*/
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }

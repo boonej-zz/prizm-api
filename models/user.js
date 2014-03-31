@@ -16,7 +16,7 @@ var trustSchema = new _mongoose.Schema({
   is_owner            : {type: Boolean, required: true},
   create_date         : {type: Date, default: null},
   modify_date         : {type: Date, default: null},
-  delete_date         : {type: Date, default: null}
+  delete_date         : {type: Date, default: null, select: false}
 },
 {
   versionKey          : false
@@ -37,51 +37,67 @@ trustSchema.pre('save', function(next){
 });
 
 var userSchema = new _mongoose.Schema({
-  name                  : {type: String, default: ''},
-	first_name            : {type: String, required: true},
-	last_name             : {type: String, required: true},
-	email                 : { type: String,
-                            required: true,
-                            index: {unique: true}
-                        },
-  info                  : {type: String, default: null},
-  website               : {type: String, default: null},
-  ethnicity             : {type: String, default: null},
-  religion              : {type: String, default: null},
-  affiliations          : [],
-  password              : {type: String},
-  provider              : {type: String},
-  provider_id           : {type: String},
-  provider_token        : {type: String},
-  provider_token_secret : {type: String},
-  last_provider_auth    : Date,
-  gender                : {type: String, default: null},
-  birthday              : {type: String, default: null},
-  address               : String,
-  city                  : String,
-  country               : String,
-  state                 : String,
-  zip_postal            : String,
-  cover_photo_url       : {type: String, default: ''},
-  profile_photo_url     : {type: String, default: ''},
-  picture_thumb_path    : {type: String, default: ''},
-  create_date           : Date,
-  modify_date           : Date,
-  delete_date           : {type: Date, default: null},
-  last_login_date       : {type: Date, default: null},
-  status                : {type: Number, default: 0},
-  posts_count           : {type: Number, default: 0},
-  following             : [],
-  followers             : [],
-  following_count       : {type: Number, default: 0},
-  followers_count       : {type: Number, default: 0},
-  trusts                : [trustSchema],
-  trusts_count          : {type: Number, default: 0}
+  name                  : {type: String, default: '', select: true},
+  first_name            : {type: String, required: true, select: true},
+  last_name             : {type: String, required: true, select: true},
+  email                 : {type: String, required: true, index: {unique: true}, select: true},
+  info                  : {type: String, default: null, select: false},
+  website               : {type: String, default: null, select: false},
+  ethnicity             : {type: String, default: null, select: false},
+  religion              : {type: String, default: null, select: false},
+  affiliations          : {type: Array, default:[], select: false},
+  password              : {type: String, default: null, select: false},
+  provider              : {type: String, default: null, select: false},
+  provider_id           : {type: String, default: null, select: false},
+  provider_token        : {type: String, default: null, select: false},
+  provider_token_secret : {type: String, default: null, select: false},
+  last_provider_auth    : {type: Date, default: null, select: false},
+  gender                : {type: String, default: null, select: false},
+  birthday              : {type: String, default: null, select: false},
+  address               : {type: String, default: null, select: false},
+  city                  : {type: String, default: null, select: false},
+  country               : {type: String, default: null, select: false},
+  state                 : {type: String, default: null, select: false},
+  zip_postal            : {type: String, default: null, select: false},
+  cover_photo_url       : {type: String, default: '', select: true},
+  profile_photo_url     : {type: String, default: '', select: true},
+  picture_thumb_path    : {type: String, default: '', select: false},
+  create_date           : {type: Date, default: null, select: true},
+  modify_date           : {type: Date, default: null, select: false},
+  delete_date           : {type: Date, default: null, select: false},
+  last_login_date       : {type: Date, default: null, select: false},
+  status                : {type: Number, default: 0, select: false},
+  posts_count           : {type: Number, default: 0, select: true},
+  following             : {type: Array, default: [], select: false},
+  followers             : {type: Array, default: [], select: false},
+  following_count       : {type: Number, default: 0, select: true},
+  followers_count       : {type: Number, default: 0, select: true},
+  trusts                : {type: [trustSchema], select: false},
+  trusts_count          : {type: Number, default: 0, select: true}
 },
 {
   versionKey          : false
 }
 );
+
+userSchema.statics.canResolve = function(){
+  return [
+    {following: {identifier: '_id' , model: 'User'}},
+    {followers: {identifier: '_id' , model: 'User'}},
+    {trusts: {identifier: 'user_id', model: 'User'}}
+  ];
+};
+
+userSchema.methods.short = function(fields){
+  var response = this.shortUser();
+
+  if(fields){
+    for(var index in fields){
+      response[fields[index]] = this[fields[index]];
+    }
+  }
+  return response;
+};
 
 userSchema.methods.createUserSalt = function(){
   return _serial.stringify(this._id+this.create_date.valueOf()+this.email);
@@ -163,32 +179,6 @@ userSchema.methods.fetchTrustIndex = function(trust_id, cb){
     cb(null);
   }
 };
-
-// userSchema.methods.trackActivity = function(type, user, target, options, cb){
-//   if(type && user && target){
-//     var activity = new Activity({
-//       type: type,
-//       user: user,
-//       target: target
-//     });
-
-//     if( typeof options.scope !== 'undefined') activity.scope = options.scope;
-//     if( typeof options.text !== 'undefined') activity.text = options.text;
-//     if( typeof options.route !== 'undefined') activity.route = options.route;
-//     if( typeof options.object !== 'undefined') activity.object = options.object;
-
-//     activity.save(function(err, saved){
-//       if(err){
-//         console.log(err);
-//         if(cb) cb(err);
-//       }else{
-//         if(cb) cb(saved);
-//       }
-//     });
-//   }else{
-//     if(cb) cb(null);
-//   }
-// };
 
 userSchema.methods.refresh = function(cb){
   this.model('User').findOne({_id: this._id}, function(err, user){

@@ -1,4 +1,5 @@
 var _prism_home   = process.env.PRISM_HOME,
+    // _mongoose     = require('mongoose'),
     _auth_models  = require(_prism_home + 'models/auth'),
     _utils        = require(_prism_home + 'utils'),
     Token         = _auth_models.Token,
@@ -17,6 +18,145 @@ exports.fetchTestToken = function(cb){
   }else{
     cb(test_token);
   }
+};
+
+
+exports.executeRequest = function(method, url, body, cb){
+  _request({
+    method: method,
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/' + url,
+    headers: {"Authorization":"Bearer " + test_token.access_token},
+    body: (!body)? {} : body
+  }, function(err,result){
+    if(cb) cb(err, result.body);
+  });
+};
+
+exports.setupSocialNetworkUsers = function(cb){
+  var users = _helpers.fetchFakeUsersArray();
+  User.create(users, function(err, m, e, c, e2, s, m2){
+    if(err) throw err;
+    mark = m;
+    edwardo = e;
+    cameron = c;
+    erica = e2;
+    sean = s;
+    maryolin = m2;
+    cb();
+  });
+};
+
+exports.executeFollowRequest = function(u_follower, u_followee, cb){
+  _request({
+    method: 'POST',
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/users/'+u_followee._id+'/follow',
+    headers: {"Authorization": 'Bearer ' + test_token.access_token},
+    body: {creator: u_follower._id}
+  }, function(err, result){
+    if(cb) cb(err, result.body);
+  });
+};
+
+exports.executeLikeRequest = function(type, u_creator, post_id, cb){
+  _request({
+    method: 'POST',
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/posts/'+post_id+'/'+type,
+    headers: {"Authorization" : 'Bearer ' + test_token.access_token},
+    body: {creator: u_creator}
+  }, function(err, res){
+    if(cb) cb(err, res.body);
+  });
+};
+
+exports.executeCommentLikeRequest = function(type, u_creator, post_id, comment_id, cb){
+  _request({
+    method: "POST",
+    strictSSL: false,
+    json:true,
+    url: 'https://localhost:3000/posts/'+post_id+'/comments/'+comment_id+'/'+type,
+    headers: {'Authorization':'Bearer ' + test_token.access_token},
+    body: {creator: u_creator}
+  }, function(err, response){
+    if(cb) cb(err, response.body);
+  });
+};
+
+exports.executeAddCommentRequest = function(u_creator, post_id, cb){
+  _request({
+    method: 'POST',
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/posts/' + post_id + '/comments',
+    headers: {"Authorization" : "Bearer " + test_token.access_token},
+    body: {creator: u_creator, text: 'test commenting on this post'}
+  }, function(err, result){
+    if(cb) cb(err, result.body);
+  });
+};
+
+exports.executeDeleteCommentRequest = function(post_id, comment_id, cb){
+  _request({
+    method: 'DELETE',
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/posts/'+post_id+'/comments/'+comment_id,
+    headers: {'Authorization' : 'Bearer '+ test_token.access_token}
+  }, function(err, result){
+    if(cb) cb(err, result.body);
+  });
+};
+
+exports.executeDeletePostRequest = function(post_id, creator, cb){
+  executeRequest('DELETE', 'posts/'+post_id, {creator: creator}, function(err, res){
+    if(cb) cb(err, res);
+  });
+};
+
+exports.executeFlagPostRequest = function(post_id, reporter_id, cb){
+  executeRequest('POST', 'posts/'+post_id+'/flag', {reporter: reporter_id}, function(err, res){
+    if(cb) cb(err, res);
+  });
+};
+
+exports.executeUpdatePostRequest = function(post_id, updated_post, cb){
+  executeRequest('PUT', 'posts/'+post_id, updated_post, function(err, res){
+    if(cb) cb(err,res);
+  });
+};
+
+
+var fixtureUsersArray = [
+  'mark',
+  'edwardo',
+  'cameron',
+  'erica',
+  'sean',
+  'maryolin',
+  'DJ'
+];
+
+exports.fetchFixturePosts = function(cb){
+  Post.find({}, function(err, result){
+    if(err) throw err;
+    cb(result);
+  });
+};
+
+exports.fetchFixtureTestUsers = function(cb){
+  var users = {};
+  User.find({first_name: {$in : fixtureUsersArray}}, function(err, result){
+    if(err) throw err;
+    for(var index in result){
+      users[result[index].first_name] = result[index];
+    }
+    cb(users);
+  });
 };
 
 exports.fetchAuthHeader = function(id, secret){
@@ -121,9 +261,9 @@ exports.destroyTestToken = function(callback){
 
 exports.createTestUser = function(callback){
 	var testUser = new User({
-		first_name: 'DJ',
-    last_name: 'Hayden',
-    email: 'dj.hayden' + Math.floor((Math.random()*100)+1) + '@test.com',
+		first_name: 'DONJUAN',
+    last_name: 'TEST',
+    email: 'dj.hayden.test' + Math.floor((Math.random()*100)+1) + '@test.com',
     password: 'testpassword'
 	}).save(function(err, result){
 		if(err) throw err;
