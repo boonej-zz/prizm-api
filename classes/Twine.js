@@ -179,7 +179,17 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
 
   var response = {resolve: {}};
   var error = null;
-  
+
+  /**
+   * Processes the resolve body options recursively.  Introspects the model
+   * object and calls its static method [canResolve] to mitigate between 
+   * request & capable properties (as well as associated identifier.. sub
+   * document arrays can have different object identifiers: ie _id, user_id,
+   * creator, etc.).
+   *
+   * @param {Array} array The request bodys `resolve` object (a tree of opts)
+   * @param {Function} callback The callback to be invoked on completion.
+   */
   var processResolve = function processResolve(array, callback){
     var criteria = {};
     var object_to_resolve = array.shift();
@@ -228,8 +238,6 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
   }
 };
 
-
-
 Twine.prototype.$__applyContains = function $__applyContains(result, cb){
   var contains_key;
   var contains_identifier;
@@ -248,7 +256,7 @@ Twine.prototype.$__applyContains = function $__applyContains(result, cb){
   //check if contains property is set in body
   if(doesObjectKeyExist(this.Request.body, 'contains')){
     //set contains lookup property key
-    contains_key = Object.keys(this.Request.body.contains)[0];
+    contains_key = Object.keys(this.Request.body.contains)[0]; //TODO: recursively processContains
     //set contains identifier and value
     for(var key in this.Request.body.contains[contains_key]){
       contains_identifier = key;
@@ -262,9 +270,9 @@ Twine.prototype.$__applyContains = function $__applyContains(result, cb){
       if(contains[i][contains_identifier].toString() === contains_value)
         result[0][contains_key] = contains[i];
         //var response = unsetContextArray(result[0], )
-        cb(null, result);
-
     }
+    cb(null, result);
+
   }else{
     //return false
     cb(null, false);
@@ -303,6 +311,19 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
     this.fetch.select(this.fields);
   }
 
+  //ensure if properties exist in resolve body that they are set
+  //to be selected on the Schema path object
+  if(doesObjectKeyExist(this.Request.body, 'resolve')){
+    var keys = Object.keys(this.Request.body.resolve);
+    if(Array.isArray(keys) && keys.length > 0){
+      for(var idx in keys){
+        if(doesObjectKeyExist(this.Schema.paths, keys[idx])){
+          this.Schema.paths[keys[idx]].selected = true;
+        }
+      }
+    }
+  }
+
   //add sort if fields exist
   if(this.sort && this.sort_by){
     var sort = {};
@@ -323,9 +344,10 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
     self.$__applyResolved(result, function(err, resolved){
       if(err){
         self.cb(err, null);
+
       }else{
         //set derived if exists
-        if(resolved) response = resolved;
+        if(Object.keys(resolved.resolve).length > 0) response = resolved;
 
         //apply context
         self.$__applyContains(result, function(err, contains){
@@ -333,11 +355,25 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
             self.cb(err, null);
 
           }else{
+            //HACK: if resolved is set the previous the only resolved object that needs
+            //to be returned is the one specified in the contains
+            if(contains && Object.keys(response.resolve).length > 0){
+              var contains_key = Object.keys(self.Request.body.contains)[0];
+              if(doesObjectKeyExist(self.Request.body.resolve, contains_key)){
+                var identifier_to_check = Object.keys(self.Request.body.contains[Object.keys(self.Request.body.contains)[0]])[0];
+                for(var r in resolved.resolve[contains_key]){
+                  if(doesObjectKeyExist(resolved.resolve[contains_key][r], self.Request.body.contains[contains_key][identifier_to_check])){
+                    response.resolve[contains_key] = [resolved.resolve[contains_key][r]];
+                    break;
+
+                  }
+                }
+              }
+            }
             //format return object
-            response.data = contains;
+            response.data = (!contains) ? result : contains;
             self.cb(null, response);
           }
-
         });
       }
     });

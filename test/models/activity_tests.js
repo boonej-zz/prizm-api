@@ -17,7 +17,7 @@ var _thisapp    = require(process.cwd() + '/server.js'),
     Activity    = require(process.env.PRISM_HOME + 'models/activity').Activity,
     Trust       = require(process.env.PRISM_HOME + 'models/user').Trust;
 
-describe('Activity Model Unit Tests', function(done){
+describe.skip('Activity Model Unit Tests', function(done){
   var test_user;
   var test_target_user;
   var test_activity;

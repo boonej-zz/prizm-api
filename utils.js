@@ -32,6 +32,16 @@ exports.prismEncrypt = function(string, salt_key){
  */
 exports.prismResponse = function(res, data, success, error, force_status_code){
   var response = {metadata: null, data: null};
+  if(data){
+    if(typeof data.resolve !== 'undefined' &&
+      typeof data.resolve !== null){
+      response.resolve = data.resolve;
+    }
+      if(typeof data.data !== 'undefined' &&
+        typeof data.data !== null){
+        data = data.data;
+    }
+  }
   response.metadata = { success: success };
   response.data = (Array.isArray(data) ? data : [data]);
 
