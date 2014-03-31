@@ -33,6 +33,9 @@ function Twine(model, criteria, Request, options, callback){
   this.Schema = this.Model().schema;
   this.criteria = criteria;
   this.Request = Request;
+  if(typeof this.Request.header.x-arguments !== 'undefined'){
+    this.Request.body = new Buffer(this.Request.headers.x-arguments, 'base64').toString('utf8');
+  }
   this.options = options;
   this.cb = callback;
   this.sort = (!self.$__optExists('sort')) ?
@@ -182,7 +185,7 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
 
   /**
    * Processes the resolve body options recursively.  Introspects the model
-   * object and calls its static method [canResolve] to mitigate between 
+   * object and calls its static method [canResolve] to mitigate between
    * request & capable properties (as well as associated identifier.. sub
    * document arrays can have different object identifiers: ie _id, user_id,
    * creator, etc.).
@@ -194,8 +197,12 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
     var criteria = {};
     var object_to_resolve = array.shift();
     criteria[object_to_resolve.resolve_identifier] = {$in: object_to_resolve.distinct};
+    //reset model defaulted select
+    for(var p in object_to_resolve.model().schema.paths){
+      var reset = object_to_resolve.model().schema.paths[p].options.select;
+      object_to_resolve.model().schema.paths[p].selected = reset;
+    }
     object_to_resolve.model.find(criteria, function(err, res){
-
       if(err) error = err;
       var fields = (doesObjectKeyExist(resolve_body[object_to_resolve.resolve_key], 'fields')) ?
           resolve_body[object_to_resolve.resolve_key].fields : null;
@@ -204,7 +211,14 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
       response.resolve[object_to_resolve.resolve_key] = [];
       for(var item in res){
         var format = {};
-        format[res[item][object_to_resolve.resolve_identifier].toString()] = res[item].short(fields);
+        // if(typeof res[item][object_to_resolve.resolve_identifier] == 'undefined' &&
+        //   res[item][object_to_resolve.resolve_key].length > 0){
+        //   console.log(JSON.stringify(res[item][object_to_resolve.resolve_key]));
+        //   format[res[item][object_to_resolve.resolve_key][0][object_to_resolve.resolve_identifier].toString()] = res[item].short(fields);
+        // }else{
+          // if(typeof res[item][object_to_resolve.resolve_identifier] !== 'undefined')
+            format[res[item][object_to_resolve.resolve_identifier].toString()] = res[item].short(fields);
+        // }
         response.resolve[object_to_resolve.resolve_key].push(format);
       }
 
@@ -266,11 +280,14 @@ Twine.prototype.$__applyContains = function $__applyContains(result, cb){
     //loop through the result value and return contains array value if in array
     //or unset the array to empty
     contains = result[0][contains_key];
+    var found = false;
     for(var i=0; i < contains.length; i++){
       if(contains[i][contains_identifier].toString() === contains_value)
         result[0][contains_key] = contains[i];
+        found = true;
         //var response = unsetContextArray(result[0], )
     }
+    if(!found) result[0][contains_key] = [];
     cb(null, result);
 
   }else{
@@ -309,7 +326,16 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
   if(this.fields){
     //this may need to be done on result
     this.fetch.select(this.fields);
+
+    //need to deselect the default values in the models.schema paths
+    var fields_array = this.fields.split(" ");
+    for(var path in this.Schema.paths){
+      if(fields_array.indexOf(path) === -1){
+        this.Schema.paths[path].selected = false;
+      }
+    }
   }
+  // debugger;
 
   //ensure if properties exist in resolve body that they are set
   //to be selected on the Schema path object
@@ -369,15 +395,17 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
           }else{
             //HACK: if resolved is set the previous the only resolved object that needs
             //to be returned is the one specified in the contains
-            if(contains && Object.keys(response.resolve).length > 0){
-              var contains_key = Object.keys(self.Request.body.contains)[0];
-              if(doesObjectKeyExist(self.Request.body.resolve, contains_key)){
-                var identifier_to_check = Object.keys(self.Request.body.contains[Object.keys(self.Request.body.contains)[0]])[0];
-                for(var r in resolved.resolve[contains_key]){
-                  if(doesObjectKeyExist(resolved.resolve[contains_key][r], self.Request.body.contains[contains_key][identifier_to_check])){
-                    response.resolve[contains_key] = [resolved.resolve[contains_key][r]];
-                    break;
+            if(doesObjectKeyExist(response, 'resolve')){
+              if(contains && Object.keys(response.resolve).length > 0){
+                var contains_key = Object.keys(self.Request.body.contains)[0];
+                if(doesObjectKeyExist(self.Request.body.resolve, contains_key)){
+                  var identifier_to_check = Object.keys(self.Request.body.contains[Object.keys(self.Request.body.contains)[0]])[0];
+                  for(var r in resolved.resolve[contains_key]){
+                    if(doesObjectKeyExist(resolved.resolve[contains_key][r], self.Request.body.contains[contains_key][identifier_to_check])){
+                      response.resolve[contains_key] = [resolved.resolve[contains_key][r]];
+                      break;
 
+                    }
                   }
                 }
               }
