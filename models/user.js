@@ -72,7 +72,7 @@ var userSchema = new _mongoose.Schema({
   followers             : {type: Array, default: [], select: true},
   following_count       : {type: Number, default: 0, select: true},
   followers_count       : {type: Number, default: 0, select: true},
-  trusts                : {type: [trustSchema], select: false},
+  trusts                : {type: [trustSchema], select: true},
   trusts_count          : {type: Number, default: 0, select: true}
 },
 {
