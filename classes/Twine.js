@@ -329,7 +329,7 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
     var keys = Object.keys(this.Request.body.contains);
     if(Array.isArray(keys) && keys.length > 0){
       for(var idx in keys){
-        if(doesObjectKeyExist(this.Schema.paths, key[idx])){
+        if(doesObjectKeyExist(this.Schema.paths, keys[idx])){
           this.Schema.paths[keys[idx]].selected = true;
         }
       }
