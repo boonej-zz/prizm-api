@@ -44,7 +44,7 @@ Google.prototype.authorizeUser = function authorizeUser(callback){
 
       }else{
         _logger.log('info', 'Succesful google plus authorization', body);
-        callback(err, JSON.parse(body));
+        callback(err, res.body);
       }
 
     });
@@ -53,3 +53,5 @@ Google.prototype.authorizeUser = function authorizeUser(callback){
     _logger.log('error', 'Invalid google+ request, missing id & token');
   }
 };
+
+module.exports = Google;

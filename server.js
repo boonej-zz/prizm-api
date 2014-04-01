@@ -24,6 +24,7 @@ var _express        = require('express'),
     _config         = require('config'),
     _e_winston      = require('express-winston'),
     logger          = require(_prism_home + 'logs.js'),
+    PrismError      = requrie(_prism_home + 'error'),
     _winston        = require('winston');
 
 var _app            = _express();
@@ -207,6 +208,19 @@ _app.post('/users/:id/unfollow', _gateway, _follow.unfollow);
 
 /* Explore Route */
 _app.get('/explore', _gateway, _explore);
+
+/* HACK Find User by instagram_id */
+_app.get('/instagram/:id', _gateway, function(req, res){
+  if(req.params.id){
+    User.findOne({instagram_id: req.params.id}, function(err, result){
+      if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+      if(!result) _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+      _utils.prismResponse(res, result, true);
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+});
 
 /* Testing Endpoints only */
 if(_app.get('env')  == 'test'){

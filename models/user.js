@@ -73,12 +73,11 @@ var userSchema = new _mongoose.Schema({
   following_count       : {type: Number, default: 0, select: true},
   followers_count       : {type: Number, default: 0, select: true},
   trusts                : {type: [trustSchema], select: true},
-  trusts_count          : {type: Number, default: 0, select: true}
-},
-{
+  trusts_count          : {type: Number, default: 0, select: true},
+  instagram_id          : {type: String, default: null, select: true}
+},{
   versionKey          : false
-}
-);
+});
 
 userSchema.statics.canResolve = function(){
   return [
