@@ -10,6 +10,7 @@ var _mongoose     = require('mongoose'),
     PrismError    = require(_prism_home + 'error'),
     Facebook      = require(_prism_home + 'classes/Facebook'),
     Twitter       = require(_prism_home + 'classes/Twitter'),
+    Google        = require(_prism_home + 'classes/Google'),
     User          = require(_prism_home + 'models/user').User,
     Twine         = require(_prism_home + 'classes/Twine'),
     Post          = require(_prism_home + 'models/post').Post;
@@ -133,7 +134,6 @@ exports.register = function(req, res){
           if(newUser.provider == 'twitter'){
             newUser.provider_token_secret = req.body.provider_token_secret;
           }
-          // console.log('saving social user: ' + JSON.stringify(newUser));
           newUser.save(function(error, result){
 
             if(error || !result){
@@ -233,81 +233,9 @@ exports.fetchUser = function(req, res){
       if(error){
         _logger.log('Error', 'Error retrieving user by id: ' + req.params.id);
         _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+
       }else{
         _utils.prismResponse(res, result, true);
-        /**
-        var user = result.toObject();
-        if(typeof(user.password) !== 'undefined') delete user.password;
-        if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
-        if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
-
-        if(req.query.creator){
-          creator = req.query.creator;
-          var trust, following, followers;
-          //check if a trusts array is available check for creator id
-          if(user.trusts_count > 0){
-            for(var t = 0; t < user.trusts_count; t++){
-
-              if(user.trusts[t].user_id.toString() === creator.toString()){
-                trust = [user.trusts[t]];
-              }
-            }
-          }
-
-          //check if following array is available & loop for creator id
-          if(user.following_count > 0){
-            for(var fo = 0; fo < user.following_count; fo++){
-              if(user.following[fo]._id.toString() === creator.toString()){
-                following = [user.following[fo]];
-              }
-            }
-          }
-
-          //check if followers array is available & loop for creator
-          if(user.followers_count > 0){
-            for(var fr = 0; fr < user.followers_count; fr++){
-              if(user.followers[fr]._id.toString() === creator.toString()){
-                followers = [user.followers[fr]];
-              }
-            }
-          }
-
-          //check if trusts, followers, or following is set then set the value
-          //or empty array for the returned user object
-          if(trust || following || followers){
-            User.findOne({_id:creator}, function(err, result){
-              if(err){
-                _logger.log(  'error',
-                              'Error fetching creators user object',
-                              {error: err, creator: creator});
-                _utils.prismResponse(res, null, false, PrismError.serverError);
-
-              }else{
-                var short_creator = result.shortUser();
-                // if(following) following[0]._id = short_creator;
-                // if(followers) followers[0]._id = short_creator;
-                // if(trust) trust[0].user_id = short_creator;      //HACK FOR 3/28/2014 DEV DEPLOY
-                if(following) following[0] = short_creator;
-                if(followers) followers[0] = short_creator;
-                if(trust) trust[0].user_id = short_creator;
-                user.following = (following) ? following : [];
-                user.followers = (followers) ? followers : [];
-                user.trusts = (trust) ? trust : [];
-                _utils.prismResponse(res, user, true);
-              }
-            });
-          }else{
-            user.following = [];
-            user.trusts = [];
-            user.followers = [];
-            _utils.prismResponse(res, user, true);
-          }
-        }else{
-          user.following = [];
-          user.trusts = [];
-          user.followers = [];
-         _utils.prismResponse(res, user, true);
-        }*/
       }
     });
   }else{
@@ -393,7 +321,6 @@ exports.fetchUserNewsFeed = function(req, res){
 
         //user should see its own posts, so add the user to the following_array
         //which is used in the search criteria
-        // following_array.push(user._id);
 
         if(following_array.length > 0 || trusts_array > 0 || user.posts_count > 0){
           var fetch_criteria_self, fetch_criteria_trusts;
@@ -472,12 +399,10 @@ exports.fetchUserNewsFeed = function(req, res){
                   });
                 }
               });
-              // _utils.prismResponse(res,feed,true);
             }
           });
 
         }else{
-          //user is not following anyone. send error
           var error = {
             status_code: 400,
             error_info: {
@@ -495,6 +420,8 @@ exports.fetchUserNewsFeed = function(req, res){
   }
 };
 
+
+//TODO: move to posts route class
 /**
  * [createUserPost description]
  * @param  {[type]} req [description]
@@ -612,7 +539,7 @@ exports.createUserPost = function(req, res){
 };
 
 
-
+//TODO: move to posts route class
 /**
  * Fetchs Prism Users posts
  *
@@ -683,7 +610,6 @@ exports.fetchUserPosts = function(req, res){
 var isValidRegisterRequest = function(req){
   if( typeof(req.body.first_name) == 'undefined'  ||
       typeof(req.body.last_name) == 'undefined'   ||
-      // typeof(req.body.email) == 'undefined'     ||
       typeof(req.body.gender) == 'undefined' ||
       typeof(req.body.zip_postal) == 'undefined' ||
       typeof(req.body.city) == 'undefined' ||
@@ -807,6 +733,32 @@ var handleSocialProviderLogin = function(body, callback){
         }
       });
       break;
+    case 'google':
+      var gplus = new Google(body.provider_token);
+      gplus.authorizeUser(function(error, result){
+        if(error){
+          callback(error, false);
+
+        }else if(typeof result.id !== 'undefined'){
+          //lookup user by provider_id to ensure exists, otherwise registration is required
+          User.findOne({provider_id: result.id.toString()}, function(error, response){
+            if(error || !response){
+              _logger.log('error', 'Unable to find googleplus user or server error was thrown',
+                          {error: error, response: response});
+              callback(PrismError.invalideSocialUser, false);
+            }
+
+            _logger.log('info', 'Found Google Plus user to validate login', {user: response});
+            callback(false, response);
+          });
+
+        }else{
+          _logger.log('error', 'Unhandled event caused by no error or result returning',
+                      {result: result, error: error});
+          callback(PrismError.serverError, false);
+        }
+      });
+      break;
     default:
       _logger.log('A unsupported provider type was passed to user registration ',
                   {provider: body.provider});
@@ -851,6 +803,23 @@ var handleSocialProviderRegistration = function(body, callback){
           _logger.info('succesful auth & response with tw authorizeUser in hanldeRegistration ',
                         {tw_response_body: result});
           callback(false, result);
+        }
+      });
+      break;
+    case 'google':
+      var gplus = new Google(body.provider_token);
+      gplus.authorizeUser(function(error, result){
+        if(error || !result){
+          _logger.error('unable to authorize googleplus user in handleRegistration: ',
+                       {error: error, result: result});
+          callback(error, false);
+
+        }else if(result.id){
+          _logger.log('info','successful auth & response for googkeplus authroizeUser in reg');
+          callback(false, result);
+
+        }else{
+          _logger.log('error', 'Unhandled situation with no error and no response from googleplus reg');
         }
       });
       break;
