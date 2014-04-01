@@ -20,7 +20,7 @@ start(_StartType, _StartArgs) ->
         }
     ]),
 
-    {ok, _} = cowboy:start_http(http, 100, [{port, 8080}], [
+    {ok, _} = cowboy:start_http(http, 100, [{port, 80}], [
         {env, [{dispatch, Dispatch}]}
     ]),
     prism_listener_sup:start_link().
