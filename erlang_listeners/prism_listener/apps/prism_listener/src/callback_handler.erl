@@ -18,9 +18,9 @@ init(_Type, Req, _Opts) ->
     {ok, Req, no_state}.
 
 handle_request({<<"GET">>, Req}) ->
-    {Mode, Req} = cowboy_req:qs_val(<<"hub.mode">>, Req),
-    {Challenge, Req} = cowboy_req:qs_val(<<"hub.challenge">>, Req),
-    {VerifyToken, Req} = cowboy_req:qs_val(<<"hub.verify_token">>, Req),
+    {Mode, _Req} = cowboy_req:qs_val(<<"hub.mode">>, Req),
+    {Challenge, _Req} = cowboy_req:qs_val(<<"hub.challenge">>, Req),
+    {VerifyToken, _Req} = cowboy_req:qs_val(<<"hub.verify_token">>, Req),
 
     io:format("Did receive GET ~p ~p ~p~n", [Mode, Challenge, VerifyToken]),
 
@@ -32,8 +32,10 @@ handle_request({<<"POST">>, Req}) ->
 
     cowboy_req:reply(200, Req).
 
-handle(Req, _State) ->
-    handle_request(cowboy_req:method(Req)).
+handle(Req, State) ->
+    io:format("Request received~n"),
+    {ok, Response} = handle_request(cowboy_req:method(Req)),
+    {ok, Response, State}.
 
 
 
