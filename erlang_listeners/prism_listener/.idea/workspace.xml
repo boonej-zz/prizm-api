@@ -70,43 +70,43 @@
       <file leaf-file-name="prism_listener_app.erl" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_listener_app.erl">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="23" column="25" selection-start="563" selection-end="563" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="525">
+            <state line="11" column="32" selection-start="310" selection-end="310" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="495">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="callback_handler.erl" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/callback_handler.erl">
+      <file leaf-file-name="prism_listener_sup.erl" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_listener_sup.erl">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="30" column="33" selection-start="954" selection-end="954" vertical-scroll-proportion="0.7281553" vertical-offset="0" max-vertical-offset="720">
+            <state line="22" column="23" selection-start="595" selection-end="595" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="555">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="toppage_handler.erl" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/deps/cowboy/examples/hello_world/src/toppage_handler.erl">
+      <file leaf-file-name="post_server.erl" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/post_server.erl">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="17" column="0" selection-start="381" selection-end="381" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="390">
+            <state line="73" column="0" selection-start="2362" selection-end="2362" vertical-scroll-proportion="0.22330096" vertical-offset="957" max-vertical-offset="1740">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="erlstart.sh" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/erlstart.sh">
+      <file leaf-file-name="imaghost_handler.erl" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../../imaghost/src/imaghost_handler.erl">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="120">
+            <state line="135" column="60" selection-start="4352" selection-end="4352" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="2700">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name=".erlang" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.erlang">
+      <file leaf-file-name="prism_config.erl" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_config.erl">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="5" column="0" selection-start="142" selection-end="142" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="165">
+            <state line="22" column="86" selection-start="894" selection-end="894" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="795">
               <folding />
             </state>
           </provider>
@@ -125,9 +125,15 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
+        <option value="$PROJECT_DIR$/apps/prism_listener/src/callback_handler.erl" />
+        <option value="$PROJECT_DIR$/apps/prism_listener/src/prism_post_supervisor.erl" />
+        <option value="$PROJECT_DIR$/apps/prism_listener/src/prism_listener_sup.erl" />
+        <option value="$PROJECT_DIR$/apps/prism_listener/src/prism_auth.erl" />
+        <option value="$PROJECT_DIR$/apps/prism_listener/src/prism_instagram_process.erl" />
         <option value="$PROJECT_DIR$/.erlang" />
         <option value="$PROJECT_DIR$/apps/prism_listener/src/prism_listener_app.erl" />
-        <option value="$PROJECT_DIR$/apps/prism_listener/src/callback_handler.erl" />
+        <option value="$PROJECT_DIR$/apps/prism_listener/src/prism_config.erl" />
+        <option value="$PROJECT_DIR$/apps/prism_listener/src/post_server.erl" />
       </list>
     </option>
   </component>
@@ -194,114 +200,10 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="prism_listener" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cowboy" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="prism_listener" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cowboy" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="examples" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="prism_listener" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cowboy" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="examples" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="rest_pastebin" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="prism_listener" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cowboy" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="examples" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="rest_pastebin" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="prism_listener" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cowboy" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="examples" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="hello_world" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="prism_listener" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cowboy" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="examples" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="hello_world" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="PackagesPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -314,6 +216,7 @@
     <property name="recentsLimit" value="5" />
     <property name="restartRequiresConfirmation" value="true" />
     <property name="FullScreen" value="false" />
+    <property name="SearchEverywhereHistory" value="" />
   </component>
   <component name="RunManager" selected="Erlang Rebar.compile">
     <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin" singleton="true">
@@ -413,6 +316,15 @@
       <patterns />
       <method />
     </configuration>
+    <configuration default="true" type="RebarRunConfigurationType" factoryName="Erlang Rebar">
+      <option name="command" value="compile" />
+      <option name="name" value="Erlang Rebar" />
+      <option name="saveOutputToFile" value="false" />
+      <option name="showConsoleOnStdErr" value="false" />
+      <option name="showConsoleOnStdOut" value="false" />
+      <option name="skipDependencies" value="false" />
+      <method />
+    </configuration>
     <configuration default="true" type="AndroidRunConfigurationType" factoryName="Android Application">
       <module name="" />
       <option name="ACTIVITY_CLASS" value="" />
@@ -430,15 +342,6 @@
       <option name="NETWORK_LATENCY" value="none" />
       <option name="CLEAR_LOGCAT" value="false" />
       <option name="SHOW_LOGCAT_AUTOMATICALLY" value="true" />
-      <method />
-    </configuration>
-    <configuration default="true" type="RebarRunConfigurationType" factoryName="Erlang Rebar">
-      <option name="command" value="compile" />
-      <option name="name" value="Erlang Rebar" />
-      <option name="saveOutputToFile" value="false" />
-      <option name="showConsoleOnStdErr" value="false" />
-      <option name="showConsoleOnStdOut" value="false" />
-      <option name="skipDependencies" value="false" />
       <method />
     </configuration>
     <configuration default="false" name="compile" type="RebarRunConfigurationType" factoryName="Erlang Rebar">
@@ -474,22 +377,23 @@
       <updated>1396314699970</updated>
       <workItem from="1396314702270" duration="1539000" />
       <workItem from="1396359145980" duration="395000" />
-      <workItem from="1396359858033" duration="823000" />
+      <workItem from="1396359858033" duration="12418000" />
+      <workItem from="1396380681111" duration="3796000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2757000" />
+    <option name="totallyTimeSpent" value="18148000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="22" width="1920" height="1054" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32987553" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32987553" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -500,7 +404,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2550586" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25772098" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32987553" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -530,6 +434,46 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_instagram_process.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="103" column="65" selection-start="2803" selection-end="2803" vertical-scroll-proportion="0.0" vertical-offset="1167" max-vertical-offset="1785">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_post_supervisor.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="61" column="0" selection-start="1867" selection-end="1867" vertical-scroll-proportion="0.0" vertical-offset="612" max-vertical-offset="1230">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/post_server.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="63" column="46" selection-start="1862" selection-end="1862" vertical-scroll-proportion="0.0" vertical-offset="702" max-vertical-offset="1335">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_auth.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="120" column="0" selection-start="3282" selection-end="3634" vertical-scroll-proportion="0.0" vertical-offset="1389" max-vertical-offset="2325">
+          <folding>
+            <marker date="1396379167000" expanded="true" signature="-1:-1" placeholder="token_is_valid/2 -&gt; ..." />
+            <marker date="1396379167000" expanded="true" signature="-1:-1" placeholder="refresh_token/1 -&gt; ..." />
+            <marker date="1396379167000" expanded="true" signature="-1:-1" placeholder="fetch_token/0 -&gt; ..." />
+            <marker date="1396379167000" expanded="true" signature="-1:-1" placeholder="auth_header/0 -&gt; ..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_config.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="0" selection-start="487" selection-end="487" vertical-scroll-proportion="0.0" vertical-offset="195" max-vertical-offset="555">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_listener_app.erl">
       <provider selected="true" editor-type-id="text-editor">
         <state line="18" column="0" selection-start="505" selection-end="505" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="435">
@@ -539,9 +483,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/callback_handler.erl">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="30" column="33" selection-start="951" selection-end="951" vertical-scroll-proportion="0.0" vertical-offset="450" max-vertical-offset="690">
-          <folding />
-        </state>
+        <state line="30" column="33" selection-start="951" selection-end="951" vertical-scroll-proportion="0.0" vertical-offset="450" max-vertical-offset="690" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_listener_app.erl">
@@ -553,56 +495,110 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/callback_handler.erl">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="24" selection-start="441" selection-end="441" vertical-scroll-proportion="0.0" vertical-offset="255" max-vertical-offset="690">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/erlstart.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="936">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.erlang">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="0" selection-start="142" selection-end="142" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="165">
-          <folding />
-        </state>
+        <state line="17" column="24" selection-start="441" selection-end="441" vertical-scroll-proportion="0.0" vertical-offset="255" max-vertical-offset="690" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/deps/cowboy/examples/rest_pastebin/src/rest_pastebin_app.erl">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="18" column="0" selection-start="304" selection-end="398" vertical-scroll-proportion="0.4368932" vertical-offset="0" max-vertical-offset="618">
-          <folding />
-        </state>
+        <state line="18" column="0" selection-start="304" selection-end="398" vertical-scroll-proportion="0.4368932" vertical-offset="0" max-vertical-offset="618" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/deps/cowboy/examples/rest_pastebin/src/toppage_handler.erl">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="30" selection-start="565" selection-end="565" vertical-scroll-proportion="-0.3398058" vertical-offset="555" max-vertical-offset="2025">
-          <folding />
-        </state>
+        <state line="23" column="30" selection-start="565" selection-end="565" vertical-scroll-proportion="-0.3398058" vertical-offset="555" max-vertical-offset="2025" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/deps/cowboy/examples/hello_world/src/toppage_handler.erl">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="0" selection-start="381" selection-end="381" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="390">
+        <state line="17" column="0" selection-start="381" selection-end="381" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="390" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/callback_handler.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="32" selection-start="570" selection-end="570" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="720" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/erlstart.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="936" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_instagram_process.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="103" column="65" selection-start="2803" selection-end="2803" vertical-scroll-proportion="0.0" vertical-offset="1167" max-vertical-offset="1785">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_post_supervisor.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="61" column="0" selection-start="1867" selection-end="1867" vertical-scroll-proportion="0.0" vertical-offset="612" max-vertical-offset="1230">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_auth.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="120" column="0" selection-start="3282" selection-end="3634" vertical-scroll-proportion="0.0" vertical-offset="1389" max-vertical-offset="2325">
+          <folding>
+            <marker date="1396379167000" expanded="true" signature="-1:-1" placeholder="token_is_valid/2 -&gt; ..." />
+            <marker date="1396379167000" expanded="true" signature="-1:-1" placeholder="refresh_token/1 -&gt; ..." />
+            <marker date="1396379167000" expanded="true" signature="-1:-1" placeholder="fetch_token/0 -&gt; ..." />
+            <marker date="1396379167000" expanded="true" signature="-1:-1" placeholder="auth_header/0 -&gt; ..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../imaghost/src/imaghost.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="618">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_listener_sup.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="22" column="23" selection-start="595" selection-end="595" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="555">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../node_modules/winston/node_modules/request/tests/unicycle.jpg">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.erlang">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="10" column="0" selection-start="277" selection-end="277" vertical-scroll-proportion="0.24271844" vertical-offset="0" max-vertical-offset="618">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../imaghost/src/imaghost_handler.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="135" column="60" selection-start="4352" selection-end="4352" vertical-scroll-proportion="0.0" vertical-offset="1170" max-vertical-offset="2700">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_listener_app.erl">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="25" selection-start="563" selection-end="563" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="525">
+        <state line="11" column="32" selection-start="310" selection-end="310" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="495">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/callback_handler.erl">
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/prism_config.erl">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="30" column="33" selection-start="954" selection-end="954" vertical-scroll-proportion="0.7281553" vertical-offset="0" max-vertical-offset="720">
+        <state line="22" column="86" selection-start="894" selection-end="894" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="795">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/prism_listener/src/post_server.erl">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="73" column="0" selection-start="2362" selection-end="2362" vertical-scroll-proportion="0.22330096" vertical-offset="957" max-vertical-offset="1740">
           <folding />
         </state>
       </provider>

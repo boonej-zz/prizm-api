@@ -24,5 +24,8 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+    InstagramProcessor = ?CHILD(prism_instagram_process, worker),
+    PrismAuth = ?CHILD(prism_auth, worker),
+    PostSupervisor = ?CHILD(prism_post_supervisor, supervisor),
+    {ok, { {one_for_one, 5, 10}, [PrismAuth, PostSupervisor, InstagramProcessor]} }.
 

@@ -10,7 +10,6 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-
     Dispatch = cowboy_router:compile([
         {
             '_',
@@ -20,10 +19,9 @@ start(_StartType, _StartArgs) ->
         }
     ]),
 
-    {ok, _} = cowboy:start_http(http, 100, [{port, 80}], [
+    {ok, _} = cowboy:start_http(http, 100, [{port, 8080}], [
         {env, [{dispatch, Dispatch}]}
     ]),
     prism_listener_sup:start_link().
-
 stop(_State) ->
     ok.
