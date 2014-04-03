@@ -26,7 +26,8 @@ var _express        = require('express'),
     logger          = require(_prism_home + 'logs.js'),
     PrismError      = require(_prism_home + 'error'),
     _winston        = require('winston'),
-    ActivityListener = require(_prism_home + 'classes/ActivityListener');
+    ActivityListener = require(_prism_home + 'classes/ActivityListener'),
+    _activity       = require(_prism_home + 'routes/activities');
     new ActivityListener();
 
 var _app            = _express();
@@ -207,6 +208,8 @@ _app.post('/users/:id/follow', _gateway, _follow.follow);
 
 /* Unfollow a User */
 _app.post('/users/:id/unfollow', _gateway, _follow.unfollow);
+
+_app.get('/users/:id/activites', _gateway, _activity.fetchUserActivity);
 
 /* Explore Route */
 _app.get('/explore', _gateway, _explore);
