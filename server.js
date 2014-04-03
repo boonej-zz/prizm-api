@@ -24,8 +24,10 @@ var _express        = require('express'),
     _config         = require('config'),
     _e_winston      = require('express-winston'),
     logger          = require(_prism_home + 'logs.js'),
-    PrismError      = requrie(_prism_home + 'error'),
-    _winston        = require('winston');
+    PrismError      = require(_prism_home + 'error'),
+    _winston        = require('winston'),
+    ActivityListener = require(_prism_home + 'classes/ActivityListener');
+    new ActivityListener();
 
 var _app            = _express();
 var _httpserver     = _express();

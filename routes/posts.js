@@ -3,16 +3,17 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _mongoose     = require('mongoose'),
-    _prism_home   = process.env.PRISM_HOME,
-    _utils        = require(_prism_home + 'utils'),
-    _logger       = require('winston'),
-    PrismError    = require(_prism_home + 'error'),
-    Facebook      = require(_prism_home + 'classes/Facebook'),
-    Twitter       = require(_prism_home + 'classes/Twitter'),
-    User          = require(_prism_home + 'models/user').User,
-    Post          = require(_prism_home + 'models/post').Post,
-    Comment       = require(_prism_home + 'models/post').Comment;
+var _mongoose         = require('mongoose'),
+    _prism_home       = process.env.PRISM_HOME,
+    _utils            = require(_prism_home + 'utils'),
+    _logger           = require('winston'),
+    PrismError        = require(_prism_home + 'error'),
+    Facebook          = require(_prism_home + 'classes/Facebook'),
+    Twitter           = require(_prism_home + 'classes/Twitter'),
+    User              = require(_prism_home + 'models/user').User,
+    Post              = require(_prism_home + 'models/post').Post,
+    ActivityListener  = require(_prism_home + 'classes/ActivityListener'),
+    Comment           = require(_prism_home + 'models/post').Comment;
 
 /**
  * Creates a comment object and add it to the comments property array for a
@@ -58,6 +59,17 @@ exports.createPostComment = function(req, res){
               _id: comment._id
             };
 
+            //emit event for comment
+            process.emit('activity', {
+              type: 'comment',
+              action: 'create',
+              user: req.body.creator,
+              target: req.params.id,
+              scope: saved.scope,
+              object: comment_with_user
+            });
+
+            //return response
             var response = {comments: comment_with_user, comments_count: saved.comments_count};
             _utils.prismResponse(res, response, true);
           });
@@ -305,31 +317,7 @@ exports.fetchPostComments = function(req, res){
     .populate('comments.creator', '_id first_name last_name profile_photo_url name')
     .exec(function(err, comm){
       if(err) _utils.prismResponse(res,null,false,PrismError.ServerError);
-      // var comments = comm[0].comments;
-      // var response = {comments: []};
-      // for(var i=0; i < comments.length; i++){
-      //   var stripped = {
-      //     creator: {_id: null, first_name:null,last_name:null,name:null,profile_photo_url:null},
-      //     _id: null,
-      //     text: null,
-      //     create_date: null
-      //   };
-
-      //   stripped.creator._id = comments[i].creator._id;
-      //   stripped.creator.first_name = comments[i].creator.first_name;
-      //   stripped.creator.last_name = comments[i].creator.last_name;
-      //   stripped.creator.name = comments[i].creator.name;
-      //   stripped.creator.profile_photo_url = comments[i].creator.profile_photo_url;
-      //   stripped.create_date = comments[i].create_date;
-      //   stripped._id = comments[i]._id;
-      //   stripped.text = comments[i].text;
-      //   response.comments.push(stripped);
-      // }
-
-      // response._id = comm[0]._id;
-      // response.comments_count = comm[0].comments_count;
       _utils.prismResponse(res,comm,true);
-
     });
   }else{
     _utils.prismResponse(res,null,false,PrismError.invalidRequest);
@@ -386,6 +374,17 @@ exports.likePost = function(req, res){
               //return successful response with like id & count
               var response = {  likes_count: post.likes_count,
                                 likes: [{_id: req.body.creator.toString()}] };
+
+              //emit like_post activity
+              process.emit('activity', {
+                type: 'like',
+                context: 'post',
+                user: req.body.creator,
+                target: req.params.id,
+                action: 'create',
+                object: response
+              });
+
               _utils.prismResponse(res, response, true);
             }
           });
@@ -587,6 +586,17 @@ exports.likeComment = function(req,res){
           var like_index = saved.comments[comment_index].likes_count -1;
           var response = { likes_count: saved.comments[comment_index].likes_count,
                            likes: saved.comments[comment_index].likes[like_index] };
+
+          //emit like comment activity event
+          process.emit('activity', {
+            type: 'like',
+            context: 'comment',
+            user: req.body.creator,
+            target: req.params.comment_id,
+            action: 'create',
+            object: response
+          });
+          //return the response object
           _utils.prismResponse(res, response, true);
         });
       }
@@ -640,16 +650,6 @@ exports.unlikeComment = function(req, res){
           }
         }
 
-      // if(comment.comments[0].likes.length > 0){
-      //   var did_unlike = false;
-      //   for(var i=0; i < comment.comments[0].likes.length; i++){
-      //     if(comment.comments[0].likes[i]._id === req.body.creator.toString()){
-      //       comment.comments[0].likes.splice(i, 1);
-      //       comment.comments[0].likes_count--;
-      //       did_unlike = true;
-      //     }
-      //   }
-
         if(!did_unlike){
           _utils.prismResponse(res, null, false, unlike_error);
 
@@ -660,6 +660,17 @@ exports.unlikeComment = function(req, res){
               likes: [],
               likes_count: saved.comments[comment_index].likes_count
             };
+
+            //emit unlike comment activity event
+            process.emit('activity', {
+              type: 'unlike',
+              context: 'comment',
+              action: 'remove',
+              user: req.body.creator,
+              target: req.params.comment_id,
+              object: comment
+            });
+            //return response object
             _utils.prismResponse(res, response, true);
 
           });
@@ -742,6 +753,18 @@ exports.unlikePost = function(req, res){
             }else{
               var response = {likes_count: result.likes_count,
                               likes: []};
+
+              //emit unlike activity event
+              process.emit('activity', {
+                type: 'unlike',
+                context: 'post',
+                action: 'remove',
+                scope: result.scope,
+                user: req.body.creator,
+                target: req.params.id,
+                object: result
+              });
+
               _utils.prismResponse( res, response, true);
             }
           });

@@ -95,8 +95,17 @@ exports.follow = function(req, res){
               };
 
               User.findOneAndUpdate(query, update_data, function(err, follower_update){
-               if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-                _utils.prismResponse(res, {}, true);
+                if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+                //emit follow activity event
+                process.emit('activity', {
+                  type: 'follow',
+                  action: 'create',
+                  user: req.body.creator,
+                  target: req.params.id,
+                  object: followee_update
+                });
+                //return response
+                _utils.prismResponse(res, {message: 'Succesfully followed '+req.params.id}, true);
               });
 
             }else{
@@ -177,8 +186,16 @@ exports.unfollow = function(req, res){
                     if(err) {
                       _utils.prismResponse(res, null, false, PrismError.serverError);
                     }else{
-                       //send back successful unfollow
-                      _utils.prismResponse(res, {}, true);
+                      //emit unfollow activity event
+                      process.emit('activity', {
+                        type: 'unfollow',
+                        action: 'remove',
+                        user: req.body.creator,
+                        target: req.params.id,
+                        object: updated
+                      });
+                      //send back successful unfollow
+                      _utils.prismResponse(res, {message: 'Successfully unfollowed '+req.params.id}, true);
                     }
                   });
                 }

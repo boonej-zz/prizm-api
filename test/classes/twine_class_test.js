@@ -111,9 +111,8 @@ describe('Twine Class Unit Tests', function(done){
           }
         }
       };
-
       new Twine('User', {_id: mark._id.toString()}, req, null, function(err, result){
-        
+        //TODO: finish tests & use cases
         done();
       });
     });

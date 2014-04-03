@@ -36,6 +36,7 @@ function ActivityListener(options){
     if(typeof object.type !== 'undefined'){
       _logger.log('info', 'activity event emitted', object);
       self.activityHandler(object);
+
     }else{
       _logger.log('error', 'activity events object does not have a `type` property', object);
     }
@@ -68,16 +69,16 @@ var isInTestMode = function(){
 ActivityListener.prototype.activityHandler = function(object){
   switch(object.type){
     case 'follow':
-      //do something with follow
+      this.postActivity(object);
       break;
     case 'unfollow':
-      //do something with unfollow
+      this.postActivity(object);
       break;
     case 'like':
-      //like
+      this.postActivity(object);
       break;
     case 'unlike':
-      //unlike
+      this.postActivity(object);
       break;
     case 'post':
       this.postActivity(object);
@@ -89,10 +90,10 @@ ActivityListener.prototype.activityHandler = function(object){
       this.commentActivity(object);
       break;
     case 'trust':
-      //trust
+      this.postActivity(object);
       break;
     case 'user':
-      //user update
+      //user
       break;
     default:
       //something for the system to track activity?
@@ -112,8 +113,10 @@ ActivityListener.prototype.postActivity = function(post){
       type: post.type,
       user: post.user,
       target: post.target,
+      context: (post.context) ? post.context : null,
       scope: (post.scope) ? post.scope : null,
-      object: (post.object) ? post.object : null
+      object: (post.object) ? post.object : null,
+      action: (post.action) ? post.action : null
     }).save(function(err, activity_saved){
       if(err){
         _logger.log('error', 'Error trying to save '+ post.type +' activity', post);
@@ -134,7 +137,19 @@ ActivityListener.prototype.postActivity = function(post){
 
 ActivityListener.prototype.commentActivity = function(comment){
   if(comment.user && comment.target){
-
+    new Activity({
+      type: comment.type,
+      user: comment.user,
+      target: comment.target,
+      scope: (comment.scope) ? comment.scope : null,
+      object: (comment.object) ? comment.object : null
+    }).save(function(err, activity_saved){
+      if(err){
+        _logger.log('error', 'Error trying to save ' + comment.type + ' activity', comment);
+      }else{
+        _logger.log('info', 'Successfully Logged ' + comment.type + ' Activity', activity_saved);
+      }
+    });
   }else{
     _logger.log('error',
                 'Validation Error trying to create comment activity object',

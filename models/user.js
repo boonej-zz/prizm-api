@@ -72,7 +72,7 @@ var userSchema = new _mongoose.Schema({
   followers             : {type: Array, default: [], select: true},
   following_count       : {type: Number, default: 0, select: true},
   followers_count       : {type: Number, default: 0, select: true},
-  trusts                : {type: [trustSchema], select: false},
+  trusts                : {type: [trustSchema], default:[], select: true},
   trusts_count          : {type: Number, default: 0, select: true},
   instagram_token       : {type: String, default: null, select: true},
   instagram_min_id      : {type: String, default: null, select: true}
