@@ -47,13 +47,8 @@ exports.login = function(req, res){
           }
         }else{
           //succesful login - send back returned user object
-          var user = result.toObject();
-          delete user.provider_token;
-          delete user.trusts;
-          delete user.followers;
-          delete user.following;
           if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
-          _utils.prismResponse( res, user , true);
+          _utils.prismResponse( res, result, true);
         }
       });
     }else{
@@ -65,13 +60,7 @@ exports.login = function(req, res){
                                 PrismError.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
-            usr = result.toObject();
-            delete usr.provider_token;
-            delete usr.provider_token_secret;
-            delete usr.trusts;
-            delete usr.followers;
-            delete usr.following;
-            _utils.prismResponse(res, usr, true, null, null);
+            _utils.prismResponse(res, result, true, null, null);
           }else{
            _utils.prismResponse(res,
                                 null,
@@ -161,12 +150,6 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
         }else{
-          var user = result.toObject();
-          delete user.password;
-          delete user.posts;
-          delete user.likes;
-          delete user.comments;
-
           _utils.prismResponse(res, result, true);
         }
       });
