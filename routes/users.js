@@ -871,7 +871,7 @@ exports.search = function(req, res){
     var search_key = Object.keys(args.search)[0];
     if(!search_key) _utils.prismResponse(res, null, false, error);
     var criteria = {};
-    criteria[search_key] = {$regex: formatStringSearchVariable(args[search_key])};
+    criteria[search_key] = {$regex: formatStringSearchVariable(args.search[search_key])};
     new Twine('User', criteria, req, null, function(err, response){
       if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
       _utils.prismResponse(res, response, true);
