@@ -47,7 +47,6 @@ exports.login = function(req, res){
           }
         }else{
           //succesful login - send back returned user object
-          if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
           _utils.prismResponse( res, result, true);
         }
       });
