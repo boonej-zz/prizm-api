@@ -863,7 +863,7 @@ exports.search = function(req, res){
       error_description: 'A search key & object value must be included in the X-Arguments httpd header'
     }
   };
-  if(req.headers.x-arguments){
+  if(req.headers['x-arguments']){
     var args = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
     args = JSON.parse(args);
     if(!args.search) _utils.prismResponse(res, null, false, error);
