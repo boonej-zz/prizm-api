@@ -190,6 +190,8 @@ _app.put('/users/:id/trusts/:trust_id', _gateway, _trust.updateTrust);
 /* Fetch Users Trusts */
 _app.get('/users/:id/trusts', _gateway, _trust.fetchTrusts);
 
+_app.get('/users/search', _gateway, _user.search);
+
 /* Delete User Trust */
 _app.delete('/users/:id/trusts/:trust_id', _gateway, _trust.deleteTrust);
 
