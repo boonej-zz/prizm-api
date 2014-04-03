@@ -866,6 +866,7 @@ exports.search = function(req, res){
     };
     if(req.headers.x-arguments){
       var args = new Buffer(req.headers.x-arguments, 'base64').toString('utf8');
+      args = JSON.parse(args);
       if(!args.search) _utils.prismResponse(res, null, false, error);
 
       var search_key = Object.keys(args.search)[0];

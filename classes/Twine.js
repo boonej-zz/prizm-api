@@ -35,6 +35,7 @@ function Twine(model, criteria, Request, options, callback){
   this.Request = Request;
   if(typeof this.Request.header.x-arguments !== 'undefined'){
     this.Request.body = new Buffer(this.Request.headers.x-arguments, 'base64').toString('utf8');
+    this.Request.body = JSON.parse(this.Request.body);
   }
   this.options = options;
   this.cb = callback;
