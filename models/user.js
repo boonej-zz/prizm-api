@@ -73,8 +73,8 @@ var userSchema = new _mongoose.Schema({
   followers_count       : {type: Number, default: 0, select: true},
   trusts                : {type: [trustSchema], default:[], select: false},
   trusts_count          : {type: Number, default: 0, select: true},
-  instagram_token       : {type: String, default: null, select: true},
-  instagram_min_id      : {type: String, default: null, select: true}
+  instagram_token       : {type: String, default: null, select: false},
+  instagram_min_id      : {type: String, default: null, select: false}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
