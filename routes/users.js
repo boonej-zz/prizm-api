@@ -855,32 +855,28 @@ var isSocialProvider = function(body){
  * Search User
  */
 exports.search = function(req, res){
-  if(req.params.id){
-    //create invalid search error;
-    var error = {
-      status_code: 400,
-      error_info: {
-        error: 'invalid_search_request',
-        error_description: 'A search key & object value must be included in the X-Arguments httpd header'
-      }
-    };
-    if(req.headers.x-arguments){
-      var args = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
-      args = JSON.parse(args);
-      if(!args.search) _utils.prismResponse(res, null, false, error);
-
-      var search_key = Object.keys(args.search)[0];
-      if(!search_key) _utils.prismResponse(res, null, false, error);
-      var criteria = {};
-      criteria[search_key] = {$regex: formatStringSearchVariable(args[search_key])};
-      new Twine('User', criteria, req, null, function(err, response){
-        if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-        _utils.prismResponse(res, response, true);
-      });
-    }else{
-      _utils.prismResponse(res, null, false, error);
+  //create invalid search error;
+  var error = {
+    status_code: 400,
+    error_info: {
+      error: 'invalid_search_request',
+      error_description: 'A search key & object value must be included in the X-Arguments httpd header'
     }
+  };
+  if(req.headers.x-arguments){
+    var args = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
+    args = JSON.parse(args);
+    if(!args.search) _utils.prismResponse(res, null, false, error);
+
+    var search_key = Object.keys(args.search)[0];
+    if(!search_key) _utils.prismResponse(res, null, false, error);
+    var criteria = {};
+    criteria[search_key] = {$regex: formatStringSearchVariable(args[search_key])};
+    new Twine('User', criteria, req, null, function(err, response){
+      if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+      _utils.prismResponse(res, response, true);
+    });
   }else{
-    _utils.prismResponse(res, null, false, PrismError.serverError);
+    _utils.prismResponse(res, null, false, error);
   }
 };
