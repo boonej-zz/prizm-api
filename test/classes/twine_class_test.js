@@ -98,10 +98,13 @@ describe('Twine Class Unit Tests', function(done){
           resolve: {
             following: {
               format:'short',
-              fields: ['create_date', 'test']
+              fields: ['create_date', 'test'],
+              contains: {
+                followers: DJ._id.toString()
+              }
             },
             followers: {
-              format: 'short'
+              format: 'short',
             }
           },
           contains: {
@@ -113,6 +116,7 @@ describe('Twine Class Unit Tests', function(done){
       };
       new Twine('User', {_id: mark._id.toString()}, req, null, function(err, result){
         //TODO: finish tests & use cases
+        debugger;
         done();
       });
     });

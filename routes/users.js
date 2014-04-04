@@ -303,6 +303,8 @@ exports.fetchUserNewsFeed = function(req, res){
 
         //user should see its own posts, so add the user to the following_array
         //which is used in the search criteria
+        
+        //TODO: ensure trust is accepted
 
         if(following_array.length > 0 || trusts_array > 0 || user.posts_count > 0){
           var fetch_criteria_self, fetch_criteria_trusts;

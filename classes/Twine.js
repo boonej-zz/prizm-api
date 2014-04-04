@@ -11,6 +11,7 @@ var _util       = require('util'),
     _mongoose   = require('mongoose'),
     _thisapp    = require('../server.js'),
     _request    = require('request'),
+    _logger     = require(process.env.PRISM_HOME + 'logs.js'),
     User        = require('../models/user').User;
 
 /**
@@ -33,10 +34,12 @@ function Twine(model, criteria, Request, options, callback){
   this.Schema = this.Model().schema;
   this.criteria = criteria;
   this.Request = Request;
-  // if(typeof this.Request.headers['x-arguments'] !== 'undefined'){
-  //   var args          = new Buffer(this.Request.headers['x-arguments'], 'base64').toString('utf8');
-  //   this.Request.body = JSON.parse(args);
-  // }
+  if(typeof this.Request.headers['x-arguments'] !== 'undefined'){
+    var args          = new Buffer(this.Request.headers['x-arguments'], 'base64').toString('utf8');
+    _logger.log('info', 'args string from parsed `x-arguments` http header', args);
+    this.Request.body = JSON.parse(args);
+    _logger.log('info', 'Twine Request Body from `x-arguments`', this.Request.body);
+  }
   this.options = options;
   this.cb = callback;
   this.sort = (!self.$__optExists('sort')) ?
@@ -145,15 +148,24 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
   var queries = [];
 
   if(this.$__isBodySet() && doesObjectKeyExist(this.Request.body, 'resolve')){
+    _logger.log('info', 'Resolve body exists', {resolve: this.Request.body.resolve});
     resolve_body = this.Request.body.resolve;
     resolve_model_objects = this.Model.canResolve();
+    _logger.log('info', 'resolve model objects', {resolve_model_objects: resolve_model_objects});
     if(resolve_model_objects){
       for(var r_idx in resolve_model_objects){
         key = Object.keys(resolve_model_objects[r_idx])[0];
-
+        var resolve_resolve = {};
         if(doesObjectKeyExist(this.Request.body.resolve, key) &&
           doesObjectKeyExist(result[0], key)){
           resolve_key = key;
+
+          if(doesObjectKeyExist(this.Request.body.resolve[key], 'contains')){
+            for(var ri in this.Request.body.resolve[key].contains){
+              //rr_keys = Object.keys(this.Request.body.resolve[key].contains[ri]);
+              resolve_resolve[ri] = this.Request.body.resolve[key].contains[ri];
+            }
+          }
 
           var rs = result[0][resolve_key];
           resolve_identifier = resolve_model_objects[r_idx][resolve_key].identifier;
@@ -168,7 +180,9 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
               model: resolve_model,
               distinct: distinct,
               resolve_identifier: resolve_identifier,
-              resolve_key: resolve_key});
+              resolve_key: resolve_key,
+              contains: (Object.keys(resolve_resolve).length > 0)? resolve_resolve : null
+            });
           }
         }
 
@@ -196,7 +210,9 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
    */
   var processResolve = function processResolve(array, callback){
     var criteria = {};
+    var contains;
     var object_to_resolve = array.shift();
+    if(object_to_resolve.contains) contains = object_to_resolve.contains;
     criteria[object_to_resolve.resolve_identifier] = {$in: object_to_resolve.distinct};
     //reset model defaulted select
     for(var p in object_to_resolve.model().schema.paths){
@@ -209,24 +225,73 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
           resolve_body[object_to_resolve.resolve_key].fields : null;
 
       //set response key inside root object & set the value to an empty array
-      response.resolve[object_to_resolve.resolve_key] = [];
+      response.resolve[object_to_resolve.resolve_key] = {};
       for(var item in res){
         var format = {};
-        // if(typeof res[item][object_to_resolve.resolve_identifier] == 'undefined' &&
-        //   res[item][object_to_resolve.resolve_key].length > 0){
-        //   console.log(JSON.stringify(res[item][object_to_resolve.resolve_key]));
-        //   format[res[item][object_to_resolve.resolve_key][0][object_to_resolve.resolve_identifier].toString()] = res[item].short(fields);
-        // }else{
-          // if(typeof res[item][object_to_resolve.resolve_identifier] !== 'undefined')
-            format[res[item][object_to_resolve.resolve_identifier].toString()] = res[item].short(fields);
+        var r_key = res[item][object_to_resolve.resolve_identifier].toString();
+            // format[res[item][object_to_resolve.resolve_identifier].toString()] = res[item].short(fields);
+        response.resolve[object_to_resolve.resolve_key][r_key] = res[item].short(fields);
         // }
-        response.resolve[object_to_resolve.resolve_key].push(format);
+        // response.resolve[object_to_resolve.resolve_key]= format;
       }
 
       //if there is another value left in the array recursively call itself with current params
-      if(array.length > 0){
+      if(array.length > 0 && !contains){
         processResolve(array, callback);
-
+      }else if(contains){
+        //process resolve & contains on its self
+        var identifiers_array = [];
+        var contains_keys = Object.keys(contains);
+        for(var id in response.resolve[object_to_resolve.resolve_key]){
+          identifiers_array.push(id);
+        }
+        _logger.log('info', 'Resolve Resolve contains before execution', 
+          {id_array: identifiers_array,
+           contains_key: contains_keys,
+           contains: contains});
+        var contains_query = object_to_resolve.model.find({_id: {$in: identifiers_array}});
+        contains_query.select(contains_keys.join(" "));
+        contains_query.exec(function(err, contains_result){
+          _logger.log('info', 'Resolve Resolve contains query results', {err: err, result: contains_result});
+          if(contains_result.length === 0){
+              _logger.log('info', 'No results found for Resolv Resolve Contains query');
+              for(var r in response.resolve[object_to_resolve.resolve_key]){
+                response.resolve[object_to_resolve.resolve_key][r][contains_keys[0]] = [];
+              }
+            if(array.length > 0){
+              processResolve(array, callback);
+            }else{
+              callback();
+            }
+          }else{
+            found = 0;
+            lookup = contains_keys[0];
+            for(var idx in contains_result){
+              contains_result[idx] = contains_result[idx].toObject();
+              for(var i in contains_result[idx][lookup]){
+                debugger;
+                if(contains_result[idx][lookup][i]._id.toString() === contains[lookup].toString()){
+                  _logger.log('info', 'contains_result loop match found', contains_result[idx][lookup][i]);
+                  response.resolve
+                  [object_to_resolve.resolve_key]
+                  [contains_result[idx]._id.toString()]
+                  [lookup] = contains_result[idx][lookup][i];
+                }else{
+                  response.resolve
+                  [object_to_resolve.resolve_key]
+                  [contains_result[idx]._id.toString()]
+                  [lookup] = [];
+                }
+              }
+            }
+            //ensure key is set to an empty object
+            if(array.length > 0){
+              processResolve(array, callback);
+            }else{
+              callback();
+            }
+          }
+        });
       }else{
         callback();
       }
@@ -242,6 +307,7 @@ Twine.prototype.$__applyResolved = function $__applyResolved(result, cb){
   };
 
   if(queries.length > 0){
+    _logger.log('info', 'processResolve queries to resolve', {queries: queries});
     processResolve(queries, function(){
       //invoke the  callback block
       cb(error, response);
@@ -368,7 +434,8 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
       }
     }
   }
-
+  
+  _logger.log('info', 'Twine fetch object before execution', {fetch: this.fetch});
   this.fetch.select(fields_internal.join(" "));
 
   //add sort if fields exist
@@ -387,6 +454,7 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
 
   var self = this;
   this.fetch.exec(function(err, result){
+    _logger.log('info', 'Twine Fetch execution results', {error: err, result:result});
     var response = {};
     self.$__applyResolved(result, function(err, resolved){
       if(err){
@@ -394,7 +462,8 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
 
       }else{
         //set derived if exists
-        if(Object.keys(resolved.resolve).length > 0) response = resolved;
+        if(Object.keys(resolved.resolve).length > 0) response.resolve = resolved.resolve;
+        if(doesObjectKeyExist(resolved, 'data')) result = resolved.data;
 
         //apply context
         self.$__applyContains(result, function(err, contains){
@@ -421,6 +490,7 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
             }
             //format return object
             response.data = (!contains) ? result : contains;
+            _logger.log('info','Twine returning results', response);
             self.cb(null, response);
           }
         });

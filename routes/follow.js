@@ -294,6 +294,8 @@ exports.fetchFollowing = function(req, res){
       if(err){
         _utils.prismResponse(res, null, false, PrismError.ServerError);
       }else{
+        if(result.data && result.data.length > 0)
+          result.data = result.data[0].following;
         _utils.prismResponse(res, result, true);
       }
     });
@@ -334,6 +336,8 @@ exports.fetchFollowers = function(req, res){
       if(err){
         _utils.prismResponse(res, null, false, PrismError.ServerError);
       }else{
+        if(result.data && result.data.length > 0)
+          result.data = result.data[0].followers;
         _utils.prismResponse(res, result, true);
       }
     });
