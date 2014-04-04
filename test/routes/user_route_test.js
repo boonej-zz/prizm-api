@@ -361,6 +361,20 @@ describe('User Route Unit Tests', function(done){
       });
     });
   });
+  // describe('Testing Fetching a Users Posts -- (moved to POSTS Route)', function(done){
+  //   it('should return an array of posts with the creators short user', function(done){
+  //     _request({
+  //       method: 'GET',
+  //       url: 'https://localhost:3000/posts/533420f9515d6a00001efb7e/comments',
+  //       json: true,
+  //       strictSSL: false,
+  //       headers: {"Authorization":"Bearer "+testToken.access_token}
+  //     }, function(err, result, body){
+  //       debugger;
+  //       done();
+  //     });
+  //   });
+  });
   describe('Testing Searching for A User', function(done){
     it('should fetch a user by there first name', function(done){
       var fetch_url = 'https://localhost:3000/users?last_name=zuck';

@@ -13,7 +13,50 @@ var _mongoose         = require('mongoose'),
     User              = require(_prism_home + 'models/user').User,
     Post              = require(_prism_home + 'models/post').Post,
     ActivityListener  = require(_prism_home + 'classes/ActivityListener'),
+    Twine             = require(_prism_home + 'classes/Twine'),
     Comment           = require(_prism_home + 'models/post').Comment;
+
+/**
+ * Fetch Users Posts
+ */
+exports.fetchUserPosts = function(req, res){
+  if(req.params.id){
+    var ServerError = function(){
+      _utils.prismResponse(res, null, false, PrismError.serverError);
+    };
+
+    var criteria = {target_id: req.params.id, status: 'active'};
+    new Twine('Post', criteria, req, null, function(error, result){
+      if(error) ServerError();
+      if(result.data.length > 0){
+        var users = [];
+        for(var user in result.data){
+          users.push(result.data[user].creator.toString());
+        }
+        //fetch short users for all users in array
+        var short_user = User.find({_id: {$in:users}});
+        short_user.select(User.selectFields('short').join(" "));
+        short_user.exec(function(err, shorts){
+          if(err) ServerError();
+          //loop & set short user
+          for(var s in shorts){
+            for(var p in result.data){
+              if(result.data[p].creator.toString() ===  shorts[s]._id.toString())
+                result.data[p] = result.data[p].toObject();
+                result.data[p].creator = shorts[s];
+            }
+          }
+          //return response object
+          _utils.prismResponse(res, result, true);
+        });
+      }else{
+        _utils.prismResponse(res, result, true);
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequst);
+  }
+};
 
 /**
  * Creates a comment object and add it to the comments property array for a
@@ -286,7 +329,38 @@ exports.updatePost = function(req, res){
  */
 exports.fetchPostComments = function(req, res){
   if(req.params.id){
-    var query, options = {}, criteria;
+    var criteria = {_id: req.params.id, status: 'active'};
+    new Twine('Post', criteria, req, {fields: "comments"}, function(err, result){
+      if(err) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+      if(result.data && result.data.length > 0){
+        var users = [];
+        result.data[0] = result.data[0].toObject();
+        //loop through comments result & get short user creator
+        for(var idx in result.data[0].comments){
+          if(parseInt(idx))
+            users.push(result.data[0].comments[idx].creator.toString());
+        }
+
+        var short_users = User.find({_id: {$in:users}});
+        short_users.select(User.selectFields('short').join(' '));
+        short_users.exec(function(err, shorts){
+          for(var c in result.data[0].comments){
+              for(var u in shorts){
+                if(typeof shorts[u]._id !== 'undefined' && typeof result.data[0].comments[c].creator !== 'undefined'){
+                  if(shorts[u]._id.toString() === result.data[0].comments[c].creator.toString()){
+                      shorts[u] = shorts[u].toObject();
+                      result.data[0].comments[c].creator = shorts[u];
+                  }
+                }
+              }
+            }
+          _utils.prismResponse(res, result, true);
+        });
+      }else{
+        _utils.prismResponse(res, result, true);
+      }
+    });
+   /** var query, options = {}, criteria;
     options = _utils.parsedQueryOptions(req.query);
     if(req.query.feature_identifer){
 
@@ -318,7 +392,7 @@ exports.fetchPostComments = function(req, res){
     .exec(function(err, comm){
       if(err) _utils.prismResponse(res,null,false,PrismError.ServerError);
       _utils.prismResponse(res,comm,true);
-    });
+    });*/
   }else{
     _utils.prismResponse(res,null,false,PrismError.invalidRequest);
 

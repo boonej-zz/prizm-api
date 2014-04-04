@@ -137,6 +137,30 @@ userSchema.methods.format = function(type, add_fields, callback){
       trusts_count:       this.trusts_count
     };
   }
+
+  if(type === 'internal'){
+    format.password               = this.password;
+    format.provider               = this.provider;
+    format.provider_id            = this.provider_id;
+    format.provider_token         = this.provider_token;
+    format.provider_token_secret  = this.provider_token_secret;
+    format.gender                 = this.gender;
+    format.birthday               = this.birthday;
+    format.address                = this.address;
+    format.country                = this.country;
+    format.modify_date            = this.modify_date;
+    format.delete_date            = this.status;
+  }
+
+  if(add_fields){
+    if(typeof add_fields === 'string') format[add_fields] = this[add_fields];
+    if(Array.isArray(add_fields) && add_fields.length > 0){
+      for(var i=0; i < add_fields.length; i++){
+        format[add_fields[i]] = this[add_fields[i]];
+      }
+    }
+  }
+  return format;
 };
 
 userSchema.methods.short = function(fields){

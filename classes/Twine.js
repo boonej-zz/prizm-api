@@ -329,12 +329,11 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
     //this may need to be done on result
     //this.fetch.select(this.fields);
 
-    //need to deselect the default values in the models.schema paths
     var fields_array = this.fields.split(" ");
     fields_internal = this.Model.selectFields('basic');
     for(var field in fields_array){
-      if(fields_internal.indexOf(field) === -1){
-        fields_internal.push(field);
+      if(fields_internal.indexOf(fields_array[field]) === -1){
+        fields_internal.push(fields_array[field]);
       }
     }
   }else{

@@ -125,7 +125,8 @@ _app.get('/users/:id', _gateway, _user.fetchUser);
 _app.put('/users/:id', _gateway, _user.updateUser);
 
 /* Fetch Users Posts */
-_app.get('/users/:id/posts', _gateway, _user.fetchUserPosts);
+_app.get('/users/:id/posts', _gateway, _post.fetchUserPosts);
+// _app.get('/users/:id/posts', _gateway, _user.fetchUserPosts);
 
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _user.createUserPost);

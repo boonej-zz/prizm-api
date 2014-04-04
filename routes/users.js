@@ -51,8 +51,9 @@ exports.login = function(req, res){
         }
       });
     }else{
-      User.schema.paths.password.selected = true;
-      User.findOne({email: req.body.email}, function(error, result){
+      var user = User.findOne({email: req.body.email});
+      user.select(User.selectFields('internal').join(" "));
+      user.exec(function(error, result){
         if(error){
           _utils.prismResponse( res,
                                 null,
@@ -60,9 +61,7 @@ exports.login = function(req, res){
                                 PrismError.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
-            result = result.toObject;
-            delete result.password;
-            _utils.prismResponse(res, result, true, null, null);
+            _utils.prismResponse(res, result.format('basic'), true, null, null);
           }else{
            _utils.prismResponse(res,
                                 null,
@@ -115,7 +114,6 @@ exports.register = function(req, res){
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
       handleSocialProviderRegistration(req.body, function(error, social){
-        // console.log('error/social returned from handle in reg' + error + social);
         if(error && social === false){
           _utils.prismResponse( res, null, false, error, PrismError.status_code);
         }else if(social){
@@ -134,7 +132,7 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
             }else{
-              _utils.prismResponse(res, result, true);
+              _utils.prismResponse(res, result.format('basic'), true);
             }
 
           });
@@ -152,7 +150,7 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
         }else{
-          _utils.prismResponse(res, result, true);
+          _utils.prismResponse(res, result.format('basic'), true);
         }
       });
     }
@@ -263,13 +261,12 @@ exports.updateUser = function(req, res){
         if(typeof(body.birthday) !== 'undefined') user.birthday = body.birthday;
         if(typeof(body.profile_photo_url) !== 'undefined') user.profile_photo_url = body.profile_photo_url;
         if(typeof(body.cover_photo_url) !== 'undefined') user.cover_photo_url = body.cover_photo_url;
-        // if(typeof(body.email) !== 'undefined') user.email = body.email;
         user.save(function(err, saved){
           if(err || !saved){
             _utils.prismResponse(res, null, false, error);
 
           }else{
-            _utils.prismResponse(res, saved, true);
+            _utils.prismResponse(res, saved.format('basic'), true);
           }
         });
       }
@@ -669,9 +666,11 @@ var handleSocialProviderLogin = function(body, callback){
           callback(error, false);
         }else if(response){
 
-          User.findOne({provider_id: response.body.id}, function(error, response){
+          var user = User.findOne({provider_id: response.body.id});
+          user.select(User.selectFields('basic').join(" "));
+          user.exec(function(error, response){
             if(error){
-              callback(PrismError.invalidSocialUser, false);
+              callback(PrismError.serverError, false);
             }else if(response && response._id){
               callback(false, response);
             }else{
@@ -695,7 +694,9 @@ var handleSocialProviderLogin = function(body, callback){
           _logger.info('Succesfuly returned object from authorizing twitter user: ', result);
           _logger.log(result);
 
-          User.findOne({provider_id: result.id.toString()}, function(error, response){
+          var user = User.findOne({provider_id: result.id.toString()});
+          user.select(User.selectFields('basic').join(" "));
+          user.exec(function(error, response){
             if(error){
               _logger.error('Error returned trying to find twitter user in prism.'+
                             ' Users does not exist.', {error: error, twitter_user: result});
@@ -726,7 +727,9 @@ var handleSocialProviderLogin = function(body, callback){
 
         }else if(typeof result.id !== 'undefined'){
           //lookup user by provider_id to ensure exists, otherwise registration is required
-          User.findOne({provider_id: result.id.toString()}, function(error, response){
+          var user = User.findOne({provider_id: result.id.toString()});
+          user.select(User.selectFields('basic').join(' '));
+          user.exec(function(error, response){
             if(error || !response){
               _logger.log('error', 'Unable to find googleplus user or server error was thrown',
                           {error: error, response: response});
