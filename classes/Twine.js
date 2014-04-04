@@ -33,10 +33,10 @@ function Twine(model, criteria, Request, options, callback){
   this.Schema = this.Model().schema;
   this.criteria = criteria;
   this.Request = Request;
-  if(typeof this.Request.headers['x-arguments'] !== 'undefined'){
-    var args          = new Buffer(this.Request.headers['x-arguments'], 'base64').toString('utf8');
-    this.Request.body = JSON.parse(args);
-  }
+  // if(typeof this.Request.headers['x-arguments'] !== 'undefined'){
+  //   var args          = new Buffer(this.Request.headers['x-arguments'], 'base64').toString('utf8');
+  //   this.Request.body = JSON.parse(args);
+  // }
   this.options = options;
   this.cb = callback;
   this.sort = (!self.$__optExists('sort')) ?
@@ -324,19 +324,26 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
   this.fetch = this.Model.find(this.criteria);
 
   //add selection fields if exists
+  var fields_internal;
   if(this.fields){
     //this may need to be done on result
-    this.fetch.select(this.fields);
+    //this.fetch.select(this.fields);
 
     //need to deselect the default values in the models.schema paths
     var fields_array = this.fields.split(" ");
-    for(var path in this.Schema.paths){
-      if(fields_array.indexOf(path) === -1){
-        this.Schema.paths[path].selected = false;
+    fields_internal = this.Model.selectFields('basic');
+    for(var field in fields_array){
+      if(fields_internal.indexOf(field) === -1){
+        fields_internal.push(field);
       }
     }
+  }else{
+    fields_internal = this.Model.selectFields('basic');
   }
-  // debugger;
+
+  //this.fetch.select(fields_internal.join(" "));
+
+  //debugger;
 
   //ensure if properties exist in resolve body that they are set
   //to be selected on the Schema path object
@@ -344,8 +351,8 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
     var keys = Object.keys(this.Request.body.resolve);
     if(Array.isArray(keys) && keys.length > 0){
       for(var idx in keys){
-        if(doesObjectKeyExist(this.Schema.paths, keys[idx])){
-          this.Schema.paths[keys[idx]].selected = true;
+        if(fields_internal.indexOf(keys[idx]) === -1){
+          fields_internal.push(keys[idx]);
         }
       }
     }
@@ -356,12 +363,14 @@ Twine.prototype.buildFetchRequest = function buildFetchRequest (){
     var keys = Object.keys(this.Request.body.contains);
     if(Array.isArray(keys) && keys.length > 0){
       for(var idx in keys){
-        if(doesObjectKeyExist(this.Schema.paths, keys[idx])){
-          this.Schema.paths[keys[idx]].selected = true;
+        if(fields_internal.indexOf(keys[idx]) === -1){
+          fields_internal.push(keys[idx]);
         }
       }
     }
   }
+
+  this.fetch.select(fields_internal.join(" "));
 
   //add sort if fields exist
   if(this.sort && this.sort_by){

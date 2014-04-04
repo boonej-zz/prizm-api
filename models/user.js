@@ -37,44 +37,44 @@ trustSchema.pre('save', function(next){
 });
 
 var userSchema = new _mongoose.Schema({
-  name                  : {type: String, default: '', select: true},
-  first_name            : {type: String, required: true, select: true},
-  last_name             : {type: String, required: true, select: true},
-  email                 : {type: String, required: true, index: {unique: true}, select: true},
-  info                  : {type: String, default: null, select: true},
-  website               : {type: String, default: null, select: true},
-  ethnicity             : {type: String, default: null, select: false},
-  religion              : {type: String, default: null, select: false},
-  affiliations          : {type: Array, default:[], select: false},
-  password              : {type: String, default: null, select: false},
-  provider              : {type: String, default: null, select: false},
-  provider_id           : {type: String, default: null, select: false},
-  provider_token        : {type: String, default: null, select: false},
-  provider_token_secret : {type: String, default: null, select: false},
-  last_provider_auth    : {type: Date, default: null, select: false},
-  gender                : {type: String, default: null, select: false},
-  birthday              : {type: String, default: null, select: false},
-  address               : {type: String, default: null, select: false},
-  city                  : {type: String, default: null, select: true},
-  country               : {type: String, default: null, select: false},
-  state                 : {type: String, default: null, select: true},
-  zip_postal            : {type: String, default: null, select: false},
-  cover_photo_url       : {type: String, default: '', select: true},
-  profile_photo_url     : {type: String, default: '', select: true},
-  create_date           : {type: Date, default: null, select: true},
-  modify_date           : {type: Date, default: null, select: false},
-  delete_date           : {type: Date, default: null, select: false},
-  last_login_date       : {type: Date, default: null, select: false},
-  status                : {type: Number, default: 0, select: false},
-  posts_count           : {type: Number, default: 0, select: true},
-  following             : {type: Array, default: [], select: false},
-  followers             : {type: Array, default: [], select: false},
-  following_count       : {type: Number, default: 0, select: true},
-  followers_count       : {type: Number, default: 0, select: true},
-  trusts                : {type: [trustSchema], default:[], select: false},
-  trusts_count          : {type: Number, default: 0, select: true},
-  instagram_token       : {type: String, default: null, select: false},
-  instagram_min_id      : {type: String, default: null, select: false}
+  name                  : {type: String, default: ''},
+  first_name            : {type: String, required: true},
+  last_name             : {type: String, required: true},
+  email                 : {type: String, required: true, index: {unique: true}},
+  info                  : {type: String, default: null},
+  website               : {type: String, default: null},
+  ethnicity             : {type: String, default: null},
+  religion              : {type: String, default: null},
+  affiliations          : {type: Array, default:[]},
+  password              : {type: String, default: null},
+  provider              : {type: String, default: null},
+  provider_id           : {type: String, default: null},
+  provider_token        : {type: String, default: null},
+  provider_token_secret : {type: String, default: null},
+  last_provider_auth    : {type: Date, default: null},
+  gender                : {type: String, default: null},
+  birthday              : {type: String, default: null},
+  address               : {type: String, default: null},
+  city                  : {type: String, default: null},
+  country               : {type: String, default: null},
+  state                 : {type: String, default: null},
+  zip_postal            : {type: String, default: null},
+  cover_photo_url       : {type: String, default: ''},
+  profile_photo_url     : {type: String, default: ''},
+  create_date           : {type: Date, default: null},
+  modify_date           : {type: Date, default: null},
+  delete_date           : {type: Date, default: null},
+  last_login_date       : {type: Date, default: null},
+  status                : {type: Number, default: 0},
+  posts_count           : {type: Number, default: 0},
+  following             : {type: Array, default: []},
+  followers             : {type: Array, default: []},
+  following_count       : {type: Number, default: 0},
+  followers_count       : {type: Number, default: 0},
+  trusts                : {type: [trustSchema], default:[]},
+  trusts_count          : {type: Number, default: 0},
+  instagram_token       : {type: String, default: null},
+  instagram_min_id      : {type: String, default: null}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -83,6 +83,60 @@ userSchema.statics.canResolve = function(){
     {followers: {identifier: '_id' , model: 'User'}},
     {trusts: {identifier: 'user_id', model: 'User'}}
   ];
+};
+
+userSchema.statics.selectFields = function(type){
+  if(type === 'short'){
+    return ['_id','name','first_name','last_name','profile_photo_url'];
+  }else if(type === 'basic'){
+    return ['_id','name','first_name','last_name','profile_photo_url',
+            'cover_photo_url','email','info','website','city','state',
+            'create_date','posts_count','following_count','followers_count',
+            'trusts_count'];
+  }else{
+    return ['_id','name','first_name','last_name','profile_photo_url',
+            'cover_photo_url','email','info','website','city','state',
+            'create_date','posts_count','following_count','followers_count',
+            'trusts_count','provider','provider_id','provider_token',
+            'provider_token_secret','gender','birthday','address','country',
+            'modify_date','delete_date','status','password'];
+  }
+};
+
+userSchema.methods.format = function(type, add_fields, callback){
+  var format;
+  if(!type) type = 'basic';
+
+  if(type === 'short'){
+    format = {
+      _id:    this._id,
+      name:   this.name,
+      first_name: this.first_name,
+      last_name: this.last_name,
+      profile_photo_url: this.profile_photo_url
+    };
+  }
+
+  if(type === 'basic' || type === 'internal'){
+    format = {
+      _id:                this._id,
+      name:               this.name,
+      first_name:         this.first_name,
+      last_name:          this.last_name,
+      email:              this.email,
+      info:               this.info,
+      website:            this.website,
+      city:               this.city,
+      state:              this.state,
+      cover_photo_url:    this.cover_photo_url,
+      profile_photo_url:  this.profile_photo_url,
+      create_date:        this.create_date,
+      posts_count:        this.posts_count,
+      following_count:    this.following_count,
+      followers_count:    this.followers_count,
+      trusts_count:       this.trusts_count
+    };
+  }
 };
 
 userSchema.methods.short = function(fields){
