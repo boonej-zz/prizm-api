@@ -51,6 +51,7 @@ exports.login = function(req, res){
         }
       });
     }else{
+      User.schema.paths.password.selected = true;
       User.findOne({email: req.body.email}, function(error, result){
         if(error){
           _utils.prismResponse( res,
@@ -59,6 +60,8 @@ exports.login = function(req, res){
                                 PrismError.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
+            result = result.toObject;
+            delete result.password;
             _utils.prismResponse(res, result, true, null, null);
           }else{
            _utils.prismResponse(res,
