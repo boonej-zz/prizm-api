@@ -26,6 +26,13 @@ var activitySchema = new _mongoose.Schema({
   action:       {type: String, default: null, required: false}
 }, { versionKey: false });
 
+activitySchema.statics.selectFields = function(type){
+  if(type === 'short'){
+
+  }
+
+};
+
 /**
  * Pre Save Injection/Validation
  *
@@ -40,5 +47,4 @@ activitySchema.pre('save', function(next){
 });
 
 exports.Activity = _mongoose.model('Activity', activitySchema);
-
 
