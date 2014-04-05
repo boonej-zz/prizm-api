@@ -201,19 +201,19 @@ Twine.prototype.process = function process (base, block){
   if(!this.contains){
     this.processResolve(base, this.resolve, container, block);
   }else{
-    this.processContains(base, function(base){
+    this.processContains(base, this.contains, function(base){
       //bubble up error?
       this.processResolve(base, this.resolve, container, block);
     });
   }
 };
 
-Twine.prototype.processContains = function processContains(base, block){
-  for(var contain in this.contains){
+Twine.prototype.processContains = function processContains(base, contains, block){
+  for(var contain in contains){
     //set contain key
-    var k = Object.keys(this.contains[contain])[0];
+    var k = Object.keys(contains[contain])[0];
     //set contain value
-    var v = this.contains[contain][k];
+    var v = contains[contain][k];
     //loop through each array in the result set & compare to contains key, value
     for(var num in base){
       if(doesObjectKeyExist(base[num], contain)){
@@ -255,8 +255,10 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
   }
 };
 
-Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,cont,results){
-  
+Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,id,cont,results){
+  for(var r  in results){
+    cont[key][results[r][id]] = results[r];
+  }
 };
 
 Twine.prototype.processResolve = function processResolve(base, map, container, block){
@@ -282,13 +284,26 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
       //set container results for resolve key model 
       var key = resolve_map_object[resolve_field].model;
       var format = resolve_map_object[resolve_field].format;
-      this.setContainerResolveResults(key, container, format, res);
-      
-      //check if map array still has index if so call processResolve 
-      if(map.length > 0){
-        this.processResolve(base, map, container, block);
+      if(doesObjectKeyExist(resolve_map_object, 'contains')){
+        processContains(res, resolve_map_object.contains, function(err, result){
+          if(err){
+            block(err, false);
+          }else{
+            this.setContainerResolveResults(key, can_resolve.identifier, container, res);
+            if(mapy.length > 0){
+              this.processResolve(base, map, container, block);
+            }else{
+              block(false, container);
+            }
+          }
+        });
       }else{
-        block(false, container);
+        //check if map array still has index if so call processResolve 
+        if(map.length > 0){
+          this.processResolve(base, map, container, block);
+        }else{
+          block(false, container);
+        }
       }
     }
   });
