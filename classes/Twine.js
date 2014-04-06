@@ -67,7 +67,7 @@ function Twine(model, criteria, Request, options, callback){
     self.$__parse('resolve', null)
     : options.resolve;
   this.fetch = null;
-
+  this.model_keys = [];
   //intro the Schema & set available model keys
   for(var key in this.Schema.paths){
     this.model_keys.push(key);
@@ -87,7 +87,7 @@ var doesObjectKeyExist = function(object, key){
 
 Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(){
   var res = null;
-  if(this.Request && typeof this.Request.headers[X_ARGUMENTS_HEADER] !== 'undefined'){
+  if(this.Request && doesObjectKeyExist(this.Request.headers, X_ARGUMENTS_HEADER)){
     //base64 decode the x-args header
     var args = new Buffer(this.Request.headers[X_ARGUMENTS_HEADER], 'base64').toString('utf8');
     res = JSON.parse(args);
@@ -121,7 +121,7 @@ Twine.prototype.$__isBodySet = function $__isBodySet(){
 };
 
 Twine.prototype.$__parse = function $__parse(param, default_value){
-    var body = null;
+    var header = null;
     var qs = null;
     if(this.args)
       header = (typeof this.args[param] !== 'undefined') ? this.args[param] : null;
@@ -143,7 +143,29 @@ Twine.prototype.$__resolveFilterProperties = function $__resolveFilterProperties
 };
 
 Twine.prototype.$__setPage = function $__setPage(cb){};
-Twine.prototype.$__setSelect = function $__setSelect(cb){};
+Twine.prototype.$__setSelect = function $__setSelect(){
+  var select = this.Model.selectFields('basic');
+  if(this.contains){
+    var keys = Object.keys(this.contains);
+    for(var i in keys){
+      if(select.indexOf(keys[i]) === -1) select.push(keys[i]);
+    }
+  }
+  if(this.resolve){
+    var r_keys = Object.keys(this.resolve);
+    for(var r in r_keys){
+      if(select.indexOf(r_keys[r]) === -1) select.push(r_keys[r]);
+    }
+  }
+  if(this.fields){
+    var array = this.fields.split(" ");
+    for(var a in array){
+      if(select.indexOf(array[a]) === -1) select.push(array[a]);
+    }
+  }
+
+  this.fetch.select(select.join(" "));
+};
 Twine.prototype.$__setSort = function $__setSort(cb){};
 Twine.prototype.$__setLimit = function $__setLimit(cb){};
 Twine.prototype.$__setFilters = function $__setFilters(cb){
@@ -155,14 +177,11 @@ Twine.prototype.$__setFilters = function $__setFilters(cb){
   }
 };
 
-Twine.prototype.buildBaseRequset = function buildBaseRequest (){
+Twine.prototype.buildBaseRequest = function buildBaseRequest (){
   //set intial fetch object with base criteria;
   this.fetch = this.Model.find(this.criteria);
   //ammend fetch with page, sort, filter, & select fields
-  //TODO: add after we get what we are initially looking for.
-  //**set a basic selectFields for now
-  this.fetch.select(this.Model.selectFields('basic').join(' '));
-
+  this.$__setSelect();
   //only execute the request if the callback is set. if not
   //the executerequest can take an optional cb -- to invoked seperately
   //TODO: worry about this on second pass.. just call for now
@@ -172,22 +191,23 @@ Twine.prototype.buildBaseRequset = function buildBaseRequest (){
 
 Twine.prototype.executeRequest = function executeRequest (){
   var response = {};
+  var self = this;
   this.fetch.exec(function(err, result){
     //if there is an error returned from the fetch its server related
     //so send it back immediately
     if(err) this.cb(err, null);
     //if the result set is empty, invoke callback immediately, else process
     if(result.length === 0){
-      this.cb(err, result);
+      self.cb(err, result);
     }else{
       //set the base result set in the response object
       response.data = result;
       //if contains or resolve properties are set process, else return response
-      if(!this.contains || !this.resolve){
-        this.cb(err, response);
+      if(!self.contains || !self.resolve){
+        self.cb(err, response);
       }else{
-        this.process(response, function(err, process_result){
-          this.cb(err, process_result);
+        self.process(response, function(err, process_result){
+          self.cb(err, process_result);
         });
       }
     }
@@ -196,14 +216,15 @@ Twine.prototype.executeRequest = function executeRequest (){
 
 Twine.prototype.process = function process (base, block){
   var container = {};
+  var self = this;
   //if contains does exist send to resolve -- if nothing to resolve it will invoke 
   //the callback `block` and finish the process, thus retuning the result
-  if(!this.contains){
-    this.processResolve(base, this.resolve, container, block);
+  if(!self.contains){
+    self.processResolve(base, self.resolve, container, block);
   }else{
-    this.processContains(base, this.contains, function(base){
+    self.processContains(base, self.contains, function(base){
       //bubble up error?
-      this.processResolve(base, this.resolve, container, block);
+      self.processResolve(base, self.resolve, container, block);
     });
   }
 };
@@ -211,9 +232,9 @@ Twine.prototype.process = function process (base, block){
 Twine.prototype.processContains = function processContains(base, contains, block){
   for(var contain in contains){
     //set contain key
-    var k = Object.keys(contains[contain])[0];
+    var k = (Array.isArray(contains))? Object.keys(contains[contain])[0] : contain;
     //set contain value
-    var v = contains[contain][k];
+    var v = (Array.isArray(contains))? contains[contain][k] : contains[contain];
     //loop through each array in the result set & compare to contains key, value
     for(var num in base){
       if(doesObjectKeyExist(base[num], contain)){
@@ -238,16 +259,24 @@ Twine.prototype.processContains = function processContains(base, contains, block
 Twine.prototype.canResolve = function canResolve(field){
   var model_resolve_fields = this.Model.canResolve();
   for(var i in model_resolve_fields){
-    if(model_resolve_fields[i] === field) return model_resolve_fields[i];
+    if(Object.keys(model_resolve_fields[i])[0] === field) return model_resolve_fields[i];
   }
 };
 
-Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(object, field){
+Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(object,id,field){
   var distinct_array = [];
   if(Array.isArray(object)){
     for(var index in object){
-      if(distinct_array.indexOf(object[index][field]) === -1)
-        distinct_array.push(object[index][field]);
+      object[index] = (typeof object[index].toObject === 'function')? object[index].toObject() : object[index];
+      if(Array.isArray(object[index][field])){
+        for(var i in object[index][field]){
+          if(distinct_array.indexOf(object[index][field][i][id].toString()) === -1)
+            distinct_array.push(object[index][field][i][id].toString());
+        }
+      }else{
+        if(distinct_array(object[index][field][id].toString()) === -1)
+          distinct_array.push(object[index][field][id].toString());
+      }
     }
     return distinct_array;
   }else{
@@ -257,24 +286,32 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
 
 Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,id,cont,results){
   for(var r  in results){
-    cont[key][results[r][id]] = results[r];
+    results[r] = (typeof results[r].toObject === 'function')? results[r].toObject() : results[r];
+      var res_key = results[r][id].toString();
+      cont[key][res_key] = results[r];
   }
+  return cont;
 };
 
 Twine.prototype.processResolve = function processResolve(base, map, container, block){
-  //set the object to resolve & unshift the map array
-  var resolve_map_object = map.shift();
+  var self = this;
   //set resolve key
-  var resolve_field = Object.keys(resolve_map_object)[0];
+  var resolve_field = Object.keys(map)[0];
+  //set the object to resolve & unshift the map array
+  var resolve_map_object = map[resolve_field];
+  //delete the resolve field from the map object
+  delete map[resolve_field];
   //get the models can resolve details
-  var can_resolve = this.canResolve(resolve_field);
+  var can_resolve = self.canResolve(resolve_field);
   //get distinc values for the field to resolve for each field 
-  var distinct_values = getDistinctValuesForField(base, resolve_field);
+  var distinct_values = self.getDistinctValuesForField(base.data, 
+                                                       can_resolve[resolve_field].identifier, 
+                                                       resolve_field);
   //set model to fetch from
   var res_model = _mongoose.model(can_resolve[resolve_field].model);
   //resolve fetch criteria
   var criteria = {};
-  criteria[resolve_field] = {$in : distinct_values};
+  criteria[can_resolve[resolve_field].identifier] = {$in : distinct_values};
   //fetch resolve
   res_model.find(criteria, function(err, res){
     //if err, its server related, bubble up and invoke block
@@ -282,29 +319,36 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
       block(err, false);
     }else{
       //set container results for resolve key model 
-      var key = resolve_map_object[resolve_field].model;
-      var format = resolve_map_object[resolve_field].format;
-      if(doesObjectKeyExist(resolve_map_object, 'contains')){
-        processContains(res, resolve_map_object.contains, function(err, result){
-          if(err){
-            block(err, false);
-          }else{
-            this.setContainerResolveResults(key, can_resolve.identifier, container, res);
-            if(mapy.length > 0){
-              this.processResolve(base, map, container, block);
-            }else{
-              block(false, container);
-            }
-          }
-        });
-      }else{
-        //check if map array still has index if so call processResolve 
-        if(map.length > 0){
-          this.processResolve(base, map, container, block);
+      var key = resolve_map_object.model;
+      var format = resolve_map_object.format;
+      // if(doesObjectKeyExist(resolve_map_object, 'contains')){
+      //   self.processContains(res, resolve_map_object.contains, function(err, result){
+      //     if(err){
+      //       block(err, false);
+      //     }else{
+      //       self.setContainerResolveResults(key, can_resolve.identifier, container, res);
+      //       if(Object.keys(map).length > 0){
+      //         self.processResolve(base, map, container, block);
+      //       }else{
+      //         block(false, container);
+      //       }
+      //     }
+      //   });
+      // }else{
+        //check if map array still has index if so call processResolve
+        if(!doesObjectKeyExist(container, can_resolve[resolve_field].model)) 
+          container[can_resolve[resolve_field].model] = {};
+        container = self.setContainerResolveResults(can_resolve[resolve_field].model, 
+                                        can_resolve[resolve_field].identifier, 
+                                        container, res);
+        if(Object.keys(map).length > 0){
+          self.processResolve(base, map, container, block);
         }else{
-          block(false, container);
+          debugger;
+          if(Object.keys(container[Object.keys(container)[0]]).length > 0) base.resolve = container;
+          block(false, base);
         }
-      }
+      // }
     }
   });
 };

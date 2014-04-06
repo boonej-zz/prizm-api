@@ -91,20 +91,20 @@ describe('Twine Class Unit Tests', function(done){
         strictSSL: false,
         json: true,
         body: {
-          first_name: 'mark',
-          status: 0,
-          sort: 1,
-          sort_by:'create_date',
+          first_name: "mark",
+          status: "0",
+          sort: "1",
+          sort_by: "create_date",
           resolve: {
             following: {
-              format:'short',
-              fields: ['create_date', 'test'],
+              format:"short",
+              fields: ["create_date", "test"],
               contains: {
                 followers: DJ._id.toString()
               }
             },
             followers: {
-              format: 'short',
+              format: "short",
             }
           },
           contains: {
@@ -114,6 +114,10 @@ describe('Twine Class Unit Tests', function(done){
           }
         }
       };
+      var b = JSON.stringify(req.body);
+      // b = JSON.parse(b);
+      var t = new Buffer(b).toString('base64');
+      req.headers = {"x-arguments": t.toString()};
       new Twine('User', {_id: mark._id.toString()}, req, null, function(err, result){
         //TODO: finish tests & use cases
         debugger;
