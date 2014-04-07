@@ -224,14 +224,18 @@ Twine.prototype.process = function process (base, block){
   }else{
     self.processContains(base, self.contains, function(base){
       //bubble up error?
-      self.processResolve(base, self.resolve, container, block);
+      if(!self.resolve){
+        block(false, base);
+      }else{
+        self.processResolve(base, self.resolve, container, block);
+      }
     });
   }
 };
 
 Twine.prototype.processContains = function processContains(base, contains, block){
+  _logger.log('info', 'contains to be processed', {contains: contains});
   for(var contain in contains){
-    debugger;
     //set contain key
     var k = (Array.isArray(contains))? Object.keys(contains[contain])[0] : contain;
     //set contain value
