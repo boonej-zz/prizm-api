@@ -241,15 +241,19 @@ Twine.prototype.processContains = function processContains(base, contains, block
     //set contain value
     var v = (Array.isArray(contains))? contains[contain][k] : contains[contain];
     //loop through each array in the result set & compare to contains key, value
+    _logger.log('info', 'contain loop key value', {contain:contain, contains:contains, key:k, value:v});
     for(var num in base.data){
       var found = false;
       var has_key = false;
       if(doesObjectKeyExist(base.data[num], contain)){
         has_key = true;
         for(var check in base.data[num][contain]){
-          if(base.data[num][contain][check][k] === v){
+          _logger.log('info', 'does base.data index ' + num + ' field ' +contain+ ' field index + '+check+' key + '+k+' == value: '+v);
+          if(base.data[num][contain][check][k].toString() === v){
+            _logger.log('info', 'contains key value found: ' +base.data[num][contain][check][k].toString()+ ' matching v value: '+ v);
             base.data[num][contain] = [v];
             found = true;
+
           }
         }
         if(!found && has_key) base.data[num][contain] = [];
