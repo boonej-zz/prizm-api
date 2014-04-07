@@ -307,10 +307,11 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
   }
 };
 
-Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,id,cont,format,results){
+Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,id,cont,results){
   for(var r  in results){
+    debugger;
     results[r] = (typeof results[r].toObject === 'function') ? results[r].toObject() : results[r];
-      _logger.log('info', 'results iteration with index '+index+ ': ' + JSON.stringify(results[r]));
+      _logger.log('info', 'results iteration with index '+r+ ': ' + JSON.stringify(results[r]));
       var res_key = results[r][id].toString();
       _logger.log('info', 'resolve key in setContainerResolveResults', {res_key:res_key});
       cont[key][res_key] = results[r];
@@ -360,7 +361,7 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
     }else{
       //set container results for resolve key model 
       var key = resolve_map_object.model;
-      // var format = resolve_map_object.format;
+      // appliy contains if it exists
       // if(doesObjectKeyExist(resolve_map_object, 'contains')){
       //   self.processContains(res, resolve_map_object.contains, function(err, result){
       //     if(err){
@@ -384,10 +385,16 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
         if(Object.keys(map).length > 0){
           self.processResolve(base, map, container, block);
         }else{
-          debugger;
-          if(Object.keys(container[Object.keys(container)[0]]).length > 0) base.resolve = container;
+          //grab the container keys (should at least be 1 set by default)
+          var container_keys = Object.keys(container);
+          var c_key = container_keys[0];
+          //if the container_keys does not have a sub property dont return it (its empty)
+          //if it does, ammend the resolve to the return object
+          var add_resolve = false;
+          for(var prop in container[c_key]){ if(!!prop) add_resolve = true; }
+          if(add_resolve) base.resolve = container;
           block(false, base);
-        }
+       }
       // }
       }
     });
