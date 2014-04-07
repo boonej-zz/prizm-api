@@ -142,7 +142,18 @@ Twine.prototype.$__resolveFilterProperties = function $__resolveFilterProperties
   if(this.$__isBodySet()) findFilterProperties(this.Request.body, this.model_keys, this.filters);
 };
 
-Twine.prototype.$__setPage = function $__setPage(cb){};
+Twine.prototype.$__setPage = function $__setPage(){
+ if(this.page){
+    if(this.page_direction === 1){
+      this.criteria[page_by] = {$lt : this.page};
+    }else if(this.page_direction === -1){
+      this.criteria[page_by] = {$gt : this.page};
+    }else{
+      this.criteria[page_by] = {$gt : this.page};
+    }
+  }
+};
+
 Twine.prototype.$__setSelect = function $__setSelect(){
   var select = this.Model.selectFields('basic');
   if(this.contains){
@@ -166,8 +177,20 @@ Twine.prototype.$__setSelect = function $__setSelect(){
 
   this.fetch.select(select.join(" "));
 };
-Twine.prototype.$__setSort = function $__setSort(cb){};
-Twine.prototype.$__setLimit = function $__setLimit(cb){};
+Twine.prototype.$__setSort = function $__setSort(){
+  if(this.sort){
+   var sort = {};
+   if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
+   sort[this.sort_by] = this.sort;
+   _logger.log('info', 'setting sort', {sort: sort});
+   this.fetch.sort(sort);
+  }
+};
+
+Twine.prototype.$__setLimit = function $__setLimit(){
+  this.fetch.limit(this.limit);
+};
+
 Twine.prototype.$__setFilters = function $__setFilters(cb){
   //amend the filters to the existing criteria if exists
   if(this.filters){
@@ -178,10 +201,13 @@ Twine.prototype.$__setFilters = function $__setFilters(cb){
 };
 
 Twine.prototype.buildBaseRequest = function buildBaseRequest (){
+  this.$__setFilters();
+  this.$__setPage();
   //set intial fetch object with base criteria;
   this.fetch = this.Model.find(this.criteria);
   //ammend fetch with page, sort, filter, & select fields
   this.$__setSelect();
+  this.$__setLimit();
   //only execute the request if the callback is set. if not
   //the executerequest can take an optional cb -- to invoked seperately
   //TODO: worry about this on second pass.. just call for now
