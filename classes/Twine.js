@@ -238,23 +238,28 @@ Twine.prototype.processContains = function processContains(base, contains, block
   for(var contain in contains){
     //set contain key
     var k = Object.keys(contains[contain])[0];
+    _logger.log('info','key', {key: k});
     //set contain value
     var v = contains[contain][k];
+    _logger.log('info', 'value', {value: v});
     //loop through each array in the result set & compare to contains key, value
     _logger.log('info', 'contain loop key value', {contain:contain, contains:contains, key:k, value:v});
     for(var num in base.data){
       var found = false;
       var has_key = false;
+      _logger.log('info', 'index of base.data to be evaluated', {object: base.data[num]});
       if(doesObjectKeyExist(base.data[num], contain)){
         has_key = true;
         for(var check in base.data[num][contain]){
           _logger.log('info', 'does base.data index ' + num + ' field ' +contain+ ' field index + '+check+' key + '+k+' == value: '+v);
-          if(base.data[num][contain][check][k] === v){
-            _logger.log('info', 'contains key value found: ' +base.data[num][contain][check][k]+ ' matching v value: '+ v);
-            base.data[num][contain] = [v];
-            found = true;
-
-          }
+          _logger.log('info','field value to compare: ' + JSON.stringify(base.data[num][contain][check]));
+          if(typeof base.data[num][contain][check] !== 'undefined')
+            if(typeof base.data[num][contain][check][k] !== 'undefined')
+              if(base.data[num][contain][check][k] === v){
+                _logger.log('info', 'contains key value found: ' +base.data[num][contain][check][k]+ ' matching v value: '+ v);
+                base.data[num][contain] = [v];
+                found = true;
+              }
         }
         if(!found && has_key) base.data[num][contain] = [];
       }
@@ -290,8 +295,10 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
             distinct_array.push(object[index][field][i][id].toString());
         }
       }else{
-        if(distinct_array(object[index][field][id].toString()) === -1)
-          distinct_array.push(object[index][field][id].toString());
+        if(typeof distinct_array(object[index][field][id]) !== 'undefined')
+          if(distinct_array(object[index][field][id].toString()) === -1){
+            distinct_array.push(object[index][field][id].toString());
+          }
       }
     }
     return distinct_array;
@@ -328,6 +335,10 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
   //resolve fetch criteria
   var criteria = {};
   criteria[can_resolve[resolve_field].identifier] = {$in : distinct_values};
+  //resolve select format
+  // var select = (typeof resolve_map_object.format !== 'undefined') ? 
+  //   res_model.selecFields(resolve_map_object.format).join(" ")
+  //   : res_model.selectFields('basic');
   //fetch resolve
   res_model.find(criteria, function(err, res){
     //if err, its server related, bubble up and invoke block
@@ -355,7 +366,7 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
         if(!doesObjectKeyExist(container, can_resolve[resolve_field].model)) 
           container[can_resolve[resolve_field].model] = {};
         container = self.setContainerResolveResults(can_resolve[resolve_field].model, 
-                                        can_resolve[resolve_field].identifier, 
+                                        can_resolve[resolve_field].identifier,
                                         container, res);
         if(Object.keys(map).length > 0){
           self.processResolve(base, map, container, block);
