@@ -222,18 +222,6 @@ var createTrust = function(req, res){
 var fetchTrusts = function(req, res){
   validateTrustRequest(req, res, function(){
     var criteria = {_id: req.params.id};
-
-    //check to see if status filter is set
-    // if(typeof(req.query.status) !== 'undefined'){
-    //   // criteria["trusts.status"] = req.query.status;
-    //   criteria = {_id: req.params.id, "trusts.status": req.query.status};
-    // }
-
-    // //check to see if owner filter is set
-    // if(typeof(req.query.owner) !== 'undefined'){
-    //   criteria["trusts.owner"] = req.query.owner;
-    // }
-
     var fetch = User.findOne(criteria);
     fetch.populate('trusts.user_id', '_id name first_name last_name profile_photo_url');
     fetch.exec(function(err, result){
