@@ -203,7 +203,7 @@ Twine.prototype.executeRequest = function executeRequest (){
       //set the base result set in the response object
       response.data = result;
       //if contains or resolve properties are set process, else return response
-      if(!self.contains || !self.resolve){
+      if(!self.contains && !self.resolve){
         self.cb(err, response);
       }else{
         self.process(response, function(err, process_result){
@@ -231,16 +231,24 @@ Twine.prototype.process = function process (base, block){
 
 Twine.prototype.processContains = function processContains(base, contains, block){
   for(var contain in contains){
+    debugger;
     //set contain key
     var k = (Array.isArray(contains))? Object.keys(contains[contain])[0] : contain;
     //set contain value
     var v = (Array.isArray(contains))? contains[contain][k] : contains[contain];
     //loop through each array in the result set & compare to contains key, value
-    for(var num in base){
-      if(doesObjectKeyExist(base[num], contain)){
-        for(var check in base[num][contain]){
-          if(base[num][contain][check][k] === v) base[num][contain] = [v];
+    for(var num in base.data){
+      var found = false;
+      var has_key = false;
+      if(doesObjectKeyExist(base.data[num], contain)){
+        has_key = true;
+        for(var check in base.data[num][contain]){
+          if(base.data[num][contain][check][k] === v){
+            base.data[num][contain] = [v];
+            found = true;
+          }
         }
+        if(!found && has_key) base.data[num][contain] = [];
       }
     }
   }
@@ -349,6 +357,6 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
           block(false, base);
         }
       // }
-    }
-  });
+      }
+    });
 };
