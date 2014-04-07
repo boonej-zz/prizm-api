@@ -310,7 +310,9 @@ exports.fetchPostComments = function(req, res){
     new Twine('Post', criteria, req, {fields: "comments"}, function(err, result){
       if(err) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
       if(result.data & result.data.length > 0)
-        result = result.data[0].comments;
+        for(var i=0; i < result.data.length; i++){
+          result[i] = result[i].comments;
+        }
       _utils.prismResponse(res, result, true);
     });
   }else{
@@ -418,39 +420,12 @@ exports.fetchPostLikes = function(req, res){
             };
             _utils.prismResponse(res, null, false, likes_error);
           }else{
+            for(var i=0; i < post.data.length; i++){
+              post.data[i] = post.data[i].likes;
+            }
             _utils.prismResponse(res, post, true);
           }
         }
-
-//         if(post.likes_count > 0){
-//           var likes_users = [];
-//           var users_response = [];
-
-//           post.likes.forEach(function(likes){
-//             likes_users.push(likes._id);
-//           });
-
-//           if(likes_users.length > 0){
-//             User.find({_id: {$in : likes_users}}, function(err, users){
-//               if(users.length === likes_users.length){
-//                 users.forEach(function(user){
-//                   users_response.push(user.shortUser());
-//                 });
-
-//                 _utils.prismResponse(res, {likes_count: post.likes_count,
-//                                             likes: users_response}, true);
-//               }else{
-//                 _utils.prismResponse(res, null, false, PrismError.serverError);
-//               }
-//             });
-//           }else{
-//             _utils.prismResponse(res, null, false, likes_error);
-//           }
-//         }else{
-//           _utils.prismResponse(res, null, false, likes_error);
-//         }
-//       }
-//     });
     });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
