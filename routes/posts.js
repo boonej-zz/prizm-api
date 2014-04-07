@@ -311,7 +311,7 @@ exports.fetchPostComments = function(req, res){
       if(err) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
       if(result.data & result.data.length > 0)
         for(var i=0; i < result.data.length; i++){
-          result[i] = result[i].comments;
+          result.data[i] = result.data[i].comments;
         }
       _utils.prismResponse(res, result, true);
     });
