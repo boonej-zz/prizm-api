@@ -67,9 +67,6 @@ _app.use(_e_winston.logger({
 
 _app.use(_app.router);
 
-logger.log('info', 'this is retarded');
-logger.log('error', 'does this error show up too>>??');
-
 /* express winston errorLogger after router */
 _app.use(_e_winston.errorLogger({
   transports: errorTransports

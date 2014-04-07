@@ -27,10 +27,23 @@ var activitySchema = new _mongoose.Schema({
 }, { versionKey: false });
 
 activitySchema.statics.selectFields = function(type){
-  if(type === 'short'){
-
+  if(type === 'short' || type == 'basic'){
+    return ['id','type', 'user', 'target', 'create_date', 'context','action'];
   }
+};
 
+activitySchema.methods.format = function(type){
+  if(type === 'short' || type === 'basic'){
+    return {
+      _id: this._id,
+      type: this.type,
+      user: this.user,
+      target: this.target,
+      context: this.context,
+      create_date: this.create_date,
+      action: this.action
+    };
+  }
 };
 
 /**
