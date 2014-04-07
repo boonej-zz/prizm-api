@@ -145,11 +145,11 @@ Twine.prototype.$__resolveFilterProperties = function $__resolveFilterProperties
 Twine.prototype.$__setPage = function $__setPage(){
  if(this.page){
     if(this.page_direction === 1){
-      this.criteria[page_by] = {$lt : this.page};
+      this.criteria[this.page_by] = {$lt : this.page};
     }else if(this.page_direction === -1){
-      this.criteria[page_by] = {$gt : this.page};
+      this.criteria[this.page_by] = {$gt : this.page};
     }else{
-      this.criteria[page_by] = {$gt : this.page};
+      this.criteria[this.page_by] = {$gt : this.page};
     }
   }
 };
@@ -337,12 +337,15 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
 
 Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,id,cont,results){
   for(var r  in results){
-    results[r] = (typeof results[r].toObject === 'function') ? results[r].toObject() : results[r];
-    _logger.log('info', 'results iteration with index '+r+ ': ' + JSON.stringify(results[r]));
-    var res_key = results[r][id].toString();
-    _logger.log('info', 'resolve key in setContainerResolveResults', {res_key:res_key});
-    cont[key][res_key] = results[r];
-    _logger.log('info', 'container set with result index from setContainerResolveResults', {container: cont});
+    if(typeof results[r] !== 'undefined')
+      results[r] = (typeof results[r].toObject === 'function') ? results[r].toObject() : results[r];
+      _logger.log('info', 'results iteration with index '+r+ ': ' + JSON.stringify(results[r]));
+      if(typeof results[r][id] !== 'undefined'){
+        var res_key = results[r][id].toString();
+        _logger.log('info', 'resolve key in setContainerResolveResults', {res_key:res_key});
+        cont[key][res_key] = results[r];
+        _logger.log('info', 'container set with result index from setContainerResolveResults', {container: cont});
+      }
   }
   _logger.log('info', 'returning container from setContainerResolveResults', {container:cont});
   return cont;
@@ -361,6 +364,25 @@ Twine.prototype.$__ammendResultsWithContainer = function $__ammendResultsWithCon
   }
   _logger.log('info', 'ammendResultsWithContainerKeys decision: '+decision);
   return decision;
+};
+
+Twine.prototype.$__buildResolveFetchSelect = function $__buildResolveFetchSelect(model, map_object){
+  var select = [];
+  if(doesObjectKeyExist(map_object, 'format')){
+    var format = map_object.format;
+    select = model.selectFields(format);
+    if(doesObjectKeyExist(map_object, 'contains')){
+      var contains_keys = Object.keys(map_object.contains);
+      if(contains_keys.length > 1){
+        for(var key in contains_keys){
+          select.push(key);
+        }
+      }else{
+        select.push(contains_keys[0]);
+      }
+    }
+  }
+  return select.join(" ");
 };
 
 Twine.prototype.processResolve = function processResolve(base, map, container, block){
@@ -386,10 +408,7 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
   var criteria = {};
   criteria[can_resolve[resolve_field].identifier] = {$in : distinct_values};
   _logger.log('info', 'resolve criteria', {criteria: criteria});
-  //resolve select format
-  var select = (typeof resolve_map_object.format !== 'undefined') ? 
-    res_model.selectFields(resolve_map_object.format).join(" ")
-    : res_model.selectFields('short').join(" ");
+  var select = self.$__buildResolveFetchSelect(res_model, resolve_map_object);
   //fetch resolve
   _logger.log('info', 'resolve fetch select', {select:select});
   var fetch_resolve = res_model.find(criteria);
@@ -401,15 +420,16 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
     if(err){
       block(err, false);
     }else{
+      //check to ensure the model property is set for setting resolved result sets..
+      //if not set, ucaught exception is thrown for setting a key for property that doesnt exist.
+      if(!doesObjectKeyExist(container, can_resolve[resolve_field].model))
+        container[can_resolve[resolve_field].model] = {};
       //set container results for resolve key model 
       var key = resolve_map_object.model;
       // appliy contains if it exists
       if(doesObjectKeyExist(resolve_map_object, 'contains')){
-        self.processContains(res, resolve_map_object.contains, function(err, result){
-          if(err){
-            block(err, false);
-          }else{
-            self.setContainerResolveResults(can_resolve[resolve_field].model,
+        self.processContains(res, resolve_map_object.contains, function(result){
+            container = self.setContainerResolveResults(can_resolve[resolve_field].model,
                                             can_resolve[resolve_field].identifier, 
                                             container, result);
             _logger.log('info', 'contains result inside resolve', {result: result, container:container});
@@ -419,12 +439,11 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
             }else{
               block(false, base);
             }
-          }
         });
       }else{
         //check if map array still has index if so call processResolve
-        if(!doesObjectKeyExist(container, can_resolve[resolve_field].model)) 
-          container[can_resolve[resolve_field].model] = {};
+        // if(!doesObjectKeyExist(container, can_resolve[resolve_field].model)) 
+        //   container[can_resolve[resolve_field].model] = {};
         container = self.setContainerResolveResults(can_resolve[resolve_field].model, 
                                         can_resolve[resolve_field].identifier,
                                         container, res);
