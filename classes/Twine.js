@@ -295,8 +295,8 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
             distinct_array.push(object[index][field][i][id].toString());
         }
       }else{
-        if(typeof distinct_array(object[index][field][id]) !== 'undefined')
-          if(distinct_array(object[index][field][id].toString()) === -1){
+        if(typeof object[index][field][id] !== 'undefined')
+          if(distinct_array.indexOf(object[index][field][id].toString()) === -1){
             distinct_array.push(object[index][field][id].toString());
           }
       }
@@ -307,12 +307,16 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
   }
 };
 
-Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,id,cont,results){
+Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,id,cont,format,results){
   for(var r  in results){
-    results[r] = (typeof results[r].toObject === 'function')? results[r].toObject() : results[r];
+    results[r] = (typeof results[r].toObject === 'function') ? results[r].toObject() : results[r];
+      _logger.log('info', 'results iteration with index '+index+ ': ' + JSON.stringify(results[r]));
       var res_key = results[r][id].toString();
+      _logger.log('info', 'resolve key in setContainerResolveResults', {res_key:res_key});
       cont[key][res_key] = results[r];
+      _logger.log('info', 'container set with result index from setContainerResolveResults', {container: cont});
   }
+  _logger.log('info', 'returning container from setContainerResolveResults', {container:cont});
   return cont;
 };
 
@@ -322,32 +326,41 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
   var resolve_field = Object.keys(map)[0];
   //set the object to resolve & unshift the map array
   var resolve_map_object = map[resolve_field];
+  _logger.log("info", "resolve mapped object", {resolve_map_object:resolve_map_object});
   //delete the resolve field from the map object
   delete map[resolve_field];
   //get the models can resolve details
   var can_resolve = self.canResolve(resolve_field);
+  _logger.log('info','can resolve', {can_resolve:can_resolve});
   //get distinc values for the field to resolve for each field 
   var distinct_values = self.getDistinctValuesForField(base.data, 
                                                        can_resolve[resolve_field].identifier, 
                                                        resolve_field);
+  _logger.log('info', 'resolve distinct_values', {distinct: distinct_values});
   //set model to fetch from
   var res_model = _mongoose.model(can_resolve[resolve_field].model);
   //resolve fetch criteria
   var criteria = {};
   criteria[can_resolve[resolve_field].identifier] = {$in : distinct_values};
+  _logger.log('info', 'resolve criteria', {criteria: criteria});
   //resolve select format
-  // var select = (typeof resolve_map_object.format !== 'undefined') ? 
-  //   res_model.selecFields(resolve_map_object.format).join(" ")
-  //   : res_model.selectFields('basic');
+  var select = (typeof resolve_map_object.format !== 'undefined') ? 
+    res_model.selectFields(resolve_map_object.format).join(" ")
+    : res_model.selectFields('short').join(" ");
   //fetch resolve
-  res_model.find(criteria, function(err, res){
+  _logger.log('info', 'resolve fetch select', {select:select});
+  var fetch_resolve = res_model.find(criteria);
+  //set select format
+  fetch_resolve.select(select);
+  fetch_resolve.exec(function(err, res){
+    _logger.log('info', 'fetch resolve results: ', {err:err, results:res});
     //if err, its server related, bubble up and invoke block
     if(err){
       block(err, false);
     }else{
       //set container results for resolve key model 
       var key = resolve_map_object.model;
-      var format = resolve_map_object.format;
+      // var format = resolve_map_object.format;
       // if(doesObjectKeyExist(resolve_map_object, 'contains')){
       //   self.processContains(res, resolve_map_object.contains, function(err, result){
       //     if(err){
