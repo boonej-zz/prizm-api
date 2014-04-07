@@ -402,50 +402,55 @@ exports.likePost = function(req, res){
  */
 exports.fetchPostLikes = function(req, res){
   if(req.params.id){
-    Post.findOne(
-      {_id: req.params.id, status: 'active'},
-      {likes:1, likes_count:1},
-      function(err, post){
-
-      if(err || !post){
-        _utils.prismResponse(res, null , false, PrismError.serverError);
-      }else{
-        var likes_error = {
-            status_code: 400,
-            error_info:{
-              error: 'unable_to_fetch_post_likes',
-              error_description: 'post does not currently have any likes'
-            }
-          };
-
-        if(post.likes_count > 0){
-          var likes_users = [];
-          var users_response = [];
-
-          post.likes.forEach(function(likes){
-            likes_users.push(likes._id);
-          });
-
-          if(likes_users.length > 0){
-            User.find({_id: {$in : likes_users}}, function(err, users){
-              if(users.length === likes_users.length){
-                users.forEach(function(user){
-                  users_response.push(user.shortUser());
-                });
-
-                _utils.prismResponse(res, {likes_count: post.likes_count,
-                                            likes: users_response}, true);
-              }else{
-                _utils.prismResponse(res, null, false, PrismError.serverError);
-              }
-            });
-          }else{
-            _utils.prismResponse(res, null, false, likes_error);
-          }
+    //Post.findOne(
+      var criteria = {_id: req.params.id, status: 'active'};
+      new Twine('Post', criteria, req, {fields: ['likes','likes_count']}, function(err, post){
+        if(err){
+          _utils.prismResponse(res, null , false, PrismError.serverError);
         }else{
-          _utils.prismResponse(res, null, false, likes_error);
+          if(!post){
+            var likes_error = {
+              status_code: 400,
+              error_info:{
+                error: 'unable_to_fetch_post_likes',
+                error_description: 'post does not currently have any likes'
+              }
+            };
+            _utils.prismResponse(res, null, false, likes_error);
+          }else{
+            _utils.prismResponse(res, post, true);
+          }
         }
-      }
+
+//         if(post.likes_count > 0){
+//           var likes_users = [];
+//           var users_response = [];
+
+//           post.likes.forEach(function(likes){
+//             likes_users.push(likes._id);
+//           });
+
+//           if(likes_users.length > 0){
+//             User.find({_id: {$in : likes_users}}, function(err, users){
+//               if(users.length === likes_users.length){
+//                 users.forEach(function(user){
+//                   users_response.push(user.shortUser());
+//                 });
+
+//                 _utils.prismResponse(res, {likes_count: post.likes_count,
+//                                             likes: users_response}, true);
+//               }else{
+//                 _utils.prismResponse(res, null, false, PrismError.serverError);
+//               }
+//             });
+//           }else{
+//             _utils.prismResponse(res, null, false, likes_error);
+//           }
+//         }else{
+//           _utils.prismResponse(res, null, false, likes_error);
+//         }
+//       }
+//     });
     });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);

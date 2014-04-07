@@ -91,6 +91,7 @@ Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(){
     //base64 decode the x-args header
     var args = new Buffer(this.Request.headers[X_ARGUMENTS_HEADER], 'base64').toString('utf8');
     res = JSON.parse(args);
+    _logger.log('info', 'digested header arguments', {"x-arguments": res});
   }
   return res;
 };
@@ -169,7 +170,7 @@ Twine.prototype.$__setSelect = function $__setSelect(){
     }
   }
   if(this.fields){
-    var array = this.fields.split(" ");
+    var array = (Array.isArray(this.fields)) ? this.fields : this.fields.split(" ");
     for(var a in array){
       if(select.indexOf(array[a]) === -1) select.push(array[a]);
     }
@@ -314,6 +315,8 @@ Twine.prototype.canResolve = function canResolve(field){
 
 Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(object,id,field){
   var distinct_array = [];
+  _logger.log('info', 'object, id, field to getch distinct values', {field:field, id:id, object:object});
+  _logger.log('info', 'is object an array: ' + (Array.isArray(object)));
   if(Array.isArray(object)){
     for(var index in object){
       object[index] = (typeof object[index].toObject === 'function')? object[index].toObject() : object[index];
@@ -323,9 +326,15 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
             distinct_array.push(object[index][field][i][id].toString());
         }
       }else{
-        if(typeof object[index][field][id] !== 'undefined')
-          if(distinct_array.indexOf(object[index][field][id].toString()) === -1){
-            distinct_array.push(object[index][field][id].toString());
+        if(typeof object[index][field] !== 'undefined')
+          if(doesObjectKeyExist(object[index][field], id)){
+            if(distinct_array.indexOf(object[index][field][id].toString()) === -1){
+              distinct_array.push(object[index][field][id].toString());
+            }
+          }else{
+            if(distinct_array.indexOf(object[index][field]) === -1){
+              distinct_array.push(object[index][field]);
+            }
           }
       }
     }
@@ -442,26 +451,16 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
         });
       }else{
         //check if map array still has index if so call processResolve
-        // if(!doesObjectKeyExist(container, can_resolve[resolve_field].model)) 
-        //   container[can_resolve[resolve_field].model] = {};
         container = self.setContainerResolveResults(can_resolve[resolve_field].model, 
                                         can_resolve[resolve_field].identifier,
                                         container, res);
         if(Object.keys(map).length > 0){
           self.processResolve(base, map, container, block);
         }else{
-          //grab the container keys (should at least be 1 set by default)
-          // var container_keys = Object.keys(container);
-          // var c_key = container_keys[0];
-          // //if the container_keys does not have a sub property dont return it (its empty)
-          // //if it does, ammend the resolve to the return object
-          // var add_resolve = false;
-          // for(var prop in container[c_key]){ if(!!prop) add_resolve = true; }
-          // if(add_resolve) base.resolve = container;
           if(self.$__ammendResultsWithContainer(container)) base.resolve = container;
           block(false, base);
-       }
+        }
+      }
     }
-    }
-    });
+  });
 };
