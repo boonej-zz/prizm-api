@@ -82,6 +82,7 @@ exports.createPostComment = function(req, res){
             //emit event for comment
             process.emit('activity', {
               type: 'comment',
+              context: 'post',
               action: 'create',
               user: req.body.creator,
               target: req.params.id,

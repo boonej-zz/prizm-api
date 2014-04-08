@@ -87,7 +87,7 @@ ActivityListener.prototype.activityHandler = function(object){
       this.postActivity(object);
       break;
     case 'comment':
-      this.commentActivity(object);
+      this.postActivity(object);
       break;
     case 'trust':
       this.postActivity(object);
