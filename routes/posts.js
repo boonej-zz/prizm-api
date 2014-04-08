@@ -308,12 +308,14 @@ exports.fetchPostComments = function(req, res){
   if(req.params.id){
     var criteria = {_id: req.params.id, status: 'active'};
     new Twine('Post', criteria, req, {fields: "comments"}, function(err, result){
-      if(err) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
-      if(result.data & result.data.length > 0)
+      if(err){ 
+        _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+      }else{
         for(var i=0; i < result.data.length; i++){
           result.data[i] = result.data[i].comments;
         }
-      _utils.prismResponse(res, result, true);
+        _utils.prismResponse(res, result, true);
+      }
     });
   }else{
     _utils.prismResponse(res,null,false,PrismError.invalidRequest);
