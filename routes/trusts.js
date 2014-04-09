@@ -10,6 +10,7 @@ var _mongoose     = require('mongoose'),
     PrismError    = require(_prism_home + 'error'),
     User          = require(_prism_home + 'models/user').User,
     Post          = require(_prism_home + 'models/post').Post,
+    Activity      = require(_prism_home + 'models/user').Activity,
     Trust         = require(_prism_home + 'models/user').Trust;
 
 var trust_status = {
