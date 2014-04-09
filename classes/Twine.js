@@ -67,6 +67,12 @@ function Twine(model, criteria, Request, options, callback){
     self.$__parse('resolve', null)
     : options.resolve;
   this.fetch = null;
+  this.has_child_model = (self.$__optExists('is_child_model')) ?
+    options.is_child_model : null;
+  this.child_model = (self.$__optExists('child_model')) ?
+    _mongoose.model(options.child_model) : null;
+  this.child_model_name = (self.has_child_model) ? 
+    options.child_model : null;
   this.model_keys = [];
   //intro the Schema & set available model keys
   for(var key in this.Schema.paths){
@@ -241,9 +247,25 @@ Twine.prototype.executeRequest = function executeRequest (){
   });
 };
 
+Twine.prototype.$__formatChildModelBaseResults = function(base, model_name){
+  //pluralize the child model name to match the naaming convention of
+  //parent model property
+  model_name = this.$__formatMongooseModelStringForProperty(model_name);
+  for(var index in base.data){
+    if(typeof base.data[index][model_name] !== 'undefined')
+      base.data[index] = base.data[index][model_name];
+  }
+  debugger;
+  return base;
+};
+
 Twine.prototype.process = function process (base, block){
   var container = {};
   var self = this;
+  if(self.has_child_model){
+    base = self.$__formatChildModelBaseResults(base, self.child_model_name);
+    debugger;
+  }
   //if contains does exist send to resolve -- if nothing to resolve it will invoke 
   //the callback `block` and finish the process, thus retuning the result
   if(!self.contains){
@@ -291,7 +313,23 @@ Twine.prototype.processContains = function processContains(base, contains, block
               }
         }
         if(!found && has_key) base.data[num][contain] = [];
+      }else if(Array.isArray(base.data[num])){
+        debugger;
+        for(var i in base.data[num]){
+          if(doesObjectKeyExist(base.data[num][i], contain)){
+            has_key = true;
+            for(var check in base.data[num][i][contain]){
+              if(typeof base.data[num][i][contain][check] !== 'undefined' &&
+                 typeof base.data[num][i][contain][check][k] !== 'undefined'){
+                if(base.data[num][i][contain][check][k] === v){
+                  base.data[num][i][contain] = base.data[num][i][contain][check][k];
+                }
+              }
+            }
+          }
+        }
       }
+      debugger;
     }
   }
   block(base);
@@ -307,10 +345,32 @@ Twine.prototype.processContains = function processContains(base, contains, block
  */
 
 Twine.prototype.canResolve = function canResolve(field){
-  var model_resolve_fields = this.Model.canResolve();
+  var model_resolve_fields = (this.has_child_model) ? 
+    this.child_model.canResolve() : this.Model.canResolve();
   for(var i in model_resolve_fields){
     if(Object.keys(model_resolve_fields[i])[0] === field) return model_resolve_fields[i];
   }
+};
+
+Twine.prototype.$__formatStringForMongooseModel = function $__formatStringForMongooseModel(string){
+  string = string.charAt(0).toUpperCase() + string.toLowerCase().slice(1);
+  if(string.charAt(string.length -1) === 's')
+    string = string.substring(0, string.length -1);
+  return string;
+};
+
+Twine.prototype.$__formatMongooseModelStringForProperty = function(string){
+  string = string.toLowerCase();
+  if(string.charAt(string.length -1) !== 's') return string + 's';
+  return string;
+};
+
+Twine.prototype.$__isEmbeddedModelObject = function $__isEmbeddedModelObject(model_string, cb){
+  var model = this.$__formatStringForMongooseModel(model_string);
+  if(typeof _mongoose.model(model) !== 'undefined'){
+    return true;
+  }
+  return false;
 };
 
 Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(object,id,field){
@@ -320,7 +380,13 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
   if(Array.isArray(object)){
     for(var index in object){
       object[index] = (typeof object[index].toObject === 'function')? object[index].toObject() : object[index];
-      if(Array.isArray(object[index][field])){
+      if(typeof object[index][field] == 'undefined' && Array.isArray(object[index])){
+        debugger;
+        for(var c in object[index]){
+          if(distinct_array.indexOf(object[index][c][field].toString()) === -1)
+             distinct_array.push(object[index][c][field].toString());
+        }
+      }else if(Array.isArray(object[index][field])){
         for(var i in object[index][field]){
           if(distinct_array.indexOf(object[index][field][i][id].toString()) === -1)
             distinct_array.push(object[index][field][i][id].toString());
@@ -339,6 +405,7 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
       }
     }
     return distinct_array;
+    debugger;
   }else{
     return false;
   }

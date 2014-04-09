@@ -21,6 +21,21 @@ var commentSchema = new _mongoose.Schema({
   likes_count         : {type: Number, default: 0}
 });
 
+commentSchema.statics.selectFields = function(type){
+  var select = ['comments._id', 'comments.text',
+    'comments.creator','comments.create_date','comments.likes_count'];
+  if(type === 'basic')
+    select.push('comments.likes');
+  return select;
+};
+
+commentSchema.statics.canResolve = function(){
+  return [
+    {creator: {identifier: '_id', model: 'User'}},
+    {likes: {identifier: '_id', model: 'User'}}
+  ];
+};
+
 /**
  * Description of Post Status types
  * @type {Object}
