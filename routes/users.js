@@ -361,7 +361,8 @@ exports.createUserPost = function(req, res){
       if(req.body.file_path && req.body.file_path != 'undefined') post.file_path = req.body.file_path;
       if(req.body.text && req.body.text != 'undefined') post.text = req.body.text;
       if(req.body.scope != 'undefined') post.scope = req.body.scope;
-
+      if(req.body.external_provider !== 'undefined') post.external_provider = req.body.external_provider;
+      if(req.body.external_link !== 'undefined') post.external_link = req.body.external_link;
       if(req.body.hash_tags){
         post.hash_tags = req.body.hash_tags;
         post.hash_tags_count = req.body.hash_tags.length;
