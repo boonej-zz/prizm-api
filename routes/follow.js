@@ -104,6 +104,21 @@ exports.follow = function(req, res){
                   target: req.params.id,
                   object: followee_update
                 });
+
+                new Activity({
+                  action: follow,
+                  to: req.params.id,
+                  from: req.body.creator
+                }).save(function(err, activity){
+                  if(err){
+                    _logger.log('error', 'an error recieved while creating a FOLLOW activity',
+                                {err:err, activity:activity});
+                    _utils.prismResponse(res, null, false, PrismError.serverError);
+                  }else{
+                    _logger.log('info', 'successfully created FOLLOW activity', {activty:activity});
+                    _utils.prismResponse(res, {message: "Successfully followed "+req.params.id}, true);
+                  }
+                });
                 //return response
                 _utils.prismResponse(res, {message: 'Succesfully followed '+req.params.id}, true);
               });

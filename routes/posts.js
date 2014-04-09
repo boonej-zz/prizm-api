@@ -13,6 +13,7 @@ var _mongoose         = require('mongoose'),
     User              = require(_prism_home + 'models/user').User,
     Post              = require(_prism_home + 'models/post').Post,
     ActivityListener  = require(_prism_home + 'classes/ActivityListener'),
+    Activity          = require(_prism_home + 'models/activity').Activity,
     Twine             = require(_prism_home + 'classes/Twine'),
     Comment           = require(_prism_home + 'models/post').Comment;
 
@@ -79,20 +80,25 @@ exports.createPostComment = function(req, res){
               _id: comment._id
             };
 
-            //emit event for comment
-            process.emit('activity', {
-              type: 'comment',
-              context: 'post',
-              action: 'create',
-              user: req.body.creator,
-              target: req.params.id,
-              scope: saved.scope,
-              object: comment_with_user
+            //create activity
+            new Activty({
+              action: 'comment',
+              to: post.creator,
+              from: req.body.creator,
+              post_id: req.params.id,
+              comment_id: comment._id
+            }).save(function(err, activity){
+              if(err){
+                _logger.log('error', 'error returned when creating new COMMENT activity',
+                            {err:err, activity:activity, comment:comment_with_user, post_id:post._id});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+              }else{
+                //return response
+                var response = {comments: comment_with_user, comments_count: saved.comments_count};
+                _logger.log('info', 'comment activity created', {activity:activity});
+                _utils.prismResponse(res, response, true);
+              }
             });
-
-            //return response
-            var response = {comments: comment_with_user, comments_count: saved.comments_count};
-            _utils.prismResponse(res, response, true);
           });
         }
       });
@@ -375,17 +381,23 @@ exports.likePost = function(req, res){
               var response = {  likes_count: post.likes_count,
                                 likes: [{_id: req.body.creator.toString()}] };
 
-              //emit like_post activity
-              process.emit('activity', {
-                type: 'like',
-                context: 'post',
-                user: req.body.creator,
-                target: req.params.id,
-                action: 'create',
-                object: response
+              //create activity
+              new Activity({
+                action: 'like',
+                to: post.creator,
+                from: req.body.creator,
+                post_id: post._id
+              }).save(function(err, activity){
+                if(err){
+                  _logger.log('error', 'there was an error creating a POST LIKE activity',
+                              {err:err, activity:activity, post_id: post._id});
+                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                }else{
+                  _logger.log('info', 'created activity for POST LIKE', 
+                              {activity: activity, post_id:post._id});
+                  _utils.prismResponse(res, response, true);
+                }
               });
-
-              _utils.prismResponse(res, response, true);
             }
           });
         }
@@ -512,7 +524,7 @@ exports.likeComment = function(req,res){
       "comments._id": req.params.comment_id,
       status: 'active'
     })
-    .select('comments')
+    .select('comments creator')
     .exec(function(error, comment){
       if(error || !comment) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
 
@@ -565,17 +577,21 @@ exports.likeComment = function(req,res){
           var response = { likes_count: saved.comments[comment_index].likes_count,
                            likes: saved.comments[comment_index].likes[like_index] };
 
-          //emit like comment activity event
-          process.emit('activity', {
-            type: 'like',
-            context: 'comment',
-            user: req.body.creator,
-            target: req.params.comment_id,
-            action: 'create',
-            object: response
+          new Activity({
+            action: 'like',
+            to: comment.creator,
+            from: req.body.creator,
+            post_id: req.params.id,
+            comment_id: req.params.comment_id
+          }).save(function(err, activity){
+            if(err){
+              _logger.log('error', 'error returned while creating COMMENT LIKE activty',
+                          {err:err, activity:activity});
+              _utils.prismResponse(res, null, false, PrismError.serverError);
+            }else{
+              _utils.prismResponse(res, response, true);
+            }
           });
-          //return the response object
-          _utils.prismResponse(res, response, true);
         });
       }
     });

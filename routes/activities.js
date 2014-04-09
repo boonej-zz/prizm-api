@@ -14,7 +14,7 @@ var _mongoose   = require('mongoose'),
 
 exports.fetchUserActivity = function fetchUserActivity(req, res){
   if(req.params.id){
-    var criteria = {$or: [{user: req.params.id},{target: req.params.id}]};
+    var criteria = {to: req.params.id};
     new Twine('Activity', criteria, req, null, function(error, result){
       if(error) _utils.prismResponse(res, null, false, PrismError.serverError);
       _utils.prismResponse(res, result, true);

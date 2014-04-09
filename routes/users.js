@@ -13,6 +13,7 @@ var _mongoose     = require('mongoose'),
     Google        = require(_prism_home + 'classes/Google'),
     User          = require(_prism_home + 'models/user').User,
     Twine         = require(_prism_home + 'classes/Twine'),
+    Activity      = require(_prism_home + 'models/activity'),
     Post          = require(_prism_home + 'models/post').Post;
 
 /**
@@ -261,6 +262,8 @@ exports.updateUser = function(req, res){
         if(typeof(body.birthday) !== 'undefined') user.birthday = body.birthday;
         if(typeof(body.profile_photo_url) !== 'undefined') user.profile_photo_url = body.profile_photo_url;
         if(typeof(body.cover_photo_url) !== 'undefined') user.cover_photo_url = body.cover_photo_url;
+        if(typeof(body.instagram_token) !== 'undefined') user.instagram_token = body.instagram_token;
+        if(typeof(body.instagram_min_id) !== 'undefined') user.instagram_min_id = body.instagram_min_id;
         user.save(function(err, saved){
           if(err || !saved){
             _utils.prismResponse(res, null, false, error);
@@ -303,7 +306,7 @@ exports.fetchUserNewsFeed = function(req, res){
 
         //user should see its own posts, so add the user to the following_array
         //which is used in the search criteria
-        
+
         //TODO: ensure trust is accepted
         var posts_array = [];
 
@@ -402,29 +405,15 @@ exports.createUserPost = function(req, res){
                         console.log(err);
                         _utils.prismResponse(res, null, false, PrismError.serverError);
                       }else{
+                        var activity;
                         if(usr.is_repost){
                           usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
                             usr = usr.toObject();
                             usr.origin_post_creator = org_user;
-                            process.emit('activity', {
-                              type: 'repost',
-                              action: 'create',
-                              user: req.body.creator,
-                              target: req.params.id,
-                              scope: usr.scope,
-                              object: usr
-                            });
                             _utils.prismResponse(res, usr, true);
                           });
+
                         }else{
-                          process.emit('activity', {
-                              type: 'post',
-                              action: 'create',
-                              user: req.body.creator,
-                              target: req.params.id,
-                              scope: usr.scope,
-                              object: usr
-                            });
                           _utils.prismResponse(res, usr, true);
                         }
                       }

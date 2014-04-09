@@ -15,33 +15,40 @@ var _mongoose     = require('mongoose'),
  * @type {Mongoose.Schema}
  */
 var activitySchema = new _mongoose.Schema({
-  type:         {type: String, default: null, required: true},
-  user:         {type: _object_id, ref: 'User', required: true},
-  target:       {type: _object_id, ref: 'User', required: true},
+  from:         {type: _object_id, ref: 'User', required: true},
+  to:           {type: _object_id, ref: 'User', required: true},
   create_date:  {type: Date, default: null, required: false},
-  scope:        {type: String, default: 'public', required: false},
-  object:       {type: Object, default: null, required: false},
-  context:      {type: Object, default: null, required: false},
-  route:        {type: String, default: null, required: false},
-  action:       {type: String, default: null, required: false}
+  action:       {type: String, default: null, required: false},
+  post_id:      {type: String, default: null, required: false},
+  comment_id:   {type: String, default: null, required: false},
+
 }, { versionKey: false });
 
 activitySchema.statics.selectFields = function(type){
   if(type === 'short' || type == 'basic'){
-    return ['id','type', 'user', 'target', 'create_date', 'context','action'];
+    return ['id','from','to','create_date','post_id','comment_id','action'];
   }
+};
+
+activitySchema.methods.canResolve = function(){
+  return [
+    {from: {identifier: '_id', model: 'User'}},
+    {to: {identifier: '_id', model: 'User'}},
+    {post_id: {identifier: '_id', model: 'Post'}},
+    {comment_id: {identifier: 'comments._id', model: 'Post'}}
+  ];
 };
 
 activitySchema.methods.format = function(type){
   if(type === 'short' || type === 'basic'){
     return {
       _id: this._id,
-      type: this.type,
-      user: this.user,
-      target: this.target,
-      context: this.context,
-      create_date: this.create_date,
-      action: this.action
+      from: this.from,
+      to: this.to,
+      action: this.action,
+      post_id: this.post_id,
+      comment_id: this.comment_id,
+      create_date: this.create_date
     };
   }
 };
