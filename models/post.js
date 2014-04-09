@@ -21,6 +21,21 @@ var commentSchema = new _mongoose.Schema({
   likes_count         : {type: Number, default: 0}
 });
 
+commentSchema.statics.selectFields = function(type){
+  var select = ['comments._id', 'comments.text',
+    'comments.creator','comments.create_date','comments.likes_count'];
+  if(type === 'basic')
+    select.push('comments.likes');
+  return select;
+};
+
+commentSchema.statics.canResolve = function(){
+  return [
+    {creator: {identifier: '_id', model: 'User'}},
+    {likes: {identifier: '_id', model: 'User'}}
+  ];
+};
+
 /**
  * Description of Post Status types
  * @type {Object}
@@ -63,6 +78,71 @@ var postSchema = new _mongoose.Schema({
   is_repost           : {type: Boolean, default: false},
   origin_post_id      : {type: String, default: null}
 }, { versionKey: false});
+
+postSchema.statics.canResolve = function(){
+  return [
+    {creator: {identifier: '_id', model: 'User'}},
+    {target_id: {identifier: '_id', model: 'User'}},
+    {comments: {identifier: 'creator', model: 'User'}},
+    {likes: {identifier: '_id', model: 'User'}}
+  ];
+};
+
+postSchema.statics.selectFields = function(type){
+  if(type === 'short'){
+    return ['_id','text','category','create_date','file_path',
+            'location_name','location_longitude','location_latitude',
+            'creator','target_id','likes_count','comments_count','scope',
+            'hash_tags','hash_tags_count'];
+  }else{
+    return ['_id','text','category','create_date','file_path',
+            'location_name','location_longitude','location_latitude',
+            'creator','target_id','likes_count','comments_count','scope',
+            'status','hash_tags','hash_tags_count','is_repost','origin_post_id','modify_date',
+            'delete_date'];
+  }
+};
+
+postSchema.methods.format = function(type, add_fields){
+  var format;
+  if(!type) type = 'basic';
+
+  format = {
+    _id:                  this._id,
+    text:                 this.text,
+    category:             this.category,
+    create_date:          this.create_date,
+    file_path:            this.file_path,
+    location_name:        this.location_name,
+    location_longitude:   this.location_longitude,
+    location_latitude:    this.location_latitude,
+    creator:              this.creator,
+    target_id:            this.target_id,
+    likes_count:          this.likes_count,
+    comments_count:       this.comments_count,
+    hash_tags_count:      this.hash_tags_count,
+    hash_tags:            this.hash_tags,
+    scope:                this.scope
+  };
+
+  if(type === 'basic'){
+    format.status         = this.status;
+    format.is_repost      = this.is_repost;
+    format.origin_post_id = this.origin_post_id;
+    format.modify_date    = this.modify_date;
+    format.delete_date    = this.delete_date;
+  }
+
+  if(add_fields){
+    if(typeof add_fields === 'string') format[add_fields] = this[add_fields];
+    if(Array.isArray(add_fields) && add_fields.length > 0){
+      for(var idx in add_fields){
+        format[add_fields[idx]] = this[add_fields[idx]];
+      }
+    }
+  }
+  return format;
+};
 
 /**
  * validates category property

@@ -24,7 +24,11 @@ var _express        = require('express'),
     _config         = require('config'),
     _e_winston      = require('express-winston'),
     logger          = require(_prism_home + 'logs.js'),
-    _winston        = require('winston');
+    PrismError      = require(_prism_home + 'error'),
+    _winston        = require('winston'),
+    ActivityListener = require(_prism_home + 'classes/ActivityListener'),
+    _activity       = require(_prism_home + 'routes/activities');
+    new ActivityListener();
 
 var _app            = _express();
 var _httpserver     = _express();
@@ -62,9 +66,6 @@ _app.use(_e_winston.logger({
 }));
 
 _app.use(_app.router);
-
-logger.log('info', 'this is retarded');
-logger.log('error', 'does this error show up too>>??');
 
 /* express winston errorLogger after router */
 _app.use(_e_winston.errorLogger({
@@ -121,7 +122,8 @@ _app.get('/users/:id', _gateway, _user.fetchUser);
 _app.put('/users/:id', _gateway, _user.updateUser);
 
 /* Fetch Users Posts */
-_app.get('/users/:id/posts', _gateway, _user.fetchUserPosts);
+_app.get('/users/:id/posts', _gateway, _post.fetchUserPosts);
+// _app.get('/users/:id/posts', _gateway, _user.fetchUserPosts);
 
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _user.createUserPost);
@@ -186,6 +188,8 @@ _app.put('/users/:id/trusts/:trust_id', _gateway, _trust.updateTrust);
 /* Fetch Users Trusts */
 _app.get('/users/:id/trusts', _gateway, _trust.fetchTrusts);
 
+_app.get('/search/users', _gateway, _user.search);
+
 /* Delete User Trust */
 _app.delete('/users/:id/trusts/:trust_id', _gateway, _trust.deleteTrust);
 
@@ -205,8 +209,23 @@ _app.post('/users/:id/follow', _gateway, _follow.follow);
 /* Unfollow a User */
 _app.post('/users/:id/unfollow', _gateway, _follow.unfollow);
 
+_app.get('/users/:id/activites', _gateway, _activity.fetchUserActivity);
+
 /* Explore Route */
 _app.get('/explore', _gateway, _explore);
+
+/* HACK Find User by instagram_id */
+_app.get('/instagram/:id', _gateway, function(req, res){
+  if(req.params.id){
+    User.findOne({instagram_id: req.params.id}, function(err, result){
+      if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+      if(!result) _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+      _utils.prismResponse(res, result, true);
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+});
 
 /* Testing Endpoints only */
 if(_app.get('env')  == 'test'){

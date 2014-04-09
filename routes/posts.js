@@ -3,16 +3,38 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
-var _mongoose     = require('mongoose'),
-    _prism_home   = process.env.PRISM_HOME,
-    _utils        = require(_prism_home + 'utils'),
-    _logger       = require('winston'),
-    PrismError    = require(_prism_home + 'error'),
-    Facebook      = require(_prism_home + 'classes/Facebook'),
-    Twitter       = require(_prism_home + 'classes/Twitter'),
-    User          = require(_prism_home + 'models/user').User,
-    Post          = require(_prism_home + 'models/post').Post,
-    Comment       = require(_prism_home + 'models/post').Comment;
+var _mongoose         = require('mongoose'),
+    _prism_home       = process.env.PRISM_HOME,
+    _utils            = require(_prism_home + 'utils'),
+    _logger           = require('winston'),
+    PrismError        = require(_prism_home + 'error'),
+    Facebook          = require(_prism_home + 'classes/Facebook'),
+    Twitter           = require(_prism_home + 'classes/Twitter'),
+    User              = require(_prism_home + 'models/user').User,
+    Post              = require(_prism_home + 'models/post').Post,
+    ActivityListener  = require(_prism_home + 'classes/ActivityListener'),
+    Activity          = require(_prism_home + 'models/activity').Activity,
+    Twine             = require(_prism_home + 'classes/Twine'),
+    Comment           = require(_prism_home + 'models/post').Comment;
+
+/**
+ * Fetch Users Posts
+ */
+exports.fetchUserPosts = function(req, res){
+  if(req.params.id){
+    var ServerError = function(){
+      _utils.prismResponse(res, null, false, PrismError.serverError);
+    };
+
+    var criteria = {target_id: req.params.id, status: 'active'};
+    new Twine('Post', criteria, req, null, function(error, result){
+      if(error) ServerError();
+        _utils.prismResponse(res, result, true);
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequst);
+  }
+};
 
 /**
  * Creates a comment object and add it to the comments property array for a
@@ -58,8 +80,25 @@ exports.createPostComment = function(req, res){
               _id: comment._id
             };
 
-            var response = {comments: comment_with_user, comments_count: saved.comments_count};
-            _utils.prismResponse(res, response, true);
+            //create activity
+            new Activity({
+              action: 'comment',
+              to: post.creator,
+              from: req.body.creator,
+              post_id: req.params.id,
+              comment_id: comment._id
+            }).save(function(err, activity){
+              if(err){
+                _logger.log('error', 'error returned when creating new COMMENT activity',
+                            {err:err, activity:activity, comment:comment_with_user, post_id:post._id});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+              }else{
+                //return response
+                var response = {comments: comment_with_user, comments_count: saved.comments_count};
+                _logger.log('info', 'comment activity created', {activity:activity});
+                _utils.prismResponse(res, response, true);
+              }
+            });
           });
         }
       });
@@ -274,66 +313,21 @@ exports.updatePost = function(req, res){
  */
 exports.fetchPostComments = function(req, res){
   if(req.params.id){
-    var query, options = {}, criteria;
-    options = _utils.parsedQueryOptions(req.query);
-    if(req.query.feature_identifer){
-
-      if(req.query.direction && req.query.direction == 'older'){
-
-        criteria = {
-          _id: req.params.id,
-          "comments.create_date" : { $lt : req.query.feature_identifer },
-          status: 'active'
-        };
-
+    var criteria = {_id: req.params.id, status: 'active'};
+    var options = {
+      fields: Comment.selectFields('basic'),
+      is_child_model: true,
+      child_model: 'Comment'
+    };
+    new Twine('Post', criteria, req, options, function(err, result){
+      if(err){ 
+        _utils.prismResponse(res, null, false, PrismError.invalidRequest);
       }else{
-        criteria = {
-          _id: req.params.id,
-          "comments.create_date" : { $gt : req.query.feature_identifier },
-          status: 'active'
-        };
+        _utils.prismResponse(res, result, true);
       }
-      query = _utils.buildQueryObject(Post, criteria, options);
-
-    }else{
-      criteria  = { _id: req.params.id, status: 'active' };
-      query     = _utils.buildQueryObject(Post, criteria, options);
-    }
-
-    query
-    // .select('comments')
-    .populate('comments.creator', '_id first_name last_name profile_photo_url name')
-    .exec(function(err, comm){
-      if(err) _utils.prismResponse(res,null,false,PrismError.ServerError);
-      // var comments = comm[0].comments;
-      // var response = {comments: []};
-      // for(var i=0; i < comments.length; i++){
-      //   var stripped = {
-      //     creator: {_id: null, first_name:null,last_name:null,name:null,profile_photo_url:null},
-      //     _id: null,
-      //     text: null,
-      //     create_date: null
-      //   };
-
-      //   stripped.creator._id = comments[i].creator._id;
-      //   stripped.creator.first_name = comments[i].creator.first_name;
-      //   stripped.creator.last_name = comments[i].creator.last_name;
-      //   stripped.creator.name = comments[i].creator.name;
-      //   stripped.creator.profile_photo_url = comments[i].creator.profile_photo_url;
-      //   stripped.create_date = comments[i].create_date;
-      //   stripped._id = comments[i]._id;
-      //   stripped.text = comments[i].text;
-      //   response.comments.push(stripped);
-      // }
-
-      // response._id = comm[0]._id;
-      // response.comments_count = comm[0].comments_count;
-      _utils.prismResponse(res,comm,true);
-
     });
   }else{
     _utils.prismResponse(res,null,false,PrismError.invalidRequest);
-
   }
 };
 
@@ -386,7 +380,24 @@ exports.likePost = function(req, res){
               //return successful response with like id & count
               var response = {  likes_count: post.likes_count,
                                 likes: [{_id: req.body.creator.toString()}] };
-              _utils.prismResponse(res, response, true);
+
+              //create activity
+              new Activity({
+                action: 'like',
+                to: post.creator,
+                from: req.body.creator,
+                post_id: post._id
+              }).save(function(err, activity){
+                if(err){
+                  _logger.log('error', 'there was an error creating a POST LIKE activity',
+                              {err:err, activity:activity, post_id: post._id});
+                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                }else{
+                  _logger.log('info', 'created activity for POST LIKE', 
+                              {activity: activity, post_id:post._id});
+                  _utils.prismResponse(res, response, true);
+                }
+              });
             }
           });
         }
@@ -410,50 +421,28 @@ exports.likePost = function(req, res){
  */
 exports.fetchPostLikes = function(req, res){
   if(req.params.id){
-    Post.findOne(
-      {_id: req.params.id, status: 'active'},
-      {likes:1, likes_count:1},
-      function(err, post){
-
-      if(err || !post){
-        _utils.prismResponse(res, null , false, PrismError.serverError);
-      }else{
-        var likes_error = {
-            status_code: 400,
-            error_info:{
-              error: 'unable_to_fetch_post_likes',
-              error_description: 'post does not currently have any likes'
-            }
-          };
-
-        if(post.likes_count > 0){
-          var likes_users = [];
-          var users_response = [];
-
-          post.likes.forEach(function(likes){
-            likes_users.push(likes._id);
-          });
-
-          if(likes_users.length > 0){
-            User.find({_id: {$in : likes_users}}, function(err, users){
-              if(users.length === likes_users.length){
-                users.forEach(function(user){
-                  users_response.push(user.shortUser());
-                });
-
-                _utils.prismResponse(res, {likes_count: post.likes_count,
-                                            likes: users_response}, true);
-              }else{
-                _utils.prismResponse(res, null, false, PrismError.serverError);
-              }
-            });
-          }else{
-            _utils.prismResponse(res, null, false, likes_error);
-          }
+    //Post.findOne(
+      var criteria = {_id: req.params.id, status: 'active'};
+      new Twine('Post', criteria, req, {fields: ['likes','likes_count']}, function(err, post){
+        if(err){
+          _utils.prismResponse(res, null , false, PrismError.serverError);
         }else{
-          _utils.prismResponse(res, null, false, likes_error);
+          if(!post){
+            var likes_error = {
+              status_code: 400,
+              error_info:{
+                error: 'unable_to_fetch_post_likes',
+                error_description: 'post does not currently have any likes'
+              }
+            };
+            _utils.prismResponse(res, null, false, likes_error);
+          }else{
+            for(var i=0; i < post.data.length; i++){
+              post.data[i] = post.data[i].likes;
+            }
+            _utils.prismResponse(res, post, true);
+          }
         }
-      }
     });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
@@ -535,7 +524,7 @@ exports.likeComment = function(req,res){
       "comments._id": req.params.comment_id,
       status: 'active'
     })
-    .select('comments')
+    .select('comments creator')
     .exec(function(error, comment){
       if(error || !comment) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
 
@@ -587,7 +576,22 @@ exports.likeComment = function(req,res){
           var like_index = saved.comments[comment_index].likes_count -1;
           var response = { likes_count: saved.comments[comment_index].likes_count,
                            likes: saved.comments[comment_index].likes[like_index] };
-          _utils.prismResponse(res, response, true);
+
+          new Activity({
+            action: 'like',
+            to: comment.creator,
+            from: req.body.creator,
+            post_id: req.params.id,
+            comment_id: req.params.comment_id
+          }).save(function(err, activity){
+            if(err){
+              _logger.log('error', 'error returned while creating COMMENT LIKE activty',
+                          {err:err, activity:activity});
+              _utils.prismResponse(res, null, false, PrismError.serverError);
+            }else{
+              _utils.prismResponse(res, response, true);
+            }
+          });
         });
       }
     });
@@ -640,16 +644,6 @@ exports.unlikeComment = function(req, res){
           }
         }
 
-      // if(comment.comments[0].likes.length > 0){
-      //   var did_unlike = false;
-      //   for(var i=0; i < comment.comments[0].likes.length; i++){
-      //     if(comment.comments[0].likes[i]._id === req.body.creator.toString()){
-      //       comment.comments[0].likes.splice(i, 1);
-      //       comment.comments[0].likes_count--;
-      //       did_unlike = true;
-      //     }
-      //   }
-
         if(!did_unlike){
           _utils.prismResponse(res, null, false, unlike_error);
 
@@ -660,6 +654,17 @@ exports.unlikeComment = function(req, res){
               likes: [],
               likes_count: saved.comments[comment_index].likes_count
             };
+
+            //emit unlike comment activity event
+            process.emit('activity', {
+              type: 'unlike',
+              context: 'comment',
+              action: 'remove',
+              user: req.body.creator,
+              target: req.params.comment_id,
+              object: comment
+            });
+            //return response object
             _utils.prismResponse(res, response, true);
 
           });
@@ -742,6 +747,18 @@ exports.unlikePost = function(req, res){
             }else{
               var response = {likes_count: result.likes_count,
                               likes: []};
+
+              //emit unlike activity event
+              process.emit('activity', {
+                type: 'unlike',
+                context: 'post',
+                action: 'remove',
+                scope: result.scope,
+                user: req.body.creator,
+                target: req.params.id,
+                object: result
+              });
+
               _utils.prismResponse( res, response, true);
             }
           });

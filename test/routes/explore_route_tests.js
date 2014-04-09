@@ -219,6 +219,7 @@ describe('Explore Route Unit Tests', function(done){
   describe('Testing /explore by popular posts', function(done){
     it('should return sorted by likes# desc vi sort_field', function(done){
       executeExploreRequestWithQueryString('?sort_field=likes_count', function(err,result){
+        debugger;
         _expect(result.data[0]._id.toString()).to.equal(post4._id.toString());
         _expect(result.data[0].likes_count).to.equal(6);
         _expect(result.data[0].likes.length).to.equal(6);

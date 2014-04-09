@@ -117,6 +117,7 @@ var createTrust = function(req, res){
                       }
 
                       if(rec_response){
+                        //return response object
                         _utils.prismResponse(res, rec_response, true);
                       }else{
                         _utils.prismResponse(res, null, false, PrismError.serverError);
@@ -167,6 +168,16 @@ var createTrust = function(req, res){
                     });
 
                     if(rec_response) {
+                       //emit trust activity event
+                        process.emit('activity', {
+                          type: 'trust',
+                          action: 'request',
+                          user: req.body.creator,
+                          target: req.params.id,
+                          object: rec_response
+                        });
+
+                      //return response object
                       _utils.prismResponse(res, rec_response, true);
                     }else{
                       _utils.prismResponse(res, null, false, PrismError.serverError);
@@ -201,18 +212,6 @@ var createTrust = function(req, res){
 var fetchTrusts = function(req, res){
   validateTrustRequest(req, res, function(){
     var criteria = {_id: req.params.id};
-
-    //check to see if status filter is set
-    // if(typeof(req.query.status) !== 'undefined'){
-    //   // criteria["trusts.status"] = req.query.status;
-    //   criteria = {_id: req.params.id, "trusts.status": req.query.status};
-    // }
-
-    // //check to see if owner filter is set
-    // if(typeof(req.query.owner) !== 'undefined'){
-    //   criteria["trusts.owner"] = req.query.owner;
-    // }
-
     var fetch = User.findOne(criteria);
     fetch.populate('trusts.user_id', '_id name first_name last_name profile_photo_url');
     fetch.exec(function(err, result){
@@ -300,6 +299,34 @@ var updateTrust = function(req, res){
                       _utils.prismResponse(res, null, false, PrismError.severError);
 
                     }else{
+                      //emit trust update activity event
+                      process.emit('activity', {
+                        type: 'trust',
+                        action: req.body.status,
+                        context: null,
+                        user: (req.body.status === 'cancelled') ? req.params.id : user.trusts[index].user_id._id,
+                        target: req.params.id,
+                        object: saved.trusts[index]
+                      });
+
+                      //if trust has status of accepted create activity
+                      if(req.body.status.toLowerCase() === 'accepted'){
+                        new Activity({
+                          action: 'trust_accepted',
+                          to: requestor._id,
+                          from: user._id
+                        }).save(function(err, activity){
+                          if(err){
+                            _utils.prismResponse(res, null, false, PrismError.serverError);
+                          }else{
+                            _utils.prismResponse(res, saved.trusts[index], true);
+                          }
+                        });
+                      }else{
+                        _utils.prismResponse(res, saved.trusts[index], true);
+                      }
+
+                      //return response
                       _utils.prismResponse(res, saved.trusts[index], true);
 
                     }

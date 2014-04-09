@@ -16,11 +16,22 @@ var trustSchema = new _mongoose.Schema({
   is_owner            : {type: Boolean, required: true},
   create_date         : {type: Date, default: null},
   modify_date         : {type: Date, default: null},
-  delete_date         : {type: Date, default: null}
+  delete_date         : {type: Date, default: null, select: false}
 },
 {
   versionKey          : false
 });
+
+trustSchema.statics.selectFields = function(type){
+  var select = ['user_id', 'status','is_owner','create_date','modify_date'];
+  if(type === 'basic')
+    select.push('delete_date');
+  return select;
+};
+
+trustSchema.statics.canResolve = function(){
+  return [ {user_id: {identifier: '_id', model: 'User'}} ];
+};
 
 trustSchema.path('status').validate(function(value){
   value.toLowerCase();
@@ -38,50 +49,141 @@ trustSchema.pre('save', function(next){
 
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
-	first_name            : {type: String, required: true},
-	last_name             : {type: String, required: true},
-	email                 : { type: String,
-                            required: true,
-                            index: {unique: true}
-                        },
+  first_name            : {type: String, required: true},
+  last_name             : {type: String, required: true},
+  email                 : {type: String, required: true, index: {unique: true}},
   info                  : {type: String, default: null},
   website               : {type: String, default: null},
   ethnicity             : {type: String, default: null},
   religion              : {type: String, default: null},
-  affiliations          : [],
-  password              : {type: String},
-  provider              : {type: String},
-  provider_id           : {type: String},
-  provider_token        : {type: String},
-  provider_token_secret : {type: String},
-  last_provider_auth    : Date,
+  affiliations          : {type: Array, default:[]},
+  password              : {type: String, default: null},
+  provider              : {type: String, default: null},
+  provider_id           : {type: String, default: null},
+  provider_token        : {type: String, default: null},
+  provider_token_secret : {type: String, default: null},
+  last_provider_auth    : {type: Date, default: null},
   gender                : {type: String, default: null},
   birthday              : {type: String, default: null},
-  address               : String,
-  city                  : String,
-  country               : String,
-  state                 : String,
-  zip_postal            : String,
+  address               : {type: String, default: null},
+  city                  : {type: String, default: null},
+  country               : {type: String, default: null},
+  state                 : {type: String, default: null},
+  zip_postal            : {type: String, default: null},
   cover_photo_url       : {type: String, default: ''},
   profile_photo_url     : {type: String, default: ''},
-  picture_thumb_path    : {type: String, default: ''},
-  create_date           : Date,
-  modify_date           : Date,
+  create_date           : {type: Date, default: null},
+  modify_date           : {type: Date, default: null},
   delete_date           : {type: Date, default: null},
   last_login_date       : {type: Date, default: null},
   status                : {type: Number, default: 0},
   posts_count           : {type: Number, default: 0},
-  following             : [],
-  followers             : [],
+  following             : {type: Array, default: []},
+  followers             : {type: Array, default: []},
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
-  trusts                : [trustSchema],
-  trusts_count          : {type: Number, default: 0}
-},
-{
-  versionKey          : false
-}
-);
+  trusts                : {type: [trustSchema], default:[]},
+  trusts_count          : {type: Number, default: 0},
+  instagram_token       : {type: String, default: null},
+  instagram_min_id      : {type: String, default: null}
+},{ versionKey          : false });
+
+userSchema.statics.canResolve = function(){
+  return [
+    {following: {identifier: '_id' , model: 'User'}},
+    {followers: {identifier: '_id' , model: 'User'}},
+    {trusts: {identifier: 'user_id', model: 'User'}}
+  ];
+};
+
+userSchema.statics.selectFields = function(type){
+  if(type === 'short'){
+    return ['_id','name','first_name','last_name','profile_photo_url'];
+  }else if(type === 'basic'){
+    return ['_id','name','first_name','last_name','profile_photo_url',
+            'cover_photo_url','email','info','website','city','state',
+            'create_date','posts_count','following_count','followers_count',
+            'trusts_count'];
+  }else{
+    return ['_id','name','first_name','last_name','profile_photo_url',
+            'cover_photo_url','email','info','website','city','state',
+            'create_date','posts_count','following_count','followers_count',
+            'trusts_count','provider','provider_id','provider_token',
+            'provider_token_secret','gender','birthday','address','country',
+            'modify_date','delete_date','status','password'];
+  }
+};
+
+userSchema.methods.format = function(type, add_fields, callback){
+  var format;
+  if(!type) type = 'basic';
+
+  if(type === 'short'){
+    format = {
+      _id:    this._id,
+      name:   this.name,
+      first_name: this.first_name,
+      last_name: this.last_name,
+      profile_photo_url: this.profile_photo_url
+    };
+  }
+
+  if(type === 'basic' || type === 'internal'){
+    format = {
+      _id:                this._id,
+      name:               this.name,
+      first_name:         this.first_name,
+      last_name:          this.last_name,
+      email:              this.email,
+      info:               this.info,
+      website:            this.website,
+      city:               this.city,
+      state:              this.state,
+      cover_photo_url:    this.cover_photo_url,
+      profile_photo_url:  this.profile_photo_url,
+      create_date:        this.create_date,
+      posts_count:        this.posts_count,
+      following_count:    this.following_count,
+      followers_count:    this.followers_count,
+      trusts_count:       this.trusts_count
+    };
+  }
+
+  if(type === 'internal'){
+    format.password               = this.password;
+    format.provider               = this.provider;
+    format.provider_id            = this.provider_id;
+    format.provider_token         = this.provider_token;
+    format.provider_token_secret  = this.provider_token_secret;
+    format.gender                 = this.gender;
+    format.birthday               = this.birthday;
+    format.address                = this.address;
+    format.country                = this.country;
+    format.modify_date            = this.modify_date;
+    format.delete_date            = this.status;
+  }
+
+  if(add_fields){
+    if(typeof add_fields === 'string') format[add_fields] = this[add_fields];
+    if(Array.isArray(add_fields) && add_fields.length > 0){
+      for(var i=0; i < add_fields.length; i++){
+        format[add_fields[i]] = this[add_fields[i]];
+      }
+    }
+  }
+  return format;
+};
+
+userSchema.methods.short = function(fields){
+  var response = this.shortUser();
+
+  if(fields){
+    for(var index in fields){
+      response[fields[index]] = this[fields[index]];
+    }
+  }
+  return response;
+};
 
 userSchema.methods.createUserSalt = function(){
   return _serial.stringify(this._id+this.create_date.valueOf()+this.email);
@@ -163,32 +265,6 @@ userSchema.methods.fetchTrustIndex = function(trust_id, cb){
     cb(null);
   }
 };
-
-// userSchema.methods.trackActivity = function(type, user, target, options, cb){
-//   if(type && user && target){
-//     var activity = new Activity({
-//       type: type,
-//       user: user,
-//       target: target
-//     });
-
-//     if( typeof options.scope !== 'undefined') activity.scope = options.scope;
-//     if( typeof options.text !== 'undefined') activity.text = options.text;
-//     if( typeof options.route !== 'undefined') activity.route = options.route;
-//     if( typeof options.object !== 'undefined') activity.object = options.object;
-
-//     activity.save(function(err, saved){
-//       if(err){
-//         console.log(err);
-//         if(cb) cb(err);
-//       }else{
-//         if(cb) cb(saved);
-//       }
-//     });
-//   }else{
-//     if(cb) cb(null);
-//   }
-// };
 
 userSchema.methods.refresh = function(cb){
   this.model('User').findOne({_id: this._id}, function(err, user){
