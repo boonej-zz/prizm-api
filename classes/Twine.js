@@ -294,7 +294,7 @@ Twine.prototype.processContains = function processContains(base, contains, block
     //loop through each array in the result set & compare to contains key, value
     _logger.log('info', 'contain loop key value', {contain:contain, contains:contains, key:k, value:v});
 
-    if(typeof base.data !== 'undefined'){
+    if(typeof base.data === 'undefined'){
       base.data = base;
     }
 
