@@ -30,7 +30,7 @@ activitySchema.statics.selectFields = function(type){
   }
 };
 
-activitySchema.methods.canResolve = function(){
+activitySchema.statics.canResolve = function(){
   return [
     {from: {identifier: '_id', model: 'User'}},
     {to: {identifier: '_id', model: 'User'}},

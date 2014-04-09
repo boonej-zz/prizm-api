@@ -12,6 +12,7 @@ var _mongoose     = require('mongoose'),
     Twitter       = require(_prism_home + 'classes/Twitter'),
     User          = require(_prism_home + 'models/user').User,
     Twine         = require(_prism_home + 'classes/Twine'),
+    Activity      = require(_prism_home + 'models/activity').Activity,
     Post          = require(_prism_home + 'models/post').Post;
 
 /**
@@ -96,17 +97,9 @@ exports.follow = function(req, res){
 
               User.findOneAndUpdate(query, update_data, function(err, follower_update){
                 if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-                //emit follow activity event
-                process.emit('activity', {
-                  type: 'follow',
-                  action: 'create',
-                  user: req.body.creator,
-                  target: req.params.id,
-                  object: followee_update
-                });
-
+               
                 new Activity({
-                  action: follow,
+                  action: 'follow',
                   to: req.params.id,
                   from: req.body.creator
                 }).save(function(err, activity){

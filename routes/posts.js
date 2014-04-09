@@ -81,7 +81,7 @@ exports.createPostComment = function(req, res){
             };
 
             //create activity
-            new Activty({
+            new Activity({
               action: 'comment',
               to: post.creator,
               from: req.body.creator,

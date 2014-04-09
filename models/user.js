@@ -22,6 +22,17 @@ var trustSchema = new _mongoose.Schema({
   versionKey          : false
 });
 
+trustSchema.statics.selectFields = function(type){
+  var select = ['user_id', 'status','is_owner','create_date','modify_date'];
+  if(type === 'basic')
+    select.push('delete_date');
+  return select;
+};
+
+trustSchema.statics.canResolve = function(){
+  return [ {user_id: {identifier: '_id', model: 'User'}} ];
+};
+
 trustSchema.path('status').validate(function(value){
   value.toLowerCase();
   value = value.charAt(0).toUpperCase() + value.slice(1);

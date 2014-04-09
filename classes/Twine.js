@@ -293,6 +293,11 @@ Twine.prototype.processContains = function processContains(base, contains, block
     _logger.log('info', 'value', {value: v});
     //loop through each array in the result set & compare to contains key, value
     _logger.log('info', 'contain loop key value', {contain:contain, contains:contains, key:k, value:v});
+
+    if(typeof base.data !== 'undefined'){
+      base.data = base;
+    }
+
     for(var num in base.data){
       var found = false;
       var has_key = false;
@@ -322,11 +327,15 @@ Twine.prototype.processContains = function processContains(base, contains, block
               if(typeof base.data[num][i][contain][check] !== 'undefined' &&
                  typeof base.data[num][i][contain][check][k] !== 'undefined'){
                 if(base.data[num][i][contain][check][k] === v){
-                  base.data[num][i][contain] = base.data[num][i][contain][check][k];
+                  var key_value_res = {};
+                  key_value_res[k] = v;
+                  base.data[num][i][contain] = key_value_res;
+                  found = true;
                 }
               }
             }
           }
+          if(!found && has_key) base.data[num][i][contain] = [];
         }
       }
       debugger;
