@@ -30,7 +30,7 @@ Google.prototype.authorizeUser = function authorizeUser(callback){
   if(this.token){
     //attempt to fetch the user profile with supplied accesstoken
     _request({
-      url: _config.social.goolge.authorize_uri+this.token,
+      url: _config.social.google.authorize_uri+this.token,
       json: true,
       method: "GET"
     }, function(err, res, body){
