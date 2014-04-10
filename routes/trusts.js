@@ -4,6 +4,7 @@
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
 var _mongoose     = require('mongoose'),
+    _             = require('underscore'),
     _prism_home   = process.env.PRISM_HOME,
     _utils        = require(_prism_home + 'utils'),
     _logger       = require(_prism_home + 'logs.js'),
@@ -11,7 +12,7 @@ var _mongoose     = require('mongoose'),
     User          = require(_prism_home + 'models/user').User,
     Post          = require(_prism_home + 'models/post').Post,
     Activity      = require(_prism_home + 'models/user').Activity,
-    Trust         = require(_prism_home + 'models/user').Trust;
+    Trust         = require(_prism_home + 'models/trust').Trust;
 
 var trust_status = {
   accepted: 'accepted',
@@ -19,6 +20,23 @@ var trust_status = {
   pending: 'pending',
   canceled: 'canceled'
 };
+
+var create_trust_error = {
+  status_code: 400,
+  error_info: {
+    error: 'unable_to_create_trust',
+    error_description: 'Trust relationshop already exists'
+  }
+};
+
+var update_trust_error = {
+  status_code: 400,
+  error_info: {
+    error: 'unable_to_update_trust',
+    error_description: 'Trust relationship does not exist'
+  }
+};
+
 
 /**
  * Request validation helper method to ensure minimum request params are included
@@ -73,130 +91,65 @@ var validateTrustRequest = function(req, res, cb){
  */
 var createTrust = function(req, res){
   validateTrustRequest(req, res, function(){
-    User.find({_id: {$in : [req.params.id, req.body.creator]}}, function(err, users){
+    var was_cancelled;
+    var trust;
+    var create_trust_error = {
+      status_code: 400,
+      error_info: {
+        error: 'unable_to_create_trust',
+        error_description: 'Trust relationshop already exists'
+      }
+    };
+    var criteria = {
+      $or:[ {to: req.params.id, from:req.body.creator},
+            {to: req.body.creator, from:req.params.id} ]
+    };
+
+    Trust.findOne(criteria, function(err, exists){
+      //if an error is returned, its server related, return 500
       if(err){
         _utils.prismResponse(res, null, false, PrismError.serverError);
       }else{
-        if(!users || users.length !== 2){
-          _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
-        }else{
-          var sender, receiver;
-          if(req.params.id === users[0]._id.toString()){
-            receiver = users[0];
-            sender = users[1];
-          }else{
-            receiver = users[1];
-            sender = users[0];
-          }
-
-          var was_cancelled = sender.previousTrustCancelled(receiver._id.toString());
-          if(was_cancelled && was_cancelled !== false){
-
-            var send_index = sender.fetchTrustIndexByUserId(receiver._id.toString());
-            if(send_index >= 0){
-              sender.trusts[send_index].status = trust_status.pending;
-              // _logger.log('info', 'sender create cancel convert before save');
-              sender.save(function(err, send_saved){
-                _logger.log('info', 'sender create cancel convert after save', {error: err, result:send_saved});
-                if(err){
-                  _utils.prismResponse(res, null, false, PrismError.serverError);
-                }else{
-                  var rec_index = receiver.fetchTrustIndexByUserId(sender._id.toString());
-                  receiver.trusts[rec_index].status = trust_status.pending;
-                  _logger.log('info', 'receiver create cancel convert before save');
-                  receiver.save(function(err, rec_saved){
-                    _logger.log('info', 'receiver create cancel convert after save', {error: err, result:rec_saved});
-                    var rec_response = null;
-                     if(err){
-                      _utils.prismResponse(res, null, false, PrismError.serverError);
-                     }else{
-                      for(var i = 0; i < rec_saved.trusts.length; i++){
-                        if(rec_saved.trusts[i].user_id.toString() === sender._id.toString()){
-                          rec_response = rec_saved.trusts[i].toObject();
-                          rec_response.user_id = sender.shortUser();
-                        }
-                      }
-
-                      if(rec_response){
-                        //return response object
-                        _utils.prismResponse(res, rec_response, true);
-                      }else{
-                        _utils.prismResponse(res, null, false, PrismError.serverError);
-                      }
-                    }
-                  });
-                }
-              });
+        //if a trust between 2 users already exists && the status
+        //type is not equal to cancelled, then return exists error
+        if(!_.isEmpty(exists) && exists.status !== 'cancelled'){
+          _logger.log('error','unable to create trust',
+                      {error:create_trust_error, to:req.params.id, from:req.body.creator});
+          _utils.prismResponse(req, null, false, create_trust_error);
+        }else if(!_.isEmpty(exists)){
+          _logger.log('info', 'updating trust status from cancelled to pending',
+                      {from:req.body.creator, to:req.params.id});
+          //update status to pending & save/return
+          exists.status = 'pending';
+          exists.save(function(err, updated){
+            if(err){
+              _logger.log('error', 'error occurred trying to create new trust from cancelled',
+                          {err:err});
+              _utils.prismResponse(res, false, null, PrismError.serverError);
             }
-          }else if(!receiver.doesTrustExist(sender._id.toString()) &&
-            !sender.doesTrustExist(receiver._id.toString())){
-            //set the trust object for the receiver
+          });
+        }else{
+          //trust doesnt exist, create a new trust
+          trust = new Trust({
+            to: req.params.id,
+            from: req.body.creator,
+            status: 'pending'
+          });
+          trust.save(function(err, new_trust){
+            //if error , send server error
+            if(err){
+              _logger.log('error', 'error returned while creating new trust', {err:err});
+              _utils.prismResponse(res, null, false, PrismResponse);
+            }else{
+              //TODO: create an activity? currently after the last activity refactor
+              //we were only creating an activity for trusts when someone approves/accepts it
 
-            var trust_receiver = new Trust({
-              user_id: sender._id,
-              status: trust_status.pending,
-              is_owner: false
-            });
-
-            receiver.trusts.push(trust_receiver);
-            receiver.trusts_count++;
-
-            //set the trust object for the sender
-            var trust_sender = new Trust({
-              user_id: receiver._id,
-              status: trust_status.pending,
-              is_owner: true
-            });
-            sender.trusts.push(trust_sender);
-            sender.trusts_count++;
-
-            //update & save receiver object
-            receiver.save(function(err, rec){
-              if(err || !rec){
-                _utils.prismResponse(res, null, false, PrismError.serverError);
-              }else{
-                //update & save sender object
-                sender.save(function(err, send){
-                  if(err || !send){
-                    _utils.prismResponse(res, null, false, PrismError.serverError);
-                  }else{
-                    var rec_response = null;
-                    rec.trusts.forEach(function(trust){
-                      if(trust._id === trust_receiver._id){
-                        rec_response = trust.toObject();
-                        rec_response.user_id = sender.shortUser();
-                      }
-                    });
-
-                    if(rec_response) {
-                       //emit trust activity event
-                        process.emit('activity', {
-                          type: 'trust',
-                          action: 'request',
-                          user: req.body.creator,
-                          target: req.params.id,
-                          object: rec_response
-                        });
-
-                      //return response object
-                      _utils.prismResponse(res, rec_response, true);
-                    }else{
-                      _utils.prismResponse(res, null, false, PrismError.serverError);
-                    }
-                  }
-                });
-              }
-            });
-          }else{
-            var error = {
-              status_code: 400,
-              error_info: {
-                error: 'unable_to_create_trust',
-                error_description: 'Trust relationshop already exists'
-              }
-            };
-            _utils.prismResponse(res, null, false, error);
-          }
+              //return result
+              _logger.log('info', 'successful trust created from user: '+new_trust.from.toString()+
+                                  ' to user: '+new_trust.toString());
+              _utils.prismResponse(res, new_trust, true);
+            }
+          });
         }
       }
     });
@@ -212,42 +165,24 @@ var createTrust = function(req, res){
  */
 var fetchTrusts = function(req, res){
   validateTrustRequest(req, res, function(){
-    var criteria = {_id: req.params.id};
-    var fetch = User.findOne(criteria);
-    fetch.populate('trusts.user_id', '_id name first_name last_name profile_photo_url');
-    fetch.exec(function(err, result){
-      if(err){
-        _utils.prismResponse(res, null, false, PrismError.serverError);
-      }else{
-        if(!result || result.trusts_count === 0){
-          var error = {
-            status_code: 400,
-            error_info:{
-              error: 'unable_to_fetch_trusts',
-              error_description: 'The requested user does not currently have any trusts'
-            }
-          };
-          _utils.prismResponse(res, null, false, error);
-        }else{
-          var filtered_trusts = [];
-          if(typeof(req.query.status) !== 'undefined'){
-            for(var i =0; i < result.trusts.length; i++){
-              if(result.trusts[i].status === req.query.status){
-                filtered_trusts.push(result.trusts[i]);
-              }
-            }
-          }
-
-          if(typeof(req.query.owner) !== 'undefined'){
-            for(var o = 0; o < result.trusts.length; o++){
-              if(result.trusts[o].is_owner.toString() === req.query.owner){
-                filtered_trusts.push(result.trusts[o]);
-              }
-            }
-          }
-          if(filtered_trusts.length === 0) filtered_trusts = result.trusts;
-          _utils.prismResponse(res, {trusts_count: result.trusts_count, trusts: filtered_trusts}, true);
+    var criteria = {$or: [ {to: req.params.id}, {from: req.params.id} ]};
+    new Twine(req, criteria, {fields: Trust.selectFields('basic')}, function(err, trusts){
+      var error = {
+        status_code: 400,
+        error_info:{
+          error: 'unable_to_fetch_trusts',
+          error_description: 'The requested user does not currently have any trusts'
         }
+      };
+      //if err is set, then it is a server / mongo error. return server error
+      if(err){
+        _utils.PrismResponse(res, null, false, PrismError.serverError);
+      }else if(_.isEmpty(trusts)){
+        //no trusts were returned, send unable_to_fetch_trusts error
+        _utils.prismResponse(res, null, false, error);
+      }else{
+        //return normal response with result set
+        _utils.prismResponse(res, trusts, true);
       }
     });
   });
@@ -255,93 +190,56 @@ var fetchTrusts = function(req, res){
 
 var updateTrust = function(req, res){
   validateTrustRequest(req, res, function(){
-    User.findOne({_id: req.params.id})
-      .populate('trusts.user_id', '_id name first_name last_name profile_photo_url')
-      .exec(function(err, user){
-      var index;
-      var short_user;
-      for(var i = 0; i < user.trusts.length; i++){
-        if(user.trusts[i]._id.toString() == req.params.trust_id.toString()){
-          index = i;
-          user.trusts[i].status = req.body.status;
-          short_user = user.trusts[i].user_id;
-        }
-      }
-
-      if(index >= 0){
-        if(user.trusts[index].user_id._id !== user._id && !req.body.status){
-          var self_update_error = {
-
-          };
-          _utils.prismResponse(res, null, false, self_update_error);
-
+    Trust.findOne({_id: req.params.id}, function(err, trust){
+      //if there is an error return server error
+      if(err){
+        _logger.log('error', 'fetching trust to update failed with error', {err:err});
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+      }else{
+        if(_.isEmpty(trust)){
+          //trust is empty, return unable to find trust error
+          _logger.log('error', 'unable to find existing trust to update status');
+          _utils.prismResponse(res, null, false, update_trust_error);
         }else{
-          user.save(function(err, saved){
+          //update trust status
+          trust.status = req.body.status;
+          trust.save(function(err, trust_updated){
             if(err){
+              _logger.log('error', 'updating trust status failed with error', {err:err});
               _utils.prismResponse(res, null, false, PrismError.serverError);
-
             }else{
-              //update requestors status as well.
-              User.findOne({_id: user.trusts[index].user_id._id}, function(err, requestor){
-                var found = false;
-                for(var i=0; i < requestor.trusts.length; i++){
-                  if(requestor.trusts[i].user_id.toString() === user._id.toString()){
-                    requestor.trusts[i].status = req.body.status;
-                    found = true;
-                  }
-                }
-                if(!found){
-                  _utils.prismResponse(res, null, false, PrismError.severError);
+              //TODO: change to utilize utiloty function registerActivityEvent.
+              //REMINDER: in order to fully utilize the registerActivityEvent method
+              //we would have to send out avtivity events for creating posts which is currently
+              //not being tracked or used
 
-                }else{
-                  requestor.save(function(err){
+              //if status update is accepted, create activity. remember that you need to
+              //inverse the to/from since the action is being executed against the creator
+              //who WAS the `from` user & now is the `to` user. this is necessary so that
+              //when a users trusts are fetched this action shows up for the requestor and
+              //not the requestee
+              if(req.body.status === 'accepted'){
+                new Activity({
+                  to: trust_updated.from,
+                  from: trust_updated.to,
+                  action: 'trust_accepted'
+                }).save(function(err, activity){
+                  //log the event but DO NOT return error as the trust was still created
+                  _logger.log('error', 'error creating trust update activity',
+                              {to:trust_updated.from, from:trust_updated_to, err:err});
 
-                    if(err){
-                      _utils.prismResponse(res, null, false, PrismError.severError);
+                  //return response
+                  _utils.prismResponse(res, trust_updated, err);
+                });
 
-                    }else{
-                      //emit trust update activity event
-                      process.emit('activity', {
-                        type: 'trust',
-                        action: req.body.status,
-                        context: null,
-                        user: (req.body.status === 'cancelled') ? req.params.id : user.trusts[index].user_id._id,
-                        target: req.params.id,
-                        object: saved.trusts[index]
-                      });
-
-                      //if trust has status of accepted create activity
-                      if(req.body.status.toLowerCase() === 'accepted'){
-                        new Activity({
-                          action: 'trust_accepted',
-                          to: requestor._id,
-                          from: user._id
-                        }).save(function(err, activity){
-                          if(err){
-                            _utils.prismResponse(res, null, false, PrismError.serverError);
-                          }else{
-                            _utils.prismResponse(res, saved.trusts[index], true);
-                          }
-                        });
-                      }else{
-                        _utils.prismResponse(res, saved.trusts[index], true);
-                      }
-
-                      //return response
-                      _utils.prismResponse(res, saved.trusts[index], true);
-
-                    }
-                  });
-                }
-              });
+              }else{
+                _utils.prismResponse(res, trust_updated, err);
+              }
             }
           });
         }
-      }else{
-        _utils.prismResponse(res, null, false, PrismError.invalidRequest);
       }
     });
-    // res.send('Not fully implemented yet');
   });
 };
 

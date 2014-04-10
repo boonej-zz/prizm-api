@@ -7,45 +7,8 @@ var _mongoose   = require('mongoose'),
     _serial     = require('serializer'),
     _crypt      = require('crypto'),
     _prism_home = process.env.PRISM_HOME,
-    // Activity    = require(process.env.PRISM_HOME + 'models/activity').Activity,
+    _           = require('underscore'),
     _utils      = require(_prism_home + 'utils');
-
-var trustSchema = new _mongoose.Schema({
-  user_id             : {type: _mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
-  status              : {type: String, required: true},
-  is_owner            : {type: Boolean, required: true},
-  create_date         : {type: Date, default: null},
-  modify_date         : {type: Date, default: null},
-  delete_date         : {type: Date, default: null, select: false}
-},
-{
-  versionKey          : false
-});
-
-trustSchema.statics.selectFields = function(type){
-  var select = ['user_id', 'status','is_owner','create_date','modify_date'];
-  if(type === 'basic')
-    select.push('delete_date');
-  return select;
-};
-
-trustSchema.statics.canResolve = function(){
-  return [ {user_id: {identifier: '_id', model: 'User'}} ];
-};
-
-trustSchema.path('status').validate(function(value){
-  value.toLowerCase();
-  value = value.charAt(0).toUpperCase() + value.slice(1);
-  return /Accepted|Rejected|Pending|Canceled|Cancelled/i.test(value);
-});
-
-trustSchema.pre('save', function(next){
-  if(!this.create_date){
-    this.create_date = new Date();
-  }
-   this.modify_date = new Date();
-   next();
-});
 
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
@@ -82,10 +45,13 @@ var userSchema = new _mongoose.Schema({
   followers             : {type: Array, default: []},
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
-  trusts                : {type: [trustSchema], default:[]},
-  trusts_count          : {type: Number, default: 0},
+  type                  : {type: String, default: 'user'},
+  // trusts                : {type: [trustSchema], default:[]},
+  // trusts_count          : {type: Number, default: 0},
   instagram_token       : {type: String, default: null},
-  instagram_min_id      : {type: String, default: null}
+  instagram_min_id      : {type: String, default: null},
+  twitter_token         : {type: String, default: null},
+  twitter_min_id        : {type: String, default: null}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -98,21 +64,27 @@ userSchema.statics.canResolve = function(){
 
 userSchema.statics.selectFields = function(type){
   if(type === 'short'){
-    return ['_id','name','first_name','last_name','profile_photo_url'];
+    return ['_id','name','first_name','last_name','profile_photo_url','type'];
   }else if(type === 'basic'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
             'create_date','posts_count','following_count','followers_count',
-            'trusts_count'];
+            'instagram_min_id', 'instagram_token', 'twitter_token',
+            'twitter_min_id','type'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
             'create_date','posts_count','following_count','followers_count',
-            'trusts_count','provider','provider_id','provider_token',
+            'provider','provider_id','provider_token', 'instagram_token',
+            'instagram_min_id', 'twitter_token', 'twitter_min_id',
             'provider_token_secret','gender','birthday','address','country',
-            'modify_date','delete_date','status','password'];
+            'modify_date','delete_date','status','password', 'type'];
   }
 };
+
+userSchema.path('type').validate(function(value){
+  return /user|institution|luminary/i.test(value);
+});
 
 userSchema.methods.format = function(type, add_fields, callback){
   var format;
@@ -124,7 +96,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       name:   this.name,
       first_name: this.first_name,
       last_name: this.last_name,
-      profile_photo_url: this.profile_photo_url
+      profile_photo_url: this.profile_photo_url,
+      type: this.type
     };
   }
 
@@ -145,7 +118,11 @@ userSchema.methods.format = function(type, add_fields, callback){
       posts_count:        this.posts_count,
       following_count:    this.following_count,
       followers_count:    this.followers_count,
-      trusts_count:       this.trusts_count
+      type:               this.type,
+      instagram_token:    this.instagram_token,
+      instagram_min_id:   this.instagram_min_id,
+      twitter_token:      this.twitter_token,
+      twitter_min_id:     this.twitter_min_id
     };
   }
 
@@ -313,4 +290,4 @@ userSchema.pre('save', function(next){
 });
 
 exports.User = _mongoose.model('User', userSchema);
-exports.Trust = _mongoose.model('Trust', trustSchema);
+// exports.Trust = _mongoose.model('Trust', trustSchema);
