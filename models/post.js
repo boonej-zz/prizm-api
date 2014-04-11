@@ -76,7 +76,9 @@ var postSchema = new _mongoose.Schema({
   flagged_count       : {type: Number, default: 0},
   flagged_reporters   : [{reporter_id: String, create_date: Date}],
   is_repost           : {type: Boolean, default: false},
-  origin_post_id      : {type: String, default: null}
+  origin_post_id      : {type: String, default: null},
+  external_provider   : {type: String, default: null},
+  external_link       : {type: String, default: null}
 }, { versionKey: false});
 
 postSchema.statics.canResolve = function(){
@@ -84,7 +86,8 @@ postSchema.statics.canResolve = function(){
     {creator: {identifier: '_id', model: 'User'}},
     {target_id: {identifier: '_id', model: 'User'}},
     {comments: {identifier: 'creator', model: 'User'}},
-    {likes: {identifier: '_id', model: 'User'}}
+    {likes: {identifier: '_id', model: 'User'}},
+    {origin_post_id: {identifier: '_id', model: 'Post'}}
   ];
 };
 

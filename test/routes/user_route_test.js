@@ -374,7 +374,7 @@ describe('User Route Unit Tests', function(done){
   //       done();
   //     });
   //   });
-  });
+  // });
   describe('Testing Searching for A User', function(done){
     it('should fetch a user by there first name', function(done){
       var fetch_url = 'https://localhost:3000/users?last_name=zuck';

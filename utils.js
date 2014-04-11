@@ -4,8 +4,10 @@
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
 var _crypto   = require('crypto');
-var Token     = require(process.env.PRISM_HOME + 'models/auth').Token;
-var Client    = require(process.env.PRISM_HOME + 'models/auth').ClientApplication;
+var _home     = process.env.PRISM_HOME;
+var Token     = require(_home + 'models/auth').Token;
+var Client    = require(_home + 'models/auth').ClientApplication;
+var _         = require('underscore');
 
 /**
  * String encryption method
@@ -204,3 +206,35 @@ exports.authorizeClientRequest = function(req, callback){
   }
 };
 
+/**
+ * Emits an Activity Event on the global process loop
+ *
+ * @param {String} to The target user for this activity
+ * @param {String} from The creator/requestor user for this activity
+ * @param {String} action The activity action type
+ * @param {String} post_id The post object related to the action type (optional)
+ * @param {String} comment_id The comment object related to the action type (optional)
+ * @param {Boolean} has_trust The bool value representing if to & from have a trust (optional)
+ */
+exports.registerActivityEvent = function(to, from, action, post_id, comment_id, has_trust){
+  if(!to && !from && !action){
+    throw new Error('to, from, and action are required to call registerActivityEvent');
+  }else{
+    if(_.isUndefined(post_id))
+      post_id = null;
+    if(_.isUndefined(comment_id))
+      comment_id = null;
+    if(_.isUndefined(has_trust) || _.isNull(has_trust))
+      has_trust = false;
+
+    //emit activity event
+    process.emit('activity', {
+      to: to,
+      from: from,
+      action: action,
+      post_id: post_id,
+      comment_id: comment_id,
+      has_trust: has_trust
+    });
+  }
+};

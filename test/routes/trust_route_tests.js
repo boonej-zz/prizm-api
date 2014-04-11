@@ -15,9 +15,10 @@ var _mongoose     = require('mongoose'),
     _users        = require(_prism_home + 'routes/users'),
     _trusts       = require(_prism_home + 'routes/trusts'),
     _helpers      = require(_prism_home + 'test/test_helpers'),
+    _             = require('underscore'),
     User          = require(_prism_home + 'models/user').User,
     Post          = require(_prism_home + 'models/post').Post,
-    Trust         = require(_prism_home + 'models/user').Trust;
+    Trust         = require(_prism_home + 'models/trust').Trust;
 
 describe('Trust Route Unit/Integration Tests ', function(done){
   var mark, edwardo, cameron, erica, sean, maryolin;
@@ -53,102 +54,6 @@ describe('Trust Route Unit/Integration Tests ', function(done){
     });
   };
 
-  var setupSocialNetworkUsers = function(cb){
-    var users = _helpers.fetchFakeUsersArray();
-    User.create(users, function(err, m, e, c, e2, s, m2){
-      if(err) throw err;
-      mark = m;
-      edwardo = e;
-      cameron = c;
-      erica = e2;
-      sean = s;
-      maryolin = m2;
-      cb();
-    });
-  };
-
-  var executeFollowRequest = function(u_follower, u_followee, cb){
-    _request({
-      method: 'POST',
-      strictSSL: false,
-      json: true,
-      url: 'https://localhost:3000/users/'+u_followee._id+'/follow',
-      headers: {"Authorization": 'Bearer ' + test_token.access_token},
-      body: {creator: u_follower._id}
-    }, function(err, result){
-      if(cb) cb(err, result.body);
-    });
-  };
-
-  var executeLikeRequest = function(type, u_creator, post_id, cb){
-    _request({
-      method: 'POST',
-      strictSSL: false,
-      json: true,
-      url: 'https://localhost:3000/posts/'+post_id+'/'+type,
-      headers: {"Authorization" : 'Bearer ' + test_token.access_token},
-      body: {creator: u_creator}
-    }, function(err, res){
-      if(cb) cb(err, res.body);
-    });
-  };
-
-  var executeCommentLikeRequest = function(type, u_creator, post_id, comment_id, cb){
-    _request({
-      method: "POST",
-      strictSSL: false,
-      json:true,
-      url: 'https://localhost:3000/posts/'+post_id+'/comments/'+comment_id+'/'+type,
-      headers: {'Authorization':'Bearer ' + test_token.access_token},
-      body: {creator: u_creator}
-    }, function(err, response){
-      if(cb) cb(err, response.body);
-    });
-  };
-
-  var executeAddCommentRequest = function(u_creator, post_id, cb){
-    _request({
-      method: 'POST',
-      strictSSL: false,
-      json: true,
-      url: 'https://localhost:3000/posts/' + post_id + '/comments',
-      headers: {"Authorization" : "Bearer " + test_token.access_token},
-      body: {creator: u_creator, text: 'test commenting on this post'}
-    }, function(err, result){
-      if(cb) cb(err, result.body);
-    });
-  };
-
-  var executeDeleteCommentRequest = function(post_id, comment_id, cb){
-    _request({
-      method: 'DELETE',
-      strictSSL: false,
-      json: true,
-      url: 'https://localhost:3000/posts/'+post_id+'/comments/'+comment_id,
-      headers: {'Authorization' : 'Bearer '+ test_token.access_token}
-    }, function(err, result){
-      if(cb) cb(err, result.body);
-    });
-  };
-
-  var executeDeletePostRequest = function(post_id, creator, cb){
-    executeRequest('DELETE', 'posts/'+post_id, {creator: creator}, function(err, res){
-      if(cb) cb(err, res);
-    });
-  };
-
-  var executeFlagPostRequest = function(post_id, reporter_id, cb){
-    executeRequest('POST', 'posts/'+post_id+'/flag', {reporter: reporter_id}, function(err, res){
-      if(cb) cb(err, res);
-    });
-  };
-
-  var executeUpdatePostRequest = function(post_id, updated_post, cb){
-    executeRequest('PUT', 'posts/'+post_id, updated_post, function(err, res){
-      if(cb) cb(err,res);
-    });
-  };
-
   var executeCreateTrustRequest = function(user_id, creator, cb){
     executeRequest('POST', 'users/'+user_id+'/trusts', {creator: creator}, function(err, res){
       if(cb) cb(err, res);
@@ -156,44 +61,32 @@ describe('Trust Route Unit/Integration Tests ', function(done){
   };
 
   before(function(done){
-    _helpers.destroyTestUser(function(){
+    Trust.remove({}, function(err){
+      if(err) throw err;
       _helpers.createTestUser(function(testuser){
         test_user = testuser;
-
         _helpers.createTestToken(function(token, code, client){
           test_token = token;
           test_code = code;
           test_client = client;
-          setupSocialNetworkUsers(function(c){
-            var social_network_followers = [  mark,
-                                              edwardo,
-                                              cameron,
-                                              erica,
-                                              sean,
-                                              maryolin ];
-
-            for(var i = 0; i < social_network_followers.length; i++){
-
-              executeFollowRequest( social_network_followers[i],
-                                    test_user,
-                                    null);
-
-              if(i !== 3) executeFollowRequest( test_user,
-                                                social_network_followers[i],
-                                                null );
-            }
+          _helpers.fetchFixtureTestUsers(function(users){
+            mark = users.mark;
+            edwardo = users.edwardo;
+            cameron = users.cameron;
+            erica = users.erica;
+            sean = users.sean;
+            maryolin = users.maryolin;
+            DJ = users.DJ;
             //setup fake posts
-            var posts = _helpers.fetchFakePostsArray(mark, test_user);
-            Post.create(posts, function(err, test1, test2, test3, test4, test5, test6, test7, test8){
-              test_post1 = test1;
-              test_post2 = test2;
-              test_post3 = test3;
-              test_post4 = test4;
-              test_post5 = test5;
-              test_post6 = test6;
-              test_post7 = test7;
-              test_post8 = test8;
-              // executeAddCommentRequest()
+            _helpers.fetchFixturePosts(function(posts){
+              test_post1 = posts[0];
+              test_post2 = posts[1];
+              test_post3 = posts[2];
+              test_post4 = posts[3];
+              test_post5 = posts[4];
+              test_post6 = posts[5];
+              test_post7 = posts[6];
+              test_post8 = posts[7];
               done();
             });
           });
@@ -203,10 +96,9 @@ describe('Trust Route Unit/Integration Tests ', function(done){
   });
 
   after(function(done){
-    _helpers.destroyTestUser(function(){
-      _helpers.destroyTestPost(function(){
-        done();
-      });
+    User.remove({_id: test_user._id}, function(err , result){
+      if(err) throw err;
+      done();
     });
   });
 
@@ -248,8 +140,8 @@ describe('Trust Route Unit/Integration Tests ', function(done){
     });
   });
 
-  describe('Testing Creating a Trust Relationship', function(done){
-    var trust, trust_error, test_sender, test_receiver;
+  describe('Creating a Trust', function(done){
+    var trust, trust_error, full_trust, test_sender, test_receiver;
 
     before(function(done){
       test_sender = mark;
@@ -257,14 +149,9 @@ describe('Trust Route Unit/Integration Tests ', function(done){
       executeCreateTrustRequest(test_receiver._id, test_sender._id, function(err, res){
         trust = res;
         trust_error = err;
-        User.findOne({_id: test_sender}, function(err, result){
-          if(err) throw err;
-          test_sender = result;
-          User.findOne({_id: test_receiver}, function(err, result){
-            if(err) throw err;
-            test_receiver = result;
-            done();
-          });
+        Trust.findOne({_id: res._id}, function(err, full){
+          full_trust = full;
+          done();
         });
       });
     });
@@ -274,67 +161,51 @@ describe('Trust Route Unit/Integration Tests ', function(done){
       _expect(trust.metadata.success).to.equal(true);
       _expect(trust.data.length).to.equal(1);
       _expect(trust.data[0]).to.have.property('_id');
-      _expect(trust.data[0]).to.have.property('user_id');
-      _expect(trust.data[0].user_id._id.toString()).to.equal(test_sender._id.toString());
+      _expect(trust.data[0]).to.have.property('to');
+      _expect(trust.data[0]).to.have.property('from');
+      _expect(trust.data[0]).to.have.property('to_posts');
+      _expect(trust.data[0]).to.have.property('from_posts');
+      _expect(trust.data[0]).to.have.property('to_comments');
+      _expect(trust.data[0]).to.have.property('from_comments');
+      _expect(trust.data[0]).to.have.property('to_post_likes');
+      _expect(trust.data[0]).to.have.property('to_comment_likes');
+      _expect(trust.data[0]).to.have.property('from_comment_likes');
+      _expect(trust.data[0]).to.have.property('from_post_likes');
+      _expect(trust.data[0]).to.have.property('from_posts_count');
+      _expect(trust.data[0]).to.have.property('to_post_counts');
+      _expect(trust.data[0]).to.have.property('from_comment_counts');
+      _expect(trust.data[0]).to.have.property('to_comment_counts');
+      _expect(trust.data[0]).to.have.property('from_likes_count');
+      _expect(trust.data[0]).to.have.property('to_likes_count');
       _expect(trust.data[0]).to.have.property('status');
-      _expect(trust.data[0]).to.have.property('is_owner');
+      _expect(trust.data[0]).to.have.property('type');
       _expect(trust.data[0]).to.have.property('create_date');
       _expect(trust.data[0]).to.have.property('delete_date');
       _expect(trust.data[0]).to.have.property('modify_date');
+      _expect(trust.data[0].to.toString()).to.equal(test_reciever.toString());
+      _expect(trust.data[0],from.toString()).to.equal(test_sender.toString());
       done();
     });
     it('should return an error if you try to create trust that already exists', function(done){
       executeCreateTrustRequest(test_receiver._id, test_sender._id, function(err, res){
-        console.log(res);
         _expect(res.data.length).to.equal(0);
         _expect(res.error.error).to.equal('unable_to_create_trust');
         _expect(res.metadata.success).to.equal(false);
         done();
       });
     });
-    it('should return a shortUser object in the trust objects user_id', function(done){
-      _expect(trust.data[0].user_id).to.have.property('_id');
-      _expect(trust.data[0].user_id).to.have.property('name');
-      _expect(trust.data[0].user_id).to.have.property('first_name');
-      _expect(trust.data[0].user_id).to.have.property('last_name');
-      _expect(trust.data[0].user_id).to.have.property('profile_photo_url');
+    it('should set pending for the trust status', function(done){
+      _expect(trust.data[0].status).to.equal('pending');
       done();
     });
-    it('should add a trust object to the senders array', function(done){
-      _expect(test_sender.trusts.length).to.equal(1);
-      _expect(test_sender.trusts[0].user_id.toString()).to.equal(test_receiver._id.toString());
-      done();
-    });
-    it('should set true for is_owner in senders trust_object', function(done){
-      _expect(test_sender.trusts[0].is_owner).to.equal(true);
-      done();
-    });
-    it('should set pending for status in senders trust object', function(done){
-      _expect(test_sender.trusts[0].status).to.equal('pending');
-      done();
-    });
-    it('should add a trust object the the receivers array', function(done){
-      _expect(test_receiver.trusts.length).to.equal(1);
-      _expect(test_receiver.trusts[0].user_id.toString()).to.equal(test_sender._id.toString());
-      done();
-    });
-    it('should set false for is_owner in receivers trust_object', function(done){
-      _expect(test_receiver.trusts[0].is_owner).to.equal(false);
-      done();
-    });
-    it('should set pending for status in receivers trust object', function(done){
-      _expect(test_receiver.trusts[0].status).to.equal('pending');
-      done();
-    });
-    it('should increment the users trusts_count when a trust is created', function(done){
-      executeCreateTrustRequest(mark._id, edwardo._id, function(err, result){
-        _expect(result.metadata.success).to.equal(true);
-        User.findOne({_id: mark._id}, function(err, refreshed){
-          _expect(refreshed.trusts.length).to.equal(2);
-          _expect(refreshed.trusts_count).to.equal(2);
-          done();
-        });
-      });
+    it('should set a default of 0 for all property counts', function(done){
+      var data = trust.data[0];
+      _expect(data.from_posts_count).to.be(0);
+      _expect(data.from_comments_count).to.be(0);
+      _expect(data.from_likes_count).to.be(0);
+      _expect(data.to_posts_count).to.be(0);
+      _expect(data.to_comments_count).to.be(0);
+      _expect(data.to_likes_count).to.be(0);
     });
     describe('Testing Fetching a Users Trusts', function(done){
       var trusts, test_user;
@@ -353,6 +224,7 @@ describe('Trust Route Unit/Integration Tests ', function(done){
       });
 
       it('should return a users trusts array successfully', function(done){
+        debugger;
         _expect(trusts.metadata.success).to.equal(true);
         _expect(trusts.data.length).to.be.above(0);
         _expect(trusts.data[0]).to.have.property('trusts');
@@ -362,7 +234,7 @@ describe('Trust Route Unit/Integration Tests ', function(done){
         done();
       });
     });
-    describe('Testing Updating a Users Trust', function(done){
+    describe.skip('Updating a Users Trust', function(done){
       var approver, requestor, trust_to_update, associate_trust_to_update, update_result, update_error;
 
       var executeUpdateTrustRequest = function(user_id, trust_id, body, cb){
@@ -457,33 +329,5 @@ describe('Trust Route Unit/Integration Tests ', function(done){
       });
     });
   });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 });
+
