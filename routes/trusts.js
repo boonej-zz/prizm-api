@@ -115,7 +115,7 @@ var createTrust = function(req, res){
         if(!_.isEmpty(exists) && exists.status !== 'cancelled'){
           _logger.log('error','unable to create trust',
                       {error:create_trust_error, to:req.params.id, from:req.body.creator});
-          _utils.prismResponse(req, null, false, create_trust_error);
+          _utils.prismResponse(res, null, false, create_trust_error);
         }else if(!_.isEmpty(exists)){
           _logger.log('info', 'updating trust status from cancelled to pending',
                       {from:req.body.creator, to:req.params.id});
@@ -143,7 +143,7 @@ var createTrust = function(req, res){
             }else{
               //TODO: create an activity? currently after the last activity refactor
               //we were only creating an activity for trusts when someone approves/accepts it
-
+              debugger;
               //return result
               _logger.log('info', 'successful trust created from user: '+new_trust.from.toString()+
                                   ' to user: '+new_trust.toString());
