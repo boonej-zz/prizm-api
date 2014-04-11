@@ -266,6 +266,8 @@ exports.updateUser = function(req, res){
         if(typeof(body.cover_photo_url) !== 'undefined') user.cover_photo_url = body.cover_photo_url;
         if(typeof(body.instagram_token) !== 'undefined') user.instagram_token = body.instagram_token;
         if(typeof(body.instagram_min_id) !== 'undefined') user.instagram_min_id = body.instagram_min_id;
+        if(typeof(body.twitter_token) !== 'undefined') user.twitter_token = body.twitter_token;
+        if(typeof(body.twitter_min_id) !== 'undefined') user.twitter_min_id = body.twitter_min_id;
         user.save(function(err, saved){
           if(err || !saved){
             _utils.prismResponse(res, null, false, error);
@@ -301,11 +303,11 @@ exports.fetchUserNewsFeed = function(req, res){
         for(var i = 0; i < user.following.length; i++){
           following_array.push(user.following[i]._id);
         }
-
+        /**
         for(var t=0; t < user.trusts.length; t++){
           trusts_array.push(user.trusts[t].user_id.toString());
         }
-
+        */
         //user should see its own posts, so add the user to the following_array
         //which is used in the search criteria
 
