@@ -246,8 +246,8 @@ var updateTrust = function(req, res){
 var exists = function(req, res){
   if(req.params.id && req.params.user_id){
     var criteria = {
-      $or:[ {to: req.params.id, from:req.body.creator},
-            {to: req.body.creator, from:req.params.id} ]
+      $or:[ {to: req.params.id, from:req.params.user_id},
+            {to: req.params.user_id, from:req.params.id} ]
     };
     Trust.findOne(criteria, function(err, found){
       if(err) _utils.prismReponse(res, null, false, PrismError.serverError);
