@@ -4,6 +4,7 @@
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
 var _mongoose     = require('mongoose'),
+    _             = require('underscore'),
     _prism_home   = process.env.PRISM_HOME,
     _utils        = require(_prism_home + 'utils'),
     _logger       = require(_prism_home + 'logs'),
@@ -13,6 +14,7 @@ var _mongoose     = require('mongoose'),
     Google        = require(_prism_home + 'classes/Google'),
     User          = require(_prism_home + 'models/user').User,
     Twine         = require(_prism_home + 'classes/Twine'),
+    Trust         = require(_prism_home + 'models/trust').Trust,
     Activity      = require(_prism_home + 'models/activity'),
     Post          = require(_prism_home + 'models/post').Post;
 

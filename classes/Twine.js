@@ -12,6 +12,7 @@ var _util       = require('util'),
     _thisapp    = require('../server.js'),
     _request    = require('request'),
     _logger     = require(process.env.PRISM_HOME + 'logs.js'),
+    _           = require('underscore'),
     User        = require('../models/user').User;
 
 /**
@@ -225,12 +226,12 @@ Twine.prototype.buildBaseRequest = function buildBaseRequest (){
 Twine.prototype.executeRequest = function executeRequest (){
   var response = {};
   var self = this;
-  this.fetch.exec(function(err, result){
+  self.fetch.exec(function(err, result){
     //if there is an error returned from the fetch its server related
     //so send it back immediately
-    if(err) this.cb(err, null);
+    if(err) self.cb(err, null);
     //if the result set is empty, invoke callback immediately, else process
-    if(result.length === 0){
+    if(_.isEmpty(result)){
       self.cb(err, result);
     }else{
       //set the base result set in the response object

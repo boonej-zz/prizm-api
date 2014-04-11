@@ -12,6 +12,7 @@ var _mongoose     = require('mongoose'),
     User          = require(_prism_home + 'models/user').User,
     Post          = require(_prism_home + 'models/post').Post,
     Activity      = require(_prism_home + 'models/user').Activity,
+    Twine         = require(_prism_home + 'classes/Twine'),
     Trust         = require(_prism_home + 'models/trust').Trust;
 
 var trust_status = {
@@ -143,7 +144,6 @@ var createTrust = function(req, res){
             }else{
               //TODO: create an activity? currently after the last activity refactor
               //we were only creating an activity for trusts when someone approves/accepts it
-              debugger;
               //return result
               _logger.log('info', 'successful trust created from user: '+new_trust.from.toString()+
                                   ' to user: '+new_trust.toString());
@@ -166,7 +166,7 @@ var createTrust = function(req, res){
 var fetchTrusts = function(req, res){
   validateTrustRequest(req, res, function(){
     var criteria = {$or: [ {to: req.params.id}, {from: req.params.id} ]};
-    new Twine(req, criteria, {fields: Trust.selectFields('basic')}, function(err, trusts){
+    new Twine('Trust', criteria, req, {fields: Trust.selectFields('basic').join(" ")}, function(err, trusts){
       var error = {
         status_code: 400,
         error_info:{
@@ -176,7 +176,7 @@ var fetchTrusts = function(req, res){
       };
       //if err is set, then it is a server / mongo error. return server error
       if(err){
-        _utils.PrismResponse(res, null, false, PrismError.serverError);
+        _utils.prismResponse(res, null, false, PrismError.serverError);
       }else if(_.isEmpty(trusts)){
         //no trusts were returned, send unable_to_fetch_trusts error
         _utils.prismResponse(res, null, false, error);

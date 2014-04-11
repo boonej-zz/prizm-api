@@ -150,7 +150,7 @@ describe('Trust Route Unit/Integration Tests ', function(done){
         trust = res;
         trust_error = err;
         Trust.findOne({_id: res._id}, function(err, full){
-          full_trust = full.toObject();
+          full_trust = full;
           done();
         });
       });
@@ -207,7 +207,7 @@ describe('Trust Route Unit/Integration Tests ', function(done){
       _expect(data.to_comments_count).to.be(0);
       _expect(data.to_likes_count).to.be(0);
     });
-    describe.skip('Testing Fetching a Users Trusts', function(done){
+    describe('Testing Fetching a Users Trusts', function(done){
       var trusts, test_user;
       var executeFetchTrustsRequest = function(user_id, cb){
         executeRequest('GET', 'users/'+user_id+'/trusts', null, function(err, res){
@@ -224,6 +224,7 @@ describe('Trust Route Unit/Integration Tests ', function(done){
       });
 
       it('should return a users trusts array successfully', function(done){
+        debugger;
         _expect(trusts.metadata.success).to.equal(true);
         _expect(trusts.data.length).to.be.above(0);
         _expect(trusts.data[0]).to.have.property('trusts');
