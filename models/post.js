@@ -86,7 +86,8 @@ postSchema.statics.canResolve = function(){
     {creator: {identifier: '_id', model: 'User'}},
     {target_id: {identifier: '_id', model: 'User'}},
     {comments: {identifier: 'creator', model: 'User'}},
-    {likes: {identifier: '_id', model: 'User'}}
+    {likes: {identifier: '_id', model: 'User'}},
+    {origin_post_id: {identifier: '_id', model: 'Post'}}
   ];
 };
 
