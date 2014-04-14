@@ -148,6 +148,7 @@ Twine.prototype.$__resolveFilterProperties = function $__resolveFilterProperties
   };
   if(this.$__isQuerySet()) findFilterProperties(this.Request.query, this.model_keys, this.filters);
   if(this.$__isBodySet()) findFilterProperties(this.Request.body, this.model_keys, this.filters);
+  if(this.args) findFilterProperties(this.args, this.model_keys, this.filters);
 };
 
 Twine.prototype.$__setPage = function $__setPage(){
