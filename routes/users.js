@@ -303,34 +303,52 @@ exports.fetchUserNewsFeed = function(req, res){
         for(var i = 0; i < user.following.length; i++){
           following_array.push(user.following[i]._id);
         }
-        /**
-        for(var t=0; t < user.trusts.length; t++){
-          trusts_array.push(user.trusts[t].user_id.toString());
-        }
-        */
-        //user should see its own posts, so add the user to the following_array
-        //which is used in the search criteria
 
-        //TODO: ensure trust is accepted
-        var posts_array = [];
+        Trust.find({status: 'accepted', $or : [{to:req.params.id},{from:req.params.id}]}, function(err, trusts){
+          if(err){
+            _logger.log('error', 'an error was returned while trying to fetch trusts for feed for user: '+req.params.id);
+            _utils.prismResponse(res, null, false, PrismError.serverError);
 
-        var criteria = {$or: [  {scope: 'public', status: 'active', creator: {$in:following_array}},
-                                {scope: 'trust', status: 'active', creator: {$in:trusts_array}},
-                                {creator: user._id, status: 'active'}]};
-        new Twine('Post', criteria, req, null, function(err, result){
-          if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-          if(result){
-            _utils.prismResponse(res, result, true);
           }else{
-            var error = {
-              status_code: 400,
-                error_info: {
-                  error: 'user_has_no_news_feed_content',
-                  error_description: 'The requested user is not following anyone.'+
-                  ' There is no content to display'
+            if(_.has(trusts, 'length')){
+              for(var t=0; t < trusts.length; t++){
+                var trust = trusts[t].toObject();
+                var to = trust.to.toString();
+                var from = trust.from.toString();
+                var item;
+                if(to === req.params.id){
+                  item = from;
+                }else{
+                  item = to;
                 }
-              };
-            _utils.prismResponse(res,null,false,error);
+                trusts_array.push(item);
+              }
+            }
+            //user should see its own posts, so add the user to the following_array
+            //which is used in the search criteria
+
+            //TODO: ensure trust is accepted
+            var posts_array = [];
+
+            var criteria = {$or: [  {scope: 'public', status: 'active', creator: {$in:following_array}},
+                                    {scope: {$in:['trust', 'public']}, status: 'active', creator: {$in:trusts_array}},
+                                    {creator: user._id, status: 'active'}]};
+            new Twine('Post', criteria, req, null, function(err, result){
+              if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+              if(result){
+                _utils.prismResponse(res, result, true);
+              }else{
+                var error = {
+                  status_code: 400,
+                    error_info: {
+                      error: 'user_has_no_news_feed_content',
+                      error_description: 'The requested user is not following anyone.'+
+                      ' There is no content to display'
+                    }
+                  };
+                _utils.prismResponse(res,null,false,error);
+              }
+            });
           }
         });
       }
