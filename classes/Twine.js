@@ -154,7 +154,7 @@ Twine.prototype.$__setPage = function $__setPage(){
  if(this.page){
     if(this.page_direction === 1){
       this.criteria[this.page_by] = {$lt : this.page};
-    }else if(this.page_direction === -1){
+    }else if(this.page_direction === 0){
       this.criteria[this.page_by] = {$gt : this.page};
     }else{
       this.criteria[this.page_by] = {$gt : this.page};
@@ -306,7 +306,8 @@ Twine.prototype.processContains = function processContains(base, contains, block
       if(doesObjectKeyExist(base.data[num], contain)){
         has_key = true;
         for(var check in base.data[num][contain]){
-          _logger.log('info', 'does base.data index ' + num + ' field ' +contain+ ' field index + '+check+' key + '+k+' == value: '+v);
+          _logger.log('info', 'does base.data index ' + num + 
+                      ' field ' +contain+ ' field index + '+check+' key + '+k+' == value: '+v);
           _logger.log('info','field value to compare: ' + JSON.stringify(base.data[num][contain][check]));
           if(typeof base.data[num][contain][check] !== 'undefined')
             if(typeof base.data[num][contain][check][k] !== 'undefined')
