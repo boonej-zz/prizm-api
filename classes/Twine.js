@@ -469,6 +469,16 @@ Twine.prototype.$__buildResolveFetchSelect = function $__buildResolveFetchSelect
       }
     }
   }
+  if(_.keys(map_object, 'fields')){
+    var fields = map_object.fields;
+    if(_.isArray(fields)){
+      for(var i in fields){
+        select.push(fields[i]);
+      }
+    }else if(_.isString(fields)){
+      select.push(fields);
+    }
+  }
   return select.join(" ");
 };
 
