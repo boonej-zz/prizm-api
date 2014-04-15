@@ -243,7 +243,15 @@ exports.removePost = function(req, res){
         post.delete_date = Date.now();
         post.save(function(error, saved){
           if(error) _utils.prismResponse(res, null, false, remove_error);
-          _utils.prismResponse(res, {message: 'Post Successfully Removed'}, true);
+          //decrement the posts_count of the user
+          User.findOne({_id: req.body.creator}, function(err, user){
+            if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+            user.posts_count = user.posts_count -1;
+            user.save(function(err, user_saved){
+              if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+              _utils.prismResponse(res, {message: 'Post Successfully Removed'}, true);
+            });
+          });
         });
       }
     });
