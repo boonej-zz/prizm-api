@@ -46,7 +46,7 @@ var userSchema = new _mongoose.Schema({
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
   type                  : {type: String, default: 'user'},
-  year_founded          : {type: Date, default: null},
+  date_founded          : {type: Date, default: null},
   mascot                : {type: String, default: null},
   enrollment            : {type: Number, default: null},
   instagram_token       : {type: String, default: null},

@@ -269,7 +269,7 @@ exports.updateUser = function(req, res){
         if(typeof(body.twitter_token) !== 'undefined') user.twitter_token = body.twitter_token;
         if(typeof(body.twitter_min_id) !== 'undefined') user.twitter_min_id = body.twitter_min_id;
         if(typeof(body.mascot) !== 'undefined') user.mascot = body.mascot;
-        if(typeof(body.year_founded) !== 'undefined') user.year_founded = body.year_founded;
+        if(typeof(body.date_founded) !== 'undefined') user.date_founded = body.date_founded;
         if(typeof(body.enrollment) !== 'undefined') user.enrollment = body.enrollment;
 
         user.save(function(err, saved){
