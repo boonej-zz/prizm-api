@@ -78,7 +78,8 @@ var postSchema = new _mongoose.Schema({
   is_repost           : {type: Boolean, default: false},
   origin_post_id      : {type: String, default: null},
   external_provider   : {type: String, default: null},
-  external_link       : {type: String, default: null}
+  external_link       : {type: String, default: null},
+  type                : {type: String, default: 'user'}
 }, { versionKey: false});
 
 postSchema.statics.canResolve = function(){

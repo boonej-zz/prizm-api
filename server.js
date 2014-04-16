@@ -215,7 +215,10 @@ _app.post('/users/:id/unfollow', _gateway, _follow.unfollow);
 _app.get('/users/:id/activites', _gateway, _activity.fetchUserActivity);
 
 /* Explore Route */
-_app.get('/explore', _gateway, _explore);
+_app.get('/explore', _gateway, _explore.explore);
+
+/* Search Hash Tags */
+_app.get('/search/hashtags/:hash', _gateway, _explore.search);
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
