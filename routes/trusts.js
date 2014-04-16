@@ -11,7 +11,7 @@ var _mongoose     = require('mongoose'),
     PrismError    = require(_prism_home + 'error'),
     User          = require(_prism_home + 'models/user').User,
     Post          = require(_prism_home + 'models/post').Post,
-    Activity      = require(_prism_home + 'models/user').Activity,
+    Activity      = require(_prism_home + 'models/activity').Activity,
     Twine         = require(_prism_home + 'classes/Twine'),
     Trust         = require(_prism_home + 'models/trust').Trust;
 
@@ -57,7 +57,7 @@ var validateTrustRequest = function(req, res, cb){
       cb();
     }else{
       if(req.method === 'PUT' || req.method === 'DELETE'){
-        if(!req.params.trust_id){
+        if(!req.params.id){
           invalidRequest();
           return;
         }
@@ -220,20 +220,20 @@ var updateTrust = function(req, res){
               //not the requestee
               if(req.body.status === 'accepted'){
                 new Activity({
-                  to: trust_updated.from,
-                  from: trust_updated.to,
+                  to: trust.from,
+                  from: trust.to,
                   action: 'trust_accepted'
                 }).save(function(err, activity){
                   //log the event but DO NOT return error as the trust was still created
                   _logger.log('error', 'error creating trust update activity',
-                              {to:trust_updated.from, from:trust_updated_to, err:err});
+                              {to:trust_updated.from, from:trust_updated.to, err:err});
 
                   //return response
-                  _utils.prismResponse(res, trust_updated, err);
+                  _utils.prismResponse(res, trust_updated, true);
                 });
 
               }else{
-                _utils.prismResponse(res, trust_updated, err);
+                _utils.prismResponse(res, trust_updated, true);
               }
             }
           });
@@ -241,6 +241,33 @@ var updateTrust = function(req, res){
       }
     });
   });
+};
+
+var exists = function(req, res){
+  if(req.params.id && req.params.user_id){
+    var criteria = {
+      $or:[ {to: req.params.id, from:req.params.user_id},
+            {to: req.params.user_id, from:req.params.id} ]
+    };
+    Trust.findOne(criteria, function(err, found){
+      if(err) _utils.prismReponse(res, null, false, PrismError.serverError);
+      if(_.isEmpty(found)){
+        var error = {
+          status_code: 400,
+          error_info: {
+            error: 'unable_to_find_existing_trust',
+            error_description: 'An existing trust does not currently exist between '+
+                                req.params.id + ' and '+ req.params.user_id
+          }
+        };
+        _utils.prismResponse(res, null, false, error);
+      }else{
+        _utils.prismResponse(res, found, true);
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
 };
 
 var deleteTrust = function(req, res){
@@ -253,7 +280,8 @@ var thisExports = {
   createTrust: createTrust,
   fetchTrusts: fetchTrusts,
   updateTrust: updateTrust,
-  deleteTrust: deleteTrust
+  deleteTrust: deleteTrust,
+  exists:      exists
 };
 
 if(process.env.NODE_ENV === 'test'){

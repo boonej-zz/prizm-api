@@ -183,7 +183,7 @@ _app.get('/users/:id/feed', _gateway, _user.fetchUserNewsFeed);
 _app.post('/users/:id/trusts', _gateway, _trust.createTrust);
 
 /* Update Trust */
-_app.put('/users/:id/trusts/:trust_id', _gateway, _trust.updateTrust);
+_app.put('/trusts/:id', _gateway, _trust.updateTrust);
 
 /* Fetch Users Trusts */
 _app.get('/users/:id/trusts', _gateway, _trust.fetchTrusts);
@@ -192,6 +192,9 @@ _app.get('/search/users', _gateway, _user.search);
 
 /* Delete User Trust */
 _app.delete('/users/:id/trusts/:trust_id', _gateway, _trust.deleteTrust);
+
+/* Validate 2 users are in a trust */
+_app.get('/exists/:id/trusts/:user_id', _gateway, _trust.exists);
 
 /* Fetch is User Following By Following Identifier */
 _app.get( '/users/:id/following/:following_id',

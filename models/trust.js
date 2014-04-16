@@ -35,8 +35,8 @@ var trustSchema = new _mongoose.Schema({
 
 trustSchema.static('findTrust', function(user1, user2, callback){
   var criteria = {
-    $or:[ {to: req.params.id, from:req.body.creator},
-          {to: req.body.creator, from:req.params.id} ]
+    $or:[ {to: user1, from:user2},
+          {to: user2, from:user1} ]
   };
   return this.findOne(criteria)
             .select(this.selectFields('basic').join(' '))
