@@ -405,6 +405,7 @@ exports.createUserPost = function(req, res){
           _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
 
         }else{
+          post.type = user.type;
           post.target_id = user._id;
           post.save(function(error, user_post){
             if(error){
