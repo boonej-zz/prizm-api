@@ -55,7 +55,7 @@ var searchHashTags = function(req, res){
 
 var explore = function(req, res){
   var criteria = {status: 'active', scope: 'public'};
-  var twine = new Twine('Post', BASE_EXPLORE_CRITERIA, req, null, function(error, explore){
+  var twine = new Twine('Post', criteria, req, null, function(error, explore){
     if(error){
       _utils.prismResponse(res, null, false, PrismError.serverError);
     }else{
