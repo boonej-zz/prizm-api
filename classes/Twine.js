@@ -258,7 +258,6 @@ Twine.prototype.$__formatChildModelBaseResults = function(base, model_name){
     if(typeof base.data[index][model_name] !== 'undefined')
       base.data[index] = base.data[index][model_name];
   }
-  debugger;
   return base;
 };
 
@@ -267,7 +266,6 @@ Twine.prototype.process = function process (base, block){
   var self = this;
   if(self.has_child_model){
     base = self.$__formatChildModelBaseResults(base, self.child_model_name);
-    debugger;
   }
   //if contains does exist send to resolve -- if nothing to resolve it will invoke
   //the callback `block` and finish the process, thus retuning the result
@@ -323,7 +321,6 @@ Twine.prototype.processContains = function processContains(base, contains, block
         }
         if(!found && has_key) base.data[num][contain] = [];
       }else if(Array.isArray(base.data[num])){
-        debugger;
         for(var i in base.data[num]){
           if(doesObjectKeyExist(base.data[num][i], contain)){
             has_key = true;
@@ -342,7 +339,6 @@ Twine.prototype.processContains = function processContains(base, contains, block
           if(!found && has_key) base.data[num][i][contain] = [];
         }
       }
-      debugger;
     }
   }
   block(base);
@@ -394,7 +390,6 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
     for(var index in object){
       object[index] = (typeof object[index].toObject === 'function')? object[index].toObject() : object[index];
       if(typeof object[index][field] == 'undefined' && Array.isArray(object[index])){
-        debugger;
         for(var c in object[index]){
           if(distinct_array.indexOf(object[index][c][field].toString()) === -1)
              distinct_array.push(object[index][c][field].toString());
@@ -418,7 +413,6 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
       }
     }
     return distinct_array;
-    debugger;
   }else{
     return false;
   }

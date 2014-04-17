@@ -95,6 +95,9 @@ describe('Twine Class Unit Tests', function(done){
           status: "0",
           sort: "1",
           sort_by: "create_date",
+          page_by: 'following.create_date',
+          page: '2015/20/12',
+          page_direction: 0,
           resolve: {
             following: {
               format:"short",

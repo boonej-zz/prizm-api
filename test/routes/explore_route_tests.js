@@ -25,7 +25,7 @@ describe('Explore Route Unit Tests', function(done){
   var testClient = null;
   var testCode = null;
   var testToken = null;
-  var mark, edwardo, cameron, erica, sean, maryolin;
+  var mark, edwardo, cameron, erica, sean, maryolin, DJ;
   var post1, post2, post3, post4, post5, post6;
 
   var executeLikePost = function(post, creator, cb){
@@ -80,7 +80,7 @@ describe('Explore Route Unit Tests', function(done){
       },
       {
         text: 'test test tes5',
-        hash_tags: ['#hashtagz', 'singular', '#realtalk'],
+        hash_tags: ['#hashtagz', 'singular', '#realtalk', 'foo'],
         hash_tags_count: 3,
         creator: erica._id,
         target_id: testUser._id,
@@ -89,7 +89,7 @@ describe('Explore Route Unit Tests', function(done){
       },
       {
         text: 'test test tes6',
-        hash_tags: ['#ballin', '#rkelly'],
+        hash_tags: ['#ballin', '#rkelly', 'fooz'],
         hash_tags_count: 2,
         creator: mark._id,
         target_id: testUser._id,
@@ -155,6 +155,10 @@ describe('Explore Route Unit Tests', function(done){
       });
     // });
   };
+  
+  var createXHeader = function(args){
+    return new Buffer(args).toString('base64');
+  };
 
   var executeExploreRequestWithQueryString = function(query_string, cb){
     _request({
@@ -169,75 +173,128 @@ describe('Explore Route Unit Tests', function(done){
   };
 
   before(function(done){
-    _t_helpers.destroyTestPost(function(){
-      _t_helpers.destroyTestUser(function(){
-        _t_helpers.createTestUser(function(user){
-          testUser = user;
-          _t_helpers.createTestToken(function(token, code, client){
-            testToken = token;
-            testCode = code;
-            testClient = client;
+    _t_helpers.createTestUser(function(user){
+      testUser = user;
+      _t_helpers.createTestToken(function(token, code, client){
+        testToken = token;
+        testCode = code;
+        testClient = client;
 
-            var social_users = _t_helpers.fetchFakeUsersArray();
-            User.create(social_users, function(err, m, e, c, e2, s, m2){
-              if(err) throw err;
-              mark = m;
-              edwardo = e;
-              cameron = c;
-              erica = e2;
-              sean = s;
-              maryolin = m2;
+        _t_helpers.fetchFixtureTestUsers(function(users){
+          mark = users.mark;
+          edwardo = users.edwardo;
+          cameron = users.cameron;
+          erica = users.erica;
+          sean = users.sean;
+          maryolin = users.maryolin;
+          DJ = users.DJ;
 
-              setupPostsAndLikes(function(){
-                done();
-              });
-            });
+          setupPostsAndLikes(function(){
+            done();
           });
         });
       });
     });
   });
 
-  after(function(done){
-    _t_helpers.destroyTestUser(function(){
-      done();
-    });
-  });
-  describe('Testing /explore hash_tags search', function(done){
-    it('should find posts that have the exact char set in the search string', function(done){
-      executeExploreRequestWithQueryString('?hash_tags=singularity', function(err, result){
-        _expect(result.data.length).to.equal(1);
-        _expect(result.data[0].hash_tags[0]).to.equal('#singularity');
-        _expect(result.data[0]._id.toString()).to.equal(post4._id.toString());
+  describe('Testing fetching hashtags w/ groups & counts', function(done){
+    it('should return hashtag counts by distinct hashtag', function(done){
+      _request({
+        method: 'GET',
+        strictSSL: false,
+        json: true,
+        url: 'https://localhost:3000/search/hashtags/foo',
+        headers: {"Authorization":"Bearer "+testToken.access_token}
+      }, function(err, result, body){
+        var hashtags = body.data;
+        _expect(hashtags[0].hash_tag).to.equal('fooz');
+        _expect(hashtags[0].count).to.be.above(1);
+        _expect(hashtags[1].hash_tag).to.equal('foo');
+        _expect(hashtags[1].count).to.be.above(1);
+        _expect(hashtags[2].hash_tag).to.equal('#foo');
+        _expect(hashtags[2].count).to.be.below(hashtags[1].count);
         done();
       });
     });
-    it('should find posts that have `like` char set ordering in the search string', function(done){
-      _assert.ok(false, 'Test not implemented yet');
-    });
   });
+
+  //TODO: finish and update -- can test easily on the client now while integrating
+  // describe('Testing fetching a specific hashtag by filtering explore', function(done){
+  //   it('should return 2 or more posts with a specific hashtag', function(done){
+  //     _request({
+  //       method: 'GET',
+  //   });
+  // });
+  
   describe('Testing /explore by popular posts', function(done){
-    it('should return sorted by likes# desc vi sort_field', function(done){
-      executeExploreRequestWithQueryString('?sort_field=likes_count', function(err,result){
-        debugger;
+    var explore_result;
+    
+    //TODO: figure out why global hook was failing when internal describe "before" function was added
+
+    // var headers;
+    // debugger;
+    // // var auth_headers = 'Bearer ' + testToken.access_token;
+
+    // before(function(done){
+    //   var auth_headers = 'Bearer ' + testToken.access_token;
+
+    //   var xargs = {
+    //     sort: -1,
+    //     sort_by: 'likes_count',
+    //     resolve: {
+    //       creator: {
+    //         format: 'short'
+    //       }
+    //     }
+    //   };
+    //   xargs = JSON.stringify(xargs);
+    //   var xargs_header = createXHeader(xargs);
+    //   headers = {"Authorization":auth_headers, "X-Arguments":xargs_header};
+    //   _request({
+    //     method: 'GET',
+    //     url: 'https://localhost:3000/explore',
+    //     strictSSL: false,
+    //     json: true,
+    //     headers: headers
+    //   }, function(err, result){
+    //     debugger;
+    //     done();
+    //   });
+    // });
+
+    it('should return sorted by likes# desc', function(done){
+      // executeExploreRequestWithQueryString('?sort_field=likes_count', function(err,result){
+      var auth_headers = 'Bearer ' + testToken.access_token;
+
+      var xargs = {
+        sort: -1,
+        sort_by: 'likes_count',
+      };
+      xargs = JSON.stringify(xargs);
+      var xargs_header = createXHeader(xargs);
+      headers = {"Authorization":auth_headers, "X-Arguments":xargs_header};
+      _request({
+        method: 'GET',
+        url: 'https://localhost:3000/explore',
+        strictSSL: false,
+        json: true,
+        headers: headers
+      }, function(err, result){
+        explore_result = result.body;
+        result = result.body;
         _expect(result.data[0]._id.toString()).to.equal(post4._id.toString());
         _expect(result.data[0].likes_count).to.equal(6);
-        _expect(result.data[0].likes.length).to.equal(6);
         _expect(result.data[1]._id.toString()).to.equal(post1._id.toString());
         _expect(result.data[1].likes_count).to.equal(4);
-        _expect(result.data[1].likes.length).to.equal(4);
         _expect(result.data[2]._id.toString()).to.equal(post6._id.toString());
         _expect(result.data[2].likes_count).to.equal(2);
-        _expect(result.data[2].likes.length).to.equal(2);
         _expect(result.data[3]._id.toString()).to.equal(post3._id.toString());
         _expect(result.data[3].likes_count).to.equal(1);
-        _expect(result.data[3].likes.length).to.equal(1);
         done();
       });
     });
-  });
-  it('should return sorted by likes and by create_date (default)', function(done){
-    executeExploreRequestWithQueryString('?sort_field=likes_count', function(err, result){
+    it('should return sorted by likes and by create_date (default)', function(done){
+      var result = explore_result;
       //since post3 (in the setup process) has an hour increased create_date
       //timestamp yet was LIKED after post5, we should still see post3 sorted in
       //the result index before post5. post5 should be the next result after that
@@ -245,21 +302,20 @@ describe('Explore Route Unit Tests', function(done){
       _expect(result.data[4]._id.toString()).to.equal(post5._id.toString());
       done();
     });
-  });
-  it('should return sorteqd by likes and create_date greater than the fi date', function(done){
-    var date = Date.now() + 40 * 60 * 1000;
-    date = new Date(date);
-
-    executeExploreRequestWithQueryString('?sort_field=likes_count&feature_identifier=' + date.toUTCString(),function(err, result){
-      //since post3 & post5 are technically created 45-60m in the future, we should see
-      //post3 & post5 as the 1 and 2 index returned when the feature_identifier is
-      //casted 40m into the feature.
-      _expect(result.data[1]._id.toString()).to.equal(post3._id.toString());
-      _expect(result.data[2]._id.toString()).to.equal(post5._id.toString());
-      done();
+    //TODO: update test
+    it.skip('should return sorteqd by likes and create_date greater than the fi date', function(done){
+      var date = Date.now() + 40 * 60 * 1000;
+      date = new Date(date);
+        //since post3 & post5 are technically created 45-60m in the future, we should see
+        //post3 & post5 as the 1 and 2 index returned when the feature_identifier is
+        //casted 40m into the feature.
+        _expect(result.data[1]._id.toString()).to.equal(post3._id.toString());
+        _expect(result.data[2]._id.toString()).to.equal(post5._id.toString());
+        done();
     });
   });
-  describe('Testing /explore fetching all posts for explore', function(done){
+  //TODO: update test
+  describe.skip('Testing /explore fetching all posts for explore', function(done){
     it('should return all public posts sorted by a desc create_date', function(done){
       var auth_headers = 'Bearer ' + testToken.access_token;
       var posts = _t_helpers.fetchFakePostsArray(testUser, testUser);

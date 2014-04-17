@@ -70,7 +70,7 @@ var postSchema = new _mongoose.Schema({
   tags                : [],
   comments            : [commentSchema],
   likes               : [],
-  hash_tags           : [],
+  hash_tags           : [String],
   hash_tags_count     : {type: Number, default: 0},
   is_flagged          : {type: Boolean, default: false},
   flagged_count       : {type: Number, default: 0},
