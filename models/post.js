@@ -70,7 +70,7 @@ var postSchema = new _mongoose.Schema({
   tags                : [],
   comments            : [commentSchema],
   likes               : [],
-  hash_tags           : [],
+  hash_tags           : [String],
   hash_tags_count     : {type: Number, default: 0},
   is_flagged          : {type: Boolean, default: false},
   flagged_count       : {type: Number, default: 0},
@@ -78,7 +78,8 @@ var postSchema = new _mongoose.Schema({
   is_repost           : {type: Boolean, default: false},
   origin_post_id      : {type: String, default: null},
   external_provider   : {type: String, default: null},
-  external_link       : {type: String, default: null}
+  external_link       : {type: String, default: null},
+  type                : {type: String, default: 'user'}
 }, { versionKey: false});
 
 postSchema.statics.canResolve = function(){
