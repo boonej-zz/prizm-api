@@ -13,7 +13,7 @@ var _mongoose   = require('mongoose'),
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
   first_name            : {type: String, required: true},
-  last_name             : {type: String, required: true},
+  last_name             : {type: String, default: ''},
   email                 : {type: String, required: true, index: {unique: true}},
   info                  : {type: String, default: null},
   website               : {type: String, default: null},
