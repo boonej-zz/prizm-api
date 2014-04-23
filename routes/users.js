@@ -597,13 +597,7 @@ exports.fetchUserPosts = function(req, res){
  */
 var isValidRegisterRequest = function(req){
   if( typeof(req.body.first_name) == 'undefined'  ||
-      typeof(req.body.last_name) == 'undefined'   ||
-      typeof(req.body.gender) == 'undefined' ||
-      typeof(req.body.zip_postal) == 'undefined' ||
-      typeof(req.body.city) == 'undefined' ||
-      typeof(req.body.state) == 'undefined' ||
-      typeof(req.body.birthday) == 'undefined' ){
-
+      typeof(req.body.zip_postal) == 'undefined'){
     return false;
 
   }else{

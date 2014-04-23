@@ -84,8 +84,10 @@ function Twine(model, criteria, Request, options, callback){
   this.child_model = self.$__setupProperty('child_model', DEFAULT_CHILD_MODEL);
   //setup child model name
   this.child_model_name = DEFAULT_CHILD_MODEL_NAME;
-  if(_.has(options, 'child_model')){
-    this.child_model_name = options.child_model;
+  if(this.options){
+    if(_.has(options, 'child_model')){
+      this.child_model_name = options.child_model;
+    }
   }
   //setup model keys
   this.model_keys = DEFAULT_MODEL_KEYS;
@@ -110,10 +112,12 @@ Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(){
 };
 
 Twine.prototype.$__setupProperty = function $__setupProperty(option, prop_default){
-    if(!this.options){
-      return false;
-    }else if(_.has(this.options, option)){
-      return this.options[option];
+    if(this.options){
+      if(_.has(this.options, option)){
+        return this.options[option];
+      }else{
+        return prop_default;
+      }
     }else{
       return prop_default;
     }
