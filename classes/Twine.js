@@ -23,16 +23,6 @@ var DEFAULT_SORT_BY = 'create_date';
 var DEFAULT_SORT = -1;
 var DEFAULT_PAGE_BY = 'create_date';
 var DEFAULT_PAGE_DIRECTION = -1;
-var DEFAULT_PAGE = null;
-var DEFAULT_FIELDS = null;
-var DEFAULT_CONTAINS = null;
-var DEFAULT_RESOLVE = null;
-var DEFAULT_FETCH = null;
-var DEFAULT_IS_CHILD_MODEL = null;
-var DEFAULT_CHILD_MODEL_NAME = null;
-var DEFAULT_CHILD_MODEL = null;
-var DEFAULT_MODEL_KEYS = [];
-var DEFAULT_FILTER = {};
 var X_ARGUMENTS_HEADER = 'x-arguments';
 
 /**
@@ -42,55 +32,49 @@ module.exports = Twine;
 
 function Twine(model, criteria, Request, options, callback){
   var self = this;
-  //setup corresponding model to operate on
   this.Model = _mongoose.model(model);
-  //setup model schema from passed model string
   this.Schema = this.Model().schema;
-  //setup init find criteria
   this.criteria = criteria;
-  //set http request object
   this.Request = Request;
-  //set http arguments
   this.args = self.$__digestHeaderArguments();
-  //set optional options hash
   this.options = options;
-  //set callback block
   this.cb = callback;
-  //setup sort
-  this.sort = self.$__setupProperty('sort', DEFAULT_SORT);
-  //setup sort_by
-  this.sort_by = self.$__setupProperty('sort_by', DEFAULT_SORT_BY);
-  //setup limit
-  this.limit = self.$__setupProperty('limit', DEFAULT_LIMIT);
-  //setup fields
-  this.fields = self.$__setupProperty('fields', DEFAULT_FIELDS);
-  //setup page
-  this.page = self.$__setupProperty('page', DEFAULT_PAGE);
-  //setup page_by
-  this.page_by = self.$__setupProperty('page_by', DEFAULT_PAGE_BY);
-  //setup page_direction
-  this.page_direction = self.$__setupProperty('page_direction', DEFAULT_PAGE_DIRECTION);
-  //setup filters
-  this.filters = DEFAULT_FILTER;
-  //setup contains
-  this.contains = self.$__setupProperty('contains', DEFAULT_CONTAINS);
-  //setup resolves
-  this.resolves = self.$__setupProperty('resolve', DEFAULT_RESOLVE);
-  //setup fetch
-  this.fetch = DEFAULT_FETCH;
-  //setup has_child_model
-  this.has_child_model = self.$__setupProperty('is_child_model', DEFAULT_IS_CHILD_MODEL);
-  //setup child model
-  this.child_model = self.$__setupProperty('child_model', DEFAULT_CHILD_MODEL);
-  //setup child model name
-  this.child_model_name = DEFAULT_CHILD_MODEL_NAME;
-  if(this.options){
-    if(_.has(options, 'child_model')){
-      this.child_model_name = options.child_model;
-    }
-  }
-  //setup model keys
-  this.model_keys = DEFAULT_MODEL_KEYS;
+  this.sort = (!self.$__optExists('sort')) ?
+    self.$__parse('sort', DEFAULT_SORT)
+    : options.sort;
+  this.sort_by = (!self.$__optExists('sort_by')) ?
+    self.$__parse('sort_by', DEFAULT_SORT_BY)
+    : options.sort_by;
+  this.limit = (!self.$__optExists('limit')) ?
+    self.$__parse('limit', DEFAULT_LIMIT)
+    : options.limit;
+  this.fields = (!self.$__optExists('fields')) ?
+    self.$__parse('fields', null)
+    : options.fields;
+  this.page = (!self.$__optExists('page')) ?
+    self.$__parse('page', null)
+    : options.page;
+  this.page_by = (!self.$__optExists('page_by')) ?
+    self.$__parse('page_by', DEFAULT_PAGE_BY)
+    : options.page_by;
+  this.page_direction = (!self.$__optExists('page_direction')) ?
+    self.$__parse('page_direction', DEFAULT_PAGE_DIRECTION)
+    : options.page_direction;
+  this.filters = {};
+  this.contains = (!self.$__optExists('contains')) ?
+    self.$__parse('contains', null)
+    : options.contains;
+  this.resolve = (!self.$__optExists('resolve')) ?
+    self.$__parse('resolve', null)
+    : options.resolve;
+  this.fetch = null;
+  this.has_child_model = (self.$__optExists('is_child_model')) ?
+    options.is_child_model : null;
+  this.child_model = (self.$__optExists('child_model')) ?
+    _mongoose.model(options.child_model) : null;
+  this.child_model_name = (self.has_child_model) ?
+    options.child_model : null;
+  this.model_keys = [];
   //intro the Schema & set available model keys
   for(var key in this.Schema.paths){
     this.model_keys.push(key);
@@ -100,9 +84,17 @@ function Twine(model, criteria, Request, options, callback){
   self.buildBaseRequest();
 }
 
+var doesObjectKeyExist = function(object, key){
+  // return (typeof object.key !== 'undefined');
+  for(var found in object){
+    if(found === key) return true;
+  }
+  return false;
+};
+
 Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(){
   var res = null;
-  if(this.Request && _.has(this.Request.headers, X_ARGUMENTS_HEADER)){
+  if(this.Request && doesObjectKeyExist(this.Request.headers, X_ARGUMENTS_HEADER)){
     //base64 decode the x-args header
     var args = new Buffer(this.Request.headers[X_ARGUMENTS_HEADER], 'base64').toString('utf8');
     res = JSON.parse(args);
@@ -111,15 +103,13 @@ Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(){
   return res;
 };
 
-Twine.prototype.$__setupProperty = function $__setupProperty(option, prop_default){
-    if(this.options){
-      if(_.has(this.options, option)){
-        return this.options[option];
-      }else{
-        return prop_default;
-      }
+Twine.prototype.$__optExists = function $__optExists(option){
+    if(!this.options){
+      return false;
+    }else if(doesObjectKeyExist(this.options, option)){
+      return true;
     }else{
-      return prop_default;
+      return false;
     }
 };
 
@@ -131,11 +121,11 @@ Twine.prototype.$__isSchemaProperty = function $__isSchemaProperty(property){
 };
 
 Twine.prototype.$__isQuerySet = function $__isQuerySet(){
-  return (_.has(this.Request, 'query'));
+  return (doesObjectKeyExist(this.Request, 'query'));
 };
 
 Twine.prototype.$__isBodySet = function $__isBodySet(){
-  return (_.has(this.Request, 'body'));
+  return (doesObjectKeyExist(this.Request, 'body'));
 };
 
 Twine.prototype.$__parse = function $__parse(param, default_value){
@@ -196,7 +186,6 @@ Twine.prototype.$__setSelect = function $__setSelect(){
 
   this.fetch.select(select.join(" "));
 };
-
 Twine.prototype.$__setSort = function $__setSort(){
   if(this.sort){
    var sort = {};
@@ -221,13 +210,11 @@ Twine.prototype.$__setFilters = function $__setFilters(cb){
 };
 
 Twine.prototype.buildBaseRequest = function buildBaseRequest (){
-  //set the filters, which ammend the search criteria for the base request
   this.$__setFilters();
-  //set the page, page_direction, & page_by
   this.$__setPage();
   //set intial fetch object with base criteria;
   this.fetch = this.Model.find(this.criteria);
-  //ammend fetch with  sort, filter, & select fields
+  //ammend fetch with page, sort, filter, & select fields
   this.$__setSelect();
   this.$__setSort();
   this.$__setLimit();
@@ -316,7 +303,7 @@ Twine.prototype.processContains = function processContains(base, contains, block
       var found = false;
       var has_key = false;
       _logger.log('info', 'index of base.data to be evaluated', {object: base.data[num]});
-      if(_.has(base.data[num], contain)){
+      if(doesObjectKeyExist(base.data[num], contain)){
         has_key = true;
         for(var check in base.data[num][contain]){
           _logger.log('info', 'does base.data index ' + num +
@@ -335,7 +322,7 @@ Twine.prototype.processContains = function processContains(base, contains, block
         if(!found && has_key) base.data[num][contain] = [];
       }else if(Array.isArray(base.data[num])){
         for(var i in base.data[num]){
-          if(_.has(base.data[num][i], contain)){
+          if(doesObjectKeyExist(base.data[num][i], contain)){
             has_key = true;
             for(var check in base.data[num][i][contain]){
               if(typeof base.data[num][i][contain][check] !== 'undefined' &&
@@ -414,7 +401,7 @@ Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(o
         }
       }else{
         if(typeof object[index][field] !== 'undefined')
-          if(_.has(object[index][field], id)){
+          if(doesObjectKeyExist(object[index][field], id)){
             if(distinct_array.indexOf(object[index][field][id].toString()) === -1){
               distinct_array.push(object[index][field][id].toString());
             }
@@ -464,10 +451,10 @@ Twine.prototype.$__ammendResultsWithContainer = function $__ammendResultsWithCon
 
 Twine.prototype.$__buildResolveFetchSelect = function $__buildResolveFetchSelect(model, map_object){
   var select = [];
-  if(_.has(map_object, 'format')){
+  if(doesObjectKeyExist(map_object, 'format')){
     var format = map_object.format;
     select = model.selectFields(format);
-    if(_.has(map_object, 'contains')){
+    if(doesObjectKeyExist(map_object, 'contains')){
       var contains_keys = Object.keys(map_object.contains);
       if(contains_keys.length > 1){
         for(var key in contains_keys){
@@ -529,12 +516,12 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
     }else{
       //check to ensure the model property is set for setting resolved result sets..
       //if not set, ucaught exception is thrown for setting a key for property that doesnt exist.
-      if(!_.has(container, can_resolve[resolve_field].model))
+      if(!doesObjectKeyExist(container, can_resolve[resolve_field].model))
         container[can_resolve[resolve_field].model] = {};
       //set container results for resolve key model
       var key = resolve_map_object.model;
       // appliy contains if it exists
-      if(_.has(resolve_map_object, 'contains')){
+      if(doesObjectKeyExist(resolve_map_object, 'contains')){
         self.processContains(res, resolve_map_object.contains, function(result){
             container = self.setContainerResolveResults(can_resolve[resolve_field].model,
                                             can_resolve[resolve_field].identifier,
