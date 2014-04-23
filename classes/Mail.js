@@ -67,14 +67,13 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
   if(!_.has(user, 'email')){
     throw new Error('A user must have a valid email to send for review');
   }
-  var self = this;
   var approval_link = null;
   var denial_link = null;
 
   //create the message
   this.message = {
     from: 'dj.hayden@stablekernel.com',
-    to: 'dj.hayden@stablekernel.com',
+    to: 'admin@prizmapp.com',
     subject: 'Prism Institution Review: ' + user.email,
     html: '<h1>Institution User Review</h1>'+
           '<h2>'+user.email+'</h2><br>'+
@@ -98,10 +97,9 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
 
   this.transport.sendMail(this.message, function(error){
     if(error){
-      console.log("Error occured sending email");
-      console.log(error);
+      _logger.log("error","Error occured sending email", {error:error});
     }
-    console.log('Message sent successfully');
+    _logger.log('info', 'Message sent successfully');
   });
 };
 
