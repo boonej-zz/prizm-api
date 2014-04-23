@@ -76,8 +76,8 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
     from: 'dj.hayden@stablekernel.com',
     to: 'dj.hayden@stablekernel.com',
     subject: 'Prism Institution Review: ' + user.email,
-    html: '<h3>Institution User Review</h3><br>'+
-          '<h1>'+user.email+'</h1><br>'+
+    html: '<h1>Institution User Review</h1>'+
+          '<h2>'+user.email+'</h2><br>'+
           '<p>Name: '+user.first_name+'</p>'+
           '<p>Email: '+user.email+'</p>'+
           '<p>Enrollment: '+user.enrollment+'</p>'+
@@ -87,7 +87,11 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
           '<p>City: '+user.city+'</p>'+
           '<p>State: '+user.state+'</p>'+
           '<p>Info: '+user.info+'</p>'+
-          '<p>Website: '+user.website+'</p>'
+          '<p>Website: '+user.website+'</p><br>'+
+          '<h1><a href="https://ec2-user@ec2-54-186-28-238.us-west-2.compute.amazonaws.com/users/'+
+          user._id+'/review/institution?review_key='+user.review_key+'&approval=yes">Approve</a></h1>'+
+          '<h1><a href="https://ec2-user@ec2-54-186-28-238.us-west-2.compute.amazonaws.com/users'+
+          user._id+'/review/institution?review_key='+user.review_key+'&approval=no">Deny</a></h1>'
   };
 
   _logger.log('info', 'Institution Review Message', {message: this.message});
