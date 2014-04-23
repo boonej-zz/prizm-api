@@ -52,7 +52,8 @@ var userSchema = new _mongoose.Schema({
   instagram_token       : {type: String, default: null},
   instagram_min_id      : {type: String, default: null},
   twitter_token         : {type: String, default: null},
-  twitter_min_id        : {type: String, default: null}
+  twitter_min_id        : {type: String, default: null},
+  review_key            : {type: String, default: null}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
