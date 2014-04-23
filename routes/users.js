@@ -185,7 +185,7 @@ exports.register = function(req, res){
             }else{
               if(result.review_key && result.status === 2){
                 var mail = new Mail();
-                mail.institutionReview(result);
+                mail.institutionReview(result.toObject());
               }
 
               _utils.prismResponse(res, result.format('basic'), true);
@@ -208,7 +208,7 @@ exports.register = function(req, res){
         }else{
           if(result.review_key && result.status === 2){
             var mail = new Mail();
-            mail.institutionReview(result);
+            mail.institutionReview(result.toObject());
           }
 
           _utils.prismResponse(res, result.format('basic'), true);
