@@ -40,6 +40,15 @@ describe('Twine Class Unit Tests', function(done){
   var test_comment_id = null;
   var test_comment_id2 = null;
 
+  var createXArguments = function(body){
+    body = JSON.stringify(body);
+    return new Buffer(body).toString('base64');
+  };
+
+  var digestXArguments = function(body){
+    return new Buffer(body, 'base64').toString('utf8');
+  };
+
   before(function(done){
       _helpers.createTestUser(function(testuser){
         test_user = testuser;
@@ -70,7 +79,14 @@ describe('Twine Class Unit Tests', function(done){
         });
       });
   });
-
+  //TODO: filter tests
+  //TODO: paging tests
+  //TODO: sorting tests
+  //TODO: limit tests
+  //TODO: contains tests
+  //TODO: resolve
+    //TODO: recursive resolve
+    //TODO: resolve contains
   describe('Testing Resolve', function(done){
     before(function(done){
       User.findOne({_id: mark._id}, function(err, result){
