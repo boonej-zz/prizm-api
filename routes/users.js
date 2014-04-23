@@ -150,13 +150,20 @@ exports.register = function(req, res){
       birthday: req.body.birthday
     });
 
-    if(typeof(req.body.password) != 'undefined') newUser.password = req.body.password;
+    if(typeof(req.body.password) != 'undefined') 
+      newUser.password = req.body.password;
 
-    if(typeof(req.body.cover_photo_url) != 'undefined') newUser.cover_photo_url = req.body.cover_photo_url;
+    if(typeof(req.body.cover_photo_url) != 'undefined') 
+      newUser.cover_photo_url = req.body.cover_photo_url;
 
-    if(typeof(req.body.profile_photo_url) != 'undefined') newUser.profile_photo_url = req.body.profile_photo_url;
+    if(typeof(req.body.profile_photo_url) != 'undefined') 
+      newUser.profile_photo_url = req.body.profile_photo_url;
+
     if(typeof(req.body.type) !== 'undefined') newUser.type = req.body.type;
     if(newUser.type === 'institution'){
+      if(typeof(req.body.phone_number) !== 'undefined') 
+        newUser.phone_number = req.body.phone_number;
+      
       newUser.status = 2;
       newUser.type = 'user';
       newUser.review_key = _uuid.v1();

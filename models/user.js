@@ -19,6 +19,7 @@ var userSchema = new _mongoose.Schema({
   website               : {type: String, default: null},
   ethnicity             : {type: String, default: null},
   religion              : {type: String, default: null},
+  phone_number          : {type: String, default: null},
   affiliations          : {type: Array, default:[]},
   password              : {type: String, default: null},
   provider              : {type: String, default: null},
