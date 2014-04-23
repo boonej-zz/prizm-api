@@ -336,6 +336,8 @@ exports.updateUser = function(req, res){
         if(typeof(body.mascot) !== 'undefined') user.mascot = body.mascot;
         if(typeof(body.date_founded) !== 'undefined') user.date_founded = body.date_founded;
         if(typeof(body.enrollment) !== 'undefined') user.enrollment = body.enrollment;
+        if(typeof(body.state) !== 'undefined') user.state = body.state;
+        if(typeof(body.city) !== 'undefined') user.city = body.city;
 
         user.save(function(err, saved){
           if(err || !saved){
