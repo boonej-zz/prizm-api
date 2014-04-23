@@ -188,6 +188,10 @@ _app.put('/trusts/:id', _gateway, _trust.updateTrust);
 /* Fetch Users Trusts */
 _app.get('/users/:id/trusts', _gateway, _trust.fetchTrusts);
 
+/* Review User */
+_app.get('/users/:id/review/:review', _user.review);
+
+/* Search for a specific User */
 _app.get('/search/users', _gateway, _user.search);
 
 /* Delete User Trust */

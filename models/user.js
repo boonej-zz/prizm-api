@@ -13,12 +13,13 @@ var _mongoose   = require('mongoose'),
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
   first_name            : {type: String, required: true},
-  last_name             : {type: String, required: true},
+  last_name             : {type: String, default: ''},
   email                 : {type: String, required: true, index: {unique: true}},
   info                  : {type: String, default: null},
   website               : {type: String, default: null},
   ethnicity             : {type: String, default: null},
   religion              : {type: String, default: null},
+  phone_number          : {type: String, default: null},
   affiliations          : {type: Array, default:[]},
   password              : {type: String, default: null},
   provider              : {type: String, default: null},
@@ -52,7 +53,8 @@ var userSchema = new _mongoose.Schema({
   instagram_token       : {type: String, default: null},
   instagram_min_id      : {type: String, default: null},
   twitter_token         : {type: String, default: null},
-  twitter_min_id        : {type: String, default: null}
+  twitter_min_id        : {type: String, default: null},
+  review_key            : {type: String, default: null}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){

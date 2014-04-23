@@ -157,24 +157,4 @@ ActivityListener.prototype.commentActivity = function(comment){
   }
 };
 
-ActivityListener.prototype.userActivity = function(user){};
-ActivityListener.prototype.trustActivity = function(trust){};
-ActivityListener.prototype.likeActivity = function(like){};
-ActivityListener.prototype.followActivity = function(follow){};
-ActivityListener.prototype.exploreActivity = function(explore){};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -6,9 +6,9 @@
 var _config     = require('config'),
     _request    = require('request'),
     _prism_home = process.env.PRISM_HOME,
-    _utils			= require(_prism_home + 'utils'),
+    _utils      = require(_prism_home + 'utils'),
     nTwitter    = require('ntwitter'),
-    _logger			= require('winston'),
+    _logger     = require('winston'),
     PrismError  = require(_prism_home + 'error'),
     User        = require(_prism_home + 'models/user');
 
@@ -39,28 +39,28 @@ function Twitter(tw_access_token, tw_access_token_secret, tw_id){
  *                  response object from the twitter request
  */
 Twitter.prototype.authorizeUser = function(callback){
-	if(this.tw_access_token_secret && this.tw_access_token_secret){
-		this.connection = new nTwitter({
-			consumer_key:          this.tw_client_id,
-			consumer_secret:       this.tw_client_secret,
-			access_token_key:      this.tw_access_token,
-			access_token_secret:   this.tw_access_token_secret
-		});
+  if(this.tw_access_token_secret && this.tw_access_token_secret){
+    this.connection = new nTwitter({
+      consumer_key:          this.tw_client_id,
+      consumer_secret:       this.tw_client_secret,
+      access_token_key:      this.tw_access_token,
+      access_token_secret:   this.tw_access_token_secret
+    });
 
-		_logger.log('verifying twitter account with access_token: ', this.tw_access_token);
-		//verify user credentials
-		this.connection.verifyCredentials(function(error, data){
-			if(error) _logger.log('Error returned while verifying twitter user credentials: ', {error_recieved: error});
-			_logger.log('Data returned from verifying twitter user credentials: ', data);
-			callback(error, data);
-		});
-	}else{
-		var invalidRequest = Error.invalidRequest;
-		_logger.info('Ivalid twitter authorize user reqeust made. ' +
-									'missing either token or secret: ', {twitter_object: this,
-																												returning_error: invalidRequest});
-		callback(invalidRequest, false);
-	}
+    _logger.log('verifying twitter account with access_token: ', this.tw_access_token);
+    //verify user credentials
+    this.connection.verifyCredentials(function(error, data){
+      if(error) _logger.log('Error returned while verifying twitter user credentials: ', {error_recieved: error});
+      _logger.log('Data returned from verifying twitter user credentials: ', data);
+      callback(error, data);
+    });
+  }else{
+    var invalidRequest = Error.invalidRequest;
+    _logger.info('Ivalid twitter authorize user reqeust made. ' +
+                  'missing either token or secret: ', {twitter_object: this,
+                                                        returning_error: invalidRequest});
+    callback(invalidRequest, false);
+  }
 };
 
 module.exports = Twitter;

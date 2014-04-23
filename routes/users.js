@@ -5,6 +5,7 @@
  */
 var _mongoose     = require('mongoose'),
     _             = require('underscore'),
+    _uuid         = require('node-uuid'),
     _prism_home   = process.env.PRISM_HOME,
     _utils        = require(_prism_home + 'utils'),
     _logger       = require(_prism_home + 'logs'),
@@ -16,13 +17,54 @@ var _mongoose     = require('mongoose'),
     Twine         = require(_prism_home + 'classes/Twine'),
     Trust         = require(_prism_home + 'models/trust').Trust,
     Activity      = require(_prism_home + 'models/activity'),
-    Post          = require(_prism_home + 'models/post').Post;
+    Post          = require(_prism_home + 'models/post').Post,
+    Mail          = require(_prism_home + 'classes/Mail');
 
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
  */
 
 /*jshint -W087*/
+
+/**
+ * Handles User review state
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+exports.review = function review(req, res){
+  if(req.params.id && req.params.review){
+    if(req.query.review_key && req.query.approval){
+      User.findOne({_id: req.params.id}, function(err, user){
+        if(err){
+          _utils.prismResponse(res, null, false, PrismError.serverError);
+
+        }else{
+          if(user.review_key === req.query.review_key &&
+             user.status === 2){
+            user.type = (req.query.approval === 'yes') ? 'institution' : 'user';
+            user.review_key = null;
+            user.status = 0;
+            user.save(function(err, saved){
+              if(err){
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+
+              }else{
+                res.send('Succesfully Reviewed User');
+              }
+            });
+          }else{
+            res.send('Unable to review user. User is currently not in review');
+          }
+        }
+     });
+    }else{
+      _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+    }
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
 
 /**
  * Handles authenticating user login request
@@ -108,11 +150,24 @@ exports.register = function(req, res){
       birthday: req.body.birthday
     });
 
-    if(typeof(req.body.password) != 'undefined') newUser.password = req.body.password;
+    if(typeof(req.body.password) != 'undefined') 
+      newUser.password = req.body.password;
 
-    if(typeof(req.body.cover_photo_url) != 'undefined') newUser.cover_photo_url = req.body.cover_photo_url;
+    if(typeof(req.body.cover_photo_url) != 'undefined') 
+      newUser.cover_photo_url = req.body.cover_photo_url;
 
-    if(typeof(req.body.profile_photo_url) != 'undefined') newUser.profile_photo_url = req.body.profile_photo_url;
+    if(typeof(req.body.profile_photo_url) != 'undefined') 
+      newUser.profile_photo_url = req.body.profile_photo_url;
+
+    if(typeof(req.body.type) !== 'undefined') newUser.type = req.body.type;
+    if(newUser.type === 'institution'){
+      if(typeof(req.body.phone_number) !== 'undefined') 
+        newUser.phone_number = req.body.phone_number;
+      
+      newUser.status = 2;
+      newUser.type = 'user';
+      newUser.review_key = _uuid.v1();
+    }
 
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
@@ -135,6 +190,11 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
             }else{
+              if(result.review_key && result.status === 2){
+                var mail = new Mail();
+                mail.institutionReview(result.toObject());
+              }
+
               _utils.prismResponse(res, result.format('basic'), true);
             }
 
@@ -153,6 +213,11 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
         }else{
+          if(result.review_key && result.status === 2){
+            var mail = new Mail();
+            mail.institutionReview(result.toObject());
+          }
+
           _utils.prismResponse(res, result.format('basic'), true);
         }
       });
@@ -539,13 +604,7 @@ exports.fetchUserPosts = function(req, res){
  */
 var isValidRegisterRequest = function(req){
   if( typeof(req.body.first_name) == 'undefined'  ||
-      typeof(req.body.last_name) == 'undefined'   ||
-      typeof(req.body.gender) == 'undefined' ||
-      typeof(req.body.zip_postal) == 'undefined' ||
-      typeof(req.body.city) == 'undefined' ||
-      typeof(req.body.state) == 'undefined' ||
-      typeof(req.body.birthday) == 'undefined' ){
-
+      typeof(req.body.zip_postal) == 'undefined'){
     return false;
 
   }else{

@@ -45,5 +45,14 @@ module.exports = {
       callback_uri: 'https://ec2-54-200-41-62.us-west-2.compute.amazonaws.com/callback',
       realm: ''
     }
+  },
+  amazon: {
+    smtp: {
+      server: 'email-smtp.us-west-2.amazonaws.com',
+      port: '465',
+      tls: true,
+      user: 'AKIAIPXRAQMGM7DXIJ6Q',
+      pass: 'AhDzEadbTzKb70+JNW+7zeGxF9+iW0v/FsJc6dwe83Ni'
+    }
   }
 };
