@@ -182,6 +182,9 @@ _app.get('/users/:id/feed', _gateway, _user.fetchUserNewsFeed);
 /* Create Trust */
 _app.post('/users/:id/trusts', _gateway, _trust.createTrust);
 
+/* Fetch a Trust */
+_app.get('/trusts/:id', _gateway, _trust.fetchTrustById);
+
 /* Update Trust */
 _app.put('/trusts/:id', _gateway, _trust.updateTrust);
 

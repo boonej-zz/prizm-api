@@ -189,6 +189,30 @@ var fetchTrusts = function(req, res){
   });
 };
 
+var fetchTrustById = function(req, res){
+  validateTrustRequest(req, res, function(){
+    var criteria = {_id: req.params.id};
+    new Twine('Trust', criteria, req, null, function(err, trust){
+      if(err){
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+      }else{
+        if(!trust){
+          var error = {
+            status_code: 400,
+            error_info:{
+              error: 'unable_to_fetch_user_trust',
+              error_description: 'The requested trust does not exist'
+            }
+          };
+          _utils.prismResponse(res, null, false, error);
+        }else{
+          _utils.prismResponse(res, trust, true);
+        }
+      }
+    });
+  });
+};
+
 var updateTrust = function(req, res){
   validateTrustRequest(req, res, function(){
     Trust.findOne({_id: req.params.id}, function(err, trust){
@@ -282,7 +306,8 @@ var thisExports = {
   fetchTrusts: fetchTrusts,
   updateTrust: updateTrust,
   deleteTrust: deleteTrust,
-  exists:      exists
+  exists:      exists,
+  fetchTrustById: fetchTrustById
 };
 
 if(process.env.NODE_ENV === 'test'){
