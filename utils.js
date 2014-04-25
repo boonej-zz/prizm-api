@@ -229,8 +229,8 @@ exports.registerActivityEvent = function(to, from, action, post_id, comment_id, 
 
     //emit activity event
     process.emit('activity', {
-      to: to,
-      from: from,
+      to: to.toString(),
+      from: from.toString(),
       action: action,
       post_id: post_id,
       comment_id: comment_id,

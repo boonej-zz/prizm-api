@@ -9,7 +9,9 @@ var _mongoose     = require('mongoose'),
     _utils        = require(_prism_home + 'utils');
 
 var trustSchema = new _mongoose.Schema({
-  from                : { type: _mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  from                : { type: _mongoose.Schema.Types.ObjectId,
+                          ref: 'User', 
+                          required: true },
   from_posts          : { type: Array, default: [] },
   from_comments       : { type: Array, default: [] },
   from_post_likes     : { type: Array, default: [] },
@@ -17,7 +19,9 @@ var trustSchema = new _mongoose.Schema({
   from_posts_count    : { type: Number, default: 0 },
   from_comments_count : { type: Number, default: 0 },
   from_likes_count    : { type: Number, default: 0 },
-  to                  : { type: _mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  to                  : { type: _mongoose.Schema.Types.ObjectId,
+                          ref: 'User', 
+                          required: true },
   to_posts            : { type: Array, default: [] },
   to_comments         : { type: Array, default: [] },
   to_post_likes       : { type: Array, default: [] },
@@ -26,7 +30,8 @@ var trustSchema = new _mongoose.Schema({
   to_comments_count   : { type: Number, default: 0 },
   to_likes_count      : { type: Number, default: 0 },
   type                : { type: String, default: null },
-  status              : { type: String, default: 'pending', lowercase: true, required: true },
+  status              : { type: String, default: 'pending', 
+                          lowercase: true, required: true },
   create_date         : { type: Date, default: null },
   modify_date         : { type: Date, default: null },
   delete_date         : { type: Date, default: null },
@@ -39,7 +44,7 @@ trustSchema.static('findTrust', function(user1, user2, callback){
           {to: user2, from:user1} ]
   };
   return this.findOne(criteria)
-            .select(this.selectFields('basic').join(' '))
+            // .select(this.selectFields('basic').join(' '))
             .exec(callback);
 });
 
@@ -54,7 +59,7 @@ trustSchema.statics.selectFields = function(type){
     _.union(select, [
       'from_posts', 'from_comments', 'from_post_likes',
       'to_posts', 'to_comments', 'to_post_likes',
-      'to_comment_likes', 'to_post_likes'
+      'to_comment_likes', 'from_comment_likes'
     ]);
   }
 
@@ -67,12 +72,12 @@ trustSchema.statics.canResolve = function(){
     {to: {identifier: '_id', model: 'User'}},
     {from_posts: {identifier: '_id', model: 'Post'}},
     {from_comments: {identifier: 'comments._id', model: 'Post'}},
-    {from_post_likes: {identifier: 'likes._id', model: 'Post'}},
-    {from_comment_likes: {identifier: 'comments.likes._id', model: 'Post'}},
+    {from_post_likes: {identifier: '_id', model: 'Post'}},
+    {from_comment_likes: {identifier: 'comments._id', model: 'Post'}},
     {to_posts: {identifier: '_id', model: 'Post'}},
     {to_comments: {identifier: 'comments._id', model: 'Post'}},
-    {to_post_likes: {identifier: 'likes._id', model: 'Post'}},
-    {to_comment_likes: {identifier: 'comments.likes._id', model: 'Post'}}
+    {to_post_likes: {identifier: '_id', model: 'Post'}},
+    {to_comment_likes: {identifier: 'comments._id', model: 'Post'}}
   ];
 };
 

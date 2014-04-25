@@ -56,12 +56,8 @@ var validateTrustRequest = function(req, res, cb){
     if(body_required.indexOf(req.method) === -1){
       cb();
     }else{
-      if(req.method === 'PUT' || req.method === 'DELETE'){
-        if(!req.params.id){
-          invalidRequest();
-          return;
-        }
 
+      if(req.method === 'PUT' || req.method === 'DELETE'){
         if(req.method === 'PUT' && req.body.status){
           cb();
         }else if(req.method === 'DELETE' && req.body.creator){
