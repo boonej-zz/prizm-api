@@ -118,6 +118,11 @@ var createTrust = function(req, res){
                       {from:req.body.creator, to:req.params.id});
           //update status to pending & save/return
           exists.status = 'pending';
+          //if the requestor is not the 'FROM' user, switch reverse the order
+          if(exists.from.toString() !== req.body.creator){
+            exists.to = req.params.id;
+            exists.from = req.body.creator;
+          }
           exists.save(function(err, updated){
             if(err){
               _logger.log('error', 'error occurred trying to create new trust from cancelled',
