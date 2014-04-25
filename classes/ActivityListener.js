@@ -8,13 +8,14 @@
  * Module dependencies.
  */
 var EventEmitter  = require('events').EventEmitter,
+    _             = require('underscore'),
     _util         = require('util'),
     _mongoose     = require('mongoose'),
     _logger       = require(process.env.PRISM_HOME + 'logs.js'),
     Post          = require(process.env.PRISM_HOME + 'models/post').Post,
     User          = require(process.env.PRISM_HOME + 'models/user').User,
     Comment       = require(process.env.PRISM_HOME + 'models/post').Comment,
-    Trust         = require(process.env.PRISM_HOME + 'models/user').Trust,
+    Trust         = require(process.env.PRISM_HOME + 'models/trust').Trust,
     Activity      = require(process.env.PRISM_HOME + 'models/activity').Activity;
 
 /**
@@ -33,7 +34,7 @@ function ActivityListener(options){
   this.options = (!options) ? {} : options;
 
   process.on('activity', function(object){
-    if(typeof object.type !== 'undefined'){
+    if(typeof object.action !== 'undefined'){
       _logger.log('info', 'activity event emitted', object);
       self.activityHandler(object);
 
@@ -61,100 +62,138 @@ var isInTestMode = function(){
   }
 };
 
+
+/**
+ * [activityHandler description]
+ * @param  {[type]} activity [description]
+ * @return {[type]}        [description]
+ */
+ActivityListener.prototype.activityHandler = function(activity){
+  var self = this;
+  if(activity.action && activity.to && activity.from){
+
+    var new_activity = new Activity({
+      to: activity.to,
+      from: activity.from,
+      action: activity.action,
+    });
+
+    if(_.has(activity, 'post_id'))
+      new_activity.post_id = activity.post_id;
+
+    if(_.has(activity, 'comment_id'))
+      new_activity.comment_id = activity.comment_id;
+
+    new_activity.save(function(err, saved){
+      if(err){
+        _logger.log('error', 'Error occured saving new activity',
+                    {activity:activity});
+        return;
+      }
+
+      if(!saved){
+        _logger.log('error', 'There was no saved record returned - server error?',
+                    {error:err, saved:saved, activity:activity});
+        return;
+      }
+
+      _logger.log('info', 'Successfully created '+saved.action+' activity',
+                  {saved_activity:saved});
+
+      if(saved.action === 'comment' || saved.action === 'like')
+        self.updateTrust(saved);
+    });
+  }else{
+    _logger.log('error', 'Activity action, to, & from, must be set to create'+
+                          ' a new activity record', {activity: activity});
+  }
+};
+
 /**
  * [activityHandler description]
  * @param  {[type]} object [description]
  * @return {[type]}        [description]
  */
-ActivityListener.prototype.activityHandler = function(object){
-  switch(object.type){
-    case 'follow':
-      this.postActivity(object);
-      break;
-    case 'unfollow':
-      this.postActivity(object);
-      break;
-    case 'like':
-      this.postActivity(object);
-      break;
-    case 'unlike':
-      this.postActivity(object);
-      break;
-    case 'post':
-      this.postActivity(object);
-      break;
-    case 'repost':
-      this.postActivity(object);
-      break;
-    case 'comment':
-      this.postActivity(object);
-      break;
-    case 'trust':
-      this.postActivity(object);
-      break;
-    case 'user':
-      //user
-      break;
-    default:
-      //something for the system to track activity?
-      break;
-  }
-};
 
-/**
- * Post Activity Handler - Creates an activity record with a post type
- *
- * @param  {Object} post The object emitted from the post route
- * @return {[type]}      [description]
- */
-ActivityListener.prototype.postActivity = function(post){
-  if(post.user && post.target){
-    new Activity({
-      type: post.type,
-      user: post.user,
-      target: post.target,
-      context: (post.context) ? post.context : null,
-      scope: (post.scope) ? post.scope : null,
-      object: (post.object) ? post.object : null,
-      action: (post.action) ? post.action : null
-    }).save(function(err, activity_saved){
+ActivityListener.prototype.updateTrust = function(activity){
+  var to_user = activity.to.toString();
+  var from_user = activity.from.toString();
+  if(to_user && from_user){
+    Trust.findTrust(to_user, from_user, function(err, trust){
+      debugger;
       if(err){
-        _logger.log('error', 'Error trying to save '+ post.type +' activity', post);
-        if(isInTestMode) process.emit('activity_'+ post.type +'_error', err);
-      } else{
-        _logger.log('info', 'Successfully Logged '+ post.type +' Activity', activity_saved);
-        if(isInTestMode) process.emit('activity_'+ post.type +'_success', activity_saved);
-      }
-    });
-  }else{
-    _logger.log('error',
-                'Validation Error trying to create ' + post.type +
-                'activity object.',
-                { error: 'Activity.user && Activity.target need to be set',
-                  object: post });
-  }
-};
+        _logger.log('error',
+                    'An error occured while trying to retrieve trust from activity listener',
+                    {error: err});
 
-ActivityListener.prototype.commentActivity = function(comment){
-  if(comment.user && comment.target){
-    new Activity({
-      type: comment.type,
-      user: comment.user,
-      target: comment.target,
-      scope: (comment.scope) ? comment.scope : null,
-      object: (comment.object) ? comment.object : null
-    }).save(function(err, activity_saved){
-      if(err){
-        _logger.log('error', 'Error trying to save ' + comment.type + ' activity', comment);
+      }else if(trust){
+        var save = false;
+        if(activity.from.toString() === trust.to.toString()){
+          if(activity.post_id){
+
+            if(activity.action === 'comment'){
+              trust.to_comments.push({_id: activity.post_id});
+              trust.to_comments_count++;
+              save = true;
+            }
+
+            if(activity.action === 'like' && !activity.comment_id){
+              trust.to_post_likes.push({_id: activity.post_id});
+              trust.to_likes_count++;
+              save = true;
+            }
+
+            if(activity.action === 'like' && activity.comment_id){
+              trust.to_comment_likes.push({_id: activity.post_id});
+              trust.to_likes_count++;
+              save = true;
+            }
+          }
+        }
+
+        if(activity.from.toString() === trust.from.toString()){
+          if(activity.post_id){
+
+            if(activity.action === 'comment'){
+              trust.from_comments.push({_id: activity.post_id});
+              trust.from_comments_count++;
+              save = true;
+            }
+
+            if(activity.action === 'like' && !activity.comment_id){
+              trust.from_post_likes.push({_id: activity.post_id});
+              trust.from_likes_count++;
+              save = true;
+            }
+
+            if(activity.action === 'like' && activity.comment_id){
+              trust.from_comment_likes.push({_id: activity.post_id});
+              trust.from_likes_count++;
+              save = true;
+            }
+          }
+        }
+
+        if(save){
+          var log_info = {activity:activity, trust:trust};
+
+          trust.save(function(err, saved){
+            if(err) _logger.log('error',
+                                'Error saving trusts in activitylistener',
+                                log_info);
+
+            if(saved) _logger.log('info',
+                                  'Updated Trust via ActivityListener',
+                                  log_info);
+          });
+        }
+
       }else{
-        _logger.log('info', 'Successfully Logged ' + comment.type + ' Activity', activity_saved);
+        _logger.log('info', 'Did not find trust for users: '+to_user+
+                            ' and '+from_user);
       }
     });
   }else{
-    _logger.log('error',
-                'Validation Error trying to create comment activity object',
-                {error: 'Activity.user && Activity.target'});
+    _logger.log('error', 'ActivityListner.updateTrust needs both params: to_user & from_user');
   }
 };
-
-

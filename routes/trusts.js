@@ -56,12 +56,8 @@ var validateTrustRequest = function(req, res, cb){
     if(body_required.indexOf(req.method) === -1){
       cb();
     }else{
-      if(req.method === 'PUT' || req.method === 'DELETE'){
-        if(!req.params.id){
-          invalidRequest();
-          return;
-        }
 
+      if(req.method === 'PUT' || req.method === 'DELETE'){
         if(req.method === 'PUT' && req.body.status){
           cb();
         }else if(req.method === 'DELETE' && req.body.creator){
@@ -122,6 +118,11 @@ var createTrust = function(req, res){
                       {from:req.body.creator, to:req.params.id});
           //update status to pending & save/return
           exists.status = 'pending';
+          //if the requestor is not the 'FROM' user, switch reverse the order
+          if(exists.from.toString() !== req.body.creator){
+            exists.to = req.params.id;
+            exists.from = req.body.creator;
+          }
           exists.save(function(err, updated){
             if(err){
               _logger.log('error', 'error occurred trying to create new trust from cancelled',
@@ -183,6 +184,30 @@ var fetchTrusts = function(req, res){
       }else{
         //return normal response with result set
         _utils.prismResponse(res, trusts, true);
+      }
+    });
+  });
+};
+
+var fetchTrustById = function(req, res){
+  validateTrustRequest(req, res, function(){
+    var criteria = {_id: req.params.id};
+    new Twine('Trust', criteria, req, null, function(err, trust){
+      if(err){
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+      }else{
+        if(!trust){
+          var error = {
+            status_code: 400,
+            error_info:{
+              error: 'unable_to_fetch_user_trust',
+              error_description: 'The requested trust does not exist'
+            }
+          };
+          _utils.prismResponse(res, null, false, error);
+        }else{
+          _utils.prismResponse(res, trust, true);
+        }
       }
     });
   });
@@ -281,7 +306,8 @@ var thisExports = {
   fetchTrusts: fetchTrusts,
   updateTrust: updateTrust,
   deleteTrust: deleteTrust,
-  exists:      exists
+  exists:      exists,
+  fetchTrustById: fetchTrustById
 };
 
 if(process.env.NODE_ENV === 'test'){
