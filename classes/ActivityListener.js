@@ -132,19 +132,19 @@ ActivityListener.prototype.updateTrust = function(activity){
           if(activity.post_id){
 
             if(activity.action === 'comment'){
-              trust.to_comments.push(activity.post_id);
+              trust.to_comments.push({_id: activity.post_id});
               trust.to_comments_count++;
               save = true;
             }
 
             if(activity.action === 'like' && !activity.comment_id){
-              trust.to_post_likes.push(activity.post_id);
+              trust.to_post_likes.push({_id: activity.post_id});
               trust.to_likes_count++;
               save = true;
             }
 
             if(activity.action === 'like' && activity.comment_id){
-              trust.to_comment_likes.push(activity.post_id);
+              trust.to_comment_likes.push({_id: activity.post_id});
               trust.to_likes_count++;
               save = true;
             }
@@ -155,19 +155,19 @@ ActivityListener.prototype.updateTrust = function(activity){
           if(activity.post_id){
 
             if(activity.action === 'comment'){
-              trust.from_comments.push(activity.post_id);
+              trust.from_comments.push({_id: activity.post_id});
               trust.from_comments_count++;
               save = true;
             }
 
             if(activity.action === 'like' && !activity.comment_id){
-              trust.from_post_likes.push(activity.post_id);
+              trust.from_post_likes.push({_id: activity.post_id});
               trust.from_likes_count++;
               save = true;
             }
 
             if(activity.action === 'like' && activity.comment_id){
-              trust.from_comment_likes.push(activity.post_id);
+              trust.from_comment_likes.push({_id: activity.post_id});
               trust.from_likes_count++;
               save = true;
             }

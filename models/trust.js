@@ -71,13 +71,13 @@ trustSchema.statics.canResolve = function(){
     {from: {identifier: '_id', model: 'User'}},
     {to: {identifier: '_id', model: 'User'}},
     {from_posts: {identifier: '_id', model: 'Post'}},
-    {from_comments: {identifier: 'comments._id', model: 'Post'}},
+    {from_comments: {identifier: '_id', model: 'Post'}},
     {from_post_likes: {identifier: '_id', model: 'Post'}},
-    {from_comment_likes: {identifier: 'comments._id', model: 'Post'}},
+    {from_comment_likes: {identifier: '_id', model: 'Post'}},
     {to_posts: {identifier: '_id', model: 'Post'}},
-    {to_comments: {identifier: 'comments._id', model: 'Post'}},
+    {to_comments: {identifier: '_id', model: 'Post'}},
     {to_post_likes: {identifier: '_id', model: 'Post'}},
-    {to_comment_likes: {identifier: 'comments._id', model: 'Post'}}
+    {to_comment_likes: {identifier: '_id', model: 'Post'}}
   ];
 };
 
