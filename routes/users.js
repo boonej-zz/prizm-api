@@ -499,11 +499,17 @@ exports.createUserPost = function(req, res){
                         console.log(err);
                         _utils.prismResponse(res, null, false, PrismError.serverError);
                       }else{
-                        var activity;
                         if(usr.is_repost){
                           usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
                             usr = usr.toObject();
                             usr.origin_post_creator = org_user;
+                            
+                            //create repost activity
+                            _utils.registerActivityEvent(org_user._id,
+                                                         req.body.creator,
+                                                         'repost',
+                                                         user_post._id);
+
                             _utils.prismResponse(res, usr, true);
                           });
 
