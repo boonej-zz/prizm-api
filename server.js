@@ -128,6 +128,9 @@ _app.get('/users/:id/posts', _gateway, _post.fetchUserPosts);
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _user.createUserPost);
 
+/* Fetch Post by Identifier */
+_app.get('/posts/:id', _gateway, _post.fetchPostById);
+
 /* Add Comment to Post */
 _app.post('/posts/:id/comments', _gateway, _post.createPostComment);
 

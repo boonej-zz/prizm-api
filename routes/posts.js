@@ -333,7 +333,7 @@ exports.fetchPostComments = function(req, res){
       child_model: 'Comment'
     };
     new Twine('Post', criteria, req, options, function(err, result){
-      if(err){ 
+      if(err){
         _utils.prismResponse(res, null, false, PrismError.invalidRequest);
       }else{
         _utils.prismResponse(res, result, true);
@@ -410,7 +410,7 @@ exports.likePost = function(req, res){
                   //             {err:err, activity:activity, post_id: post._id});
                   // _utils.prismResponse(res, null, false, PrismError.serverError);
                 // }else{
-                //   _logger.log('info', 'created activity for POST LIKE', 
+                //   _logger.log('info', 'created activity for POST LIKE',
                               // {activity: activity, post_id:post._id});
                   _utils.prismResponse(res, response, true);
                 // }
@@ -606,7 +606,7 @@ exports.likeComment = function(req,res){
           //                 {err:err, activity:activity});
           //     _utils.prismResponse(res, null, false, PrismError.serverError);
           //   }else{
-          
+
           //create activity
           _utils.registerActivityEvent(comment.creator,
                                        req.body.creator,
@@ -800,7 +800,7 @@ exports.unlikePost = function(req, res){
 };
 
 /**
- * Fetchs a specific post object
+ * Fetchs a specific post object by like id
  *
  * `Getting a post should return number of likes
  * AND if the requesting user has liked this post`
@@ -833,5 +833,49 @@ exports.fetchPostAndLikeById = function(req, res){
                           null,
                           false,
                           PrismError.invalidRequest);
+  }
+};
+
+/**
+ * Fetchs a specific post object by id
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ * @return {Function} The return values get forwarded to
+ *                    utility prismResponse method.
+ */
+exports.fetchPostById = function(req, res){
+  if(req.params.id){
+    new Twine('Post', {_id: req.params.id}, req, null, function(err, post){
+      //if err it is server related
+      if(err){
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+        _logger.log('error',
+                    'Error finding post by id',
+                    {err:err, post_id:req.params.id});
+
+      }else if(!post){
+        var post_empty_error = {
+          status_code: 400,
+          error_info: {
+            error: 'unable_to_find_post',
+            error_description: 'the specified post id does not exist'
+          }
+        };
+
+        _logger.log('error',
+                    'unable to find post by id',
+                    {result:post, post_id:req.params.id, error:post_empty_error});
+
+        _utils.prismResponse(res, null, false, post_empty_error);
+
+      }else{
+        _logger.log('info', 'post_id '+req.params.id+' found via fetchPostById');
+        _utils.prismResponse(res, post, true);
+
+      }
+    });
+  }else{
+    _utils.prismResponse( res, null, false, PrismError.invalidRequest);
   }
 };

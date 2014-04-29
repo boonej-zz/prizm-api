@@ -5,12 +5,16 @@
  */
 var _mongoose     = require('mongoose'),
     _             = require('underscore'),
-    _mailer       = require('nodemailer'),
     _home         = process.env.PRISM_HOME,
-    _config       = require(_home + 'config/default'),
+    _config       = require('config'),
+    _mailer       = require('node-mandrill')(_config.mandrill.client_secret),
     PrismError    = require(_home + 'error'),
     _logger       = require(_home + 'logs'),
     User          = require(_home + 'models/user').User;
+
+var SEND_MESSAGE_ENDPOINT = '/messages/send';
+var DEV_EC2_URI = 'https://ec2-user@ec2-54-186-28-238.us-west-2.compute.amazonaws.com';
+var STAGING_EC2_URI = 'https://https://ec2-54-200-41-62.us-west-2.compute.amazonaws.com';
 
 /**
  * Expose Module
@@ -25,32 +29,9 @@ function Mail(options, callback){
   this.message = null;
   this.body = null;
   this.type = null;
-  this.transport = null;
   this.cb = callback;
   this.options = options;
-
-  //setup transport
-  self.__setupTransport();
 }
-
-/**
- * Sets up the SMTP transport config & conncetion
- *
- * @param n/a
- * @return n/a
- * @api private
- */
-Mail.prototype.__setupTransport = function(){
-  this.transport = _mailer.createTransport("SMTP", {
-    host: _config.amazon.smtp.server,
-    port: _config.amazon.smtp.port,
-    ssl: true,
-    auth: {
-      user: _config.amazon.smtp.user,
-      pass: _config.amazon.smtp.pass
-    }
-  });
-};
 
 /**
  * Sends a review email to admin when a user tries to register as a institution
@@ -73,8 +54,8 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
 
   //create the message
   this.message = {
-    from: 'dj.hayden@stablekernel.com',
-    to: 'dj.hayden@stablekernel.com',
+    from: 'admin@prizmapp.com',
+    to: 'hayden.dj@gmail.com',
     subject: 'Prism Institution Review: ' + user.email,
     html: '<h1>Institution User Review</h1>'+
           '<h2>'+user.email+'</h2><br>'+
@@ -96,12 +77,12 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
 
   _logger.log('info', 'Institution Review Message', {message: this.message});
 
-  this.transport.sendMail(this.message, function(error){
+  _mailer(SEND_MESSAGE_ENDPOINT, this.message, function(error, response){
     if(error){
-      console.log("Error occured sending email");
-      console.log(error);
+      console.log("Error occured sending email" + JSON.stringify(error));
+    }else{
+      console.log('Message sent successfully ' + JSON.stringify(response));
     }
-    console.log('Message sent successfully');
   });
 };
 

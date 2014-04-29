@@ -54,5 +54,12 @@ module.exports = {
       user: 'AKIAIPXRAQMGM7DXIJ6Q',
       pass: 'AhDzEadbTzKb70+JNW+7zeGxF9+iW0v/FsJc6dwe83Ni'
     }
+  },
+  mailchimp: {
+    client_id: '514495820552',
+    client_secret: '6b1ef1bcf668302af0252cc4afa1d6cc'
+  },
+  mandrill: {
+    client_secret: 'SHzM16s9ZKmo-5bbQCZXfA'
   }
 };
