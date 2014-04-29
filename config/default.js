@@ -55,6 +55,7 @@ module.exports = {
       pass: 'AhDzEadbTzKb70+JNW+7zeGxF9+iW0v/FsJc6dwe83Ni'
     }
   },
+  base_uri: 'https://ec2-54-186-28-238.us-west-2.compute.amazonaws.com',
   mailchimp: {
     client_id: '514495820552',
     client_secret: '6b1ef1bcf668302af0252cc4afa1d6cc'

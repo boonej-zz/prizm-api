@@ -1,0 +1,4 @@
+#!/bin/sh
+GIT_WORK_TREE=/home/$USER/prism_api
+export GIT_WORK_TREE
+git checkout -f staging
