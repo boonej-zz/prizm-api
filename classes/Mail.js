@@ -54,8 +54,8 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
 
   //create the message
   this.message = {
-    from: 'admin@prizmapp.com',
-    to: 'hayden.dj@gmail.com',
+    from_email: 'admin@prizmapp.com',
+    to: [{email: user.email}],
     subject: 'Prism Institution Review: ' + user.email,
     html: '<h1>Institution User Review</h1>'+
           '<h2>'+user.email+'</h2><br>'+
@@ -77,7 +77,7 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
 
   _logger.log('info', 'Institution Review Message', {message: this.message});
 
-  _mailer(SEND_MESSAGE_ENDPOINT, this.message, function(error, response){
+  _mailer(SEND_MESSAGE_ENDPOINT, {message: this.message} , function(error, response){
     if(error){
       console.log("Error occured sending email" + JSON.stringify(error));
     }else{

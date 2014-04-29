@@ -2,7 +2,8 @@ process.env.PRISM_HOME = process.cwd() + '/';
 var Mail = require('classes/Mail');
 
 var user = {
-  email: 'test@test.com',
+  _id: '34524534afasdf12312356sa',
+  email: 'hayden.dj@gmail.com',
   first_name: 'U OF Awesome',
   enrollment: "250,000",
   mascot: 'Turtle',
@@ -14,11 +15,11 @@ var user = {
   website: 'http://www.uofawesome.com'
 };
 
-/**var mail = new Mail();
+var mail = new Mail();
 mail.institutionReview(user);
-**/
-var config = require('config/default');
-var mandrill = require('node-mandrill')(config.mandrill.dev.client_secret);
+
+var config = require('config');
+var mandrill = require('node-mandrill')(config.mandrill.client_secret);
 
 var MANDRILL_ENDPOINT_SEND = '/messages/send';
 
