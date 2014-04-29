@@ -222,8 +222,10 @@ exports.registerActivityEvent = function(to, from, action, post_id, comment_id, 
   }else{
     if(_.isUndefined(post_id))
       post_id = null;
+
     if(_.isUndefined(comment_id))
       comment_id = null;
+
     if(_.isUndefined(has_trust) || _.isNull(has_trust))
       has_trust = false;
 

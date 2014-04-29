@@ -1,4 +1,4 @@
- /**
+/**
  * Handles `Post` routing & management for all endpoints
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
@@ -86,24 +86,9 @@ exports.createPostComment = function(req, res){
                                          'comment',
                                          req.params.id,
                                          comment._id);
-            // new Activity({
-            //   action: 'comment',
-            //   to: post.creator,
-            //   from: req.body.creator,
-            //   post_id: req.params.id,
-            //   comment_id: comment._id
-            // }).save(function(err, activity){
-            //   if(err){
-            //     _logger.log('error', 'error returned when creating new COMMENT activity',
-            //                 {err:err, activity:activity, comment:comment_with_user, post_id:post._id});
-            //     _utils.prismResponse(res, null, false, PrismError.serverError);
-            //   }else{
-                //return response
-                var response = {comments: comment_with_user, comments_count: saved.comments_count};
-                // _logger.log('info', 'comment activity created', {activity:activity});
-                _utils.prismResponse(res, response, true);
-              // }
-            // });
+            //return response
+            var response = {comments: comment_with_user, comments_count: saved.comments_count};
+            _utils.prismResponse(res, response, true);
           });
         }
       });
@@ -399,22 +384,8 @@ exports.likePost = function(req, res){
                                            req.body.creator,
                                            'like',
                                            post._id);
-              // new Activity({
-              //   action: 'like',
-              //   to: post.creator,
-              //   from: req.body.creator,
-              //   post_id: post._id
-              // }).save(function(err, activity){
-                // if(err){
-                  // _logger.log('error', 'there was an error creating a POST LIKE activity',
-                  //             {err:err, activity:activity, post_id: post._id});
-                  // _utils.prismResponse(res, null, false, PrismError.serverError);
-                // }else{
-                //   _logger.log('info', 'created activity for POST LIKE',
-                              // {activity: activity, post_id:post._id});
-                  _utils.prismResponse(res, response, true);
-                // }
-              // });
+
+              _utils.prismResponse(res, response, true);
             }
           });
         }
@@ -438,7 +409,7 @@ exports.likePost = function(req, res){
  */
 exports.fetchPostLikes = function(req, res){
   if(req.params.id){
-    //Post.findOne(
+
       var criteria = {_id: req.params.id, status: 'active'};
       new Twine('Post', criteria, req, {fields: ['likes','likes_count']}, function(err, post){
         if(err){
@@ -594,19 +565,6 @@ exports.likeComment = function(req,res){
           var response = { likes_count: saved.comments[comment_index].likes_count,
                            likes: saved.comments[comment_index].likes[like_index] };
 
-          // new Activity({
-          //   action: 'like',
-          //   to: comment.creator,
-          //   from: req.body.creator,
-          //   post_id: req.params.id,
-          //   comment_id: req.params.comment_id
-          // }).save(function(err, activity){
-          //   if(err){
-          //     _logger.log('error', 'error returned while creating COMMENT LIKE activty',
-          //                 {err:err, activity:activity});
-          //     _utils.prismResponse(res, null, false, PrismError.serverError);
-          //   }else{
-
           //create activity
           _utils.registerActivityEvent(comment.creator,
                                        req.body.creator,
@@ -614,9 +572,7 @@ exports.likeComment = function(req,res){
                                        req.params.id,
                                        req.params.comment_id);
 
-              _utils.prismResponse(res, response, true);
-            // }
-          // });
+          _utils.prismResponse(res, response, true);
         });
       }
     });
@@ -680,16 +636,6 @@ exports.unlikeComment = function(req, res){
               likes_count: saved.comments[comment_index].likes_count
             };
 
-            //emit unlike comment activity event
-            // process.emit('activity', {
-            //   type: 'unlike',
-            //   context: 'comment',
-            //   action: 'remove',
-            //   user: req.body.creator,
-            //   target: req.params.comment_id,
-            //   object: comment
-            // });
-            //return response object
             _utils.prismResponse(res, response, true);
 
           });
@@ -772,17 +718,6 @@ exports.unlikePost = function(req, res){
             }else{
               var response = {likes_count: result.likes_count,
                               likes: []};
-
-              //emit unlike activity event
-              // process.emit('activity', {
-              //   type: 'unlike',
-              //   context: 'post',
-              //   action: 'remove',
-              //   scope: result.scope,
-              //   user: req.body.creator,
-              //   target: req.params.id,
-              //   object: result
-              // });
 
               _utils.prismResponse( res, response, true);
             }
