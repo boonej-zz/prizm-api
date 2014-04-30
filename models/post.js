@@ -67,9 +67,9 @@ var postSchema = new _mongoose.Schema({
   likes_count         : {type: Number, default: 0},
   comments_count      : {type: Number, default: 0},
   tags_count          : {type: Number, default: 0},
-  tags                : [],
+  tags                : {type: Array, default: []},
   comments            : [commentSchema],
-  likes               : [],
+  likes               : {type: Array, default: []},
   hash_tags           : [String],
   hash_tags_count     : {type: Number, default: 0},
   is_flagged          : {type: Boolean, default: false},
@@ -104,6 +104,20 @@ postSchema.statics.selectFields = function(type){
             'creator','target_id','likes_count','comments_count','scope',
             'status','hash_tags','hash_tags_count','is_repost','origin_post_id','modify_date',
             'delete_date'];
+  }
+};
+
+postSchema.methods.parseAndUpdateTags = function(){
+  var parsed = [];
+  parsed= this.text.match(/(@(\S+))/g);
+  if(parsed.length > 0){
+    for(var i = 0; i < parsed.length; i++){
+      parsed[i] = parsed[i].replace(/@/, "");
+      if(this.tags.length === 0)
+        this.tags.push({_id: parsed[i]});
+      if(this.tags.indexOf(parsed[i]) === -1)
+        this.tags.push({_id: parsed[i]});
+    }
   }
 };
 
@@ -226,6 +240,11 @@ postSchema.pre('save', function(next){
     if(this.flagged_reporters.length > 0) this.flagPostValidation();
   }
 
+  this.parseAndUpdateTags();
+  if(this.tags > 0){
+    this.tags_count = this.tags.length;
+  }
+
 	next();
 });
 
@@ -238,6 +257,7 @@ postSchema.pre('save', function(next){
  */
 postSchema.pre('update', function(next){
 	this.modify_date = Date.now();
+  this.parseAndUpdateTags();
 	next();
 });
 
