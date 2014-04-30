@@ -27,16 +27,15 @@ var activityHasBeenViewed = function activityHasBeenViewed(user_id, headers){
       var criteria = {
         to: user_id,
         has_been_viewed: false,
-        create_date: {$lt: args.page}
+        create_date: {$lte: args.page}
       };
 
       var updateOptions = {
-        $set: {has_been_viewed: true},
-        multi: true
+        $set: {has_been_viewed: true}
       };
 
       //update all records found by this criteria, setting viewed to true
-      Activity.update(criteria, updateOptions, function(err, updated){
+      Activity.update(criteria, updateOptions, {multi:true}, function(err, updated){
         if(err) _logger.log('error',
                             'Activity update failed with error: ' + JSON.stringfiy(err));
 
