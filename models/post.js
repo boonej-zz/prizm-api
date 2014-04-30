@@ -88,7 +88,8 @@ postSchema.statics.canResolve = function(){
     {target_id: {identifier: '_id', model: 'User'}},
     {comments: {identifier: 'creator', model: 'User'}},
     {likes: {identifier: '_id', model: 'User'}},
-    {origin_post_id: {identifier: '_id', model: 'Post'}}
+    {origin_post_id: {identifier: '_id', model: 'Post'}},
+    {tags: {identifier: '_id', model: 'User'}}
   ];
 };
 
@@ -97,13 +98,13 @@ postSchema.statics.selectFields = function(type){
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
             'creator','target_id','likes_count','comments_count','scope',
-            'hash_tags','hash_tags_count'];
+            'hash_tags','hash_tags_count', 'tags', 'tags_count'];
   }else{
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
             'creator','target_id','likes_count','comments_count','scope',
-            'status','hash_tags','hash_tags_count','is_repost','origin_post_id','modify_date',
-            'delete_date'];
+            'status','hash_tags','hash_tags_count', 'tags', 'tags_count',
+            'is_repost','origin_post_id','modify_date', 'delete_date'];
   }
 };
 
@@ -140,6 +141,8 @@ postSchema.methods.format = function(type, add_fields){
     comments_count:       this.comments_count,
     hash_tags_count:      this.hash_tags_count,
     hash_tags:            this.hash_tags,
+    tags:                 this.tags,
+    tags_count:           this.tags_count,
     scope:                this.scope
   };
 
