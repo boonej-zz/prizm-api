@@ -15,18 +15,18 @@ var _mongoose     = require('mongoose'),
  * @type {Mongoose.Schema}
  */
 var activitySchema = new _mongoose.Schema({
-  from:         {type: _object_id, ref: 'User', required: true},
-  to:           {type: _object_id, ref: 'User', required: true},
-  create_date:  {type: Date, default: null, required: false},
-  action:       {type: String, default: null, required: false},
-  post_id:      {type: String, default: null, required: false},
-  comment_id:   {type: String, default: null, required: false},
-
+  from:             {type: _object_id, ref: 'User', required: true},
+  to:               {type: _object_id, ref: 'User', required: true},
+  create_date:      {type: Date, default: null, required: false},
+  action:           {type: String, default: null, required: false},
+  post_id:          {type: String, default: null, required: false},
+  comment_id:       {type: String, default: null, required: false},
+  has_been_viewed:  {type: Boolean, default: false, required: false}
 }, { versionKey: false });
 
 activitySchema.statics.selectFields = function(type){
   if(type === 'short' || type == 'basic'){
-    return ['id','from','to','create_date','post_id','comment_id','action'];
+    return ['id','from','to','create_date','post_id','comment_id','action', 'has_been_viewed'];
   }
 };
 
@@ -48,7 +48,8 @@ activitySchema.methods.format = function(type){
       action: this.action,
       post_id: this.post_id,
       comment_id: this.comment_id,
-      create_date: this.create_date
+      create_date: this.create_date,
+      has_been_viewed: this.has_been_viewed
     };
   }
 };

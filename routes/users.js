@@ -42,7 +42,7 @@ exports.review = function review(req, res){
         }else{
           if(user.review_key === req.query.review_key &&
              user.status === 2){
-            user.type = (req.query.approval === 'yes') ? 'institution' : 'user';
+            user.type = (req.query.approval === 'yes') ? 'institution_verified' : 'user';
             user.review_key = null;
             user.status = 0;
             user.save(function(err, saved){
@@ -165,7 +165,6 @@ exports.register = function(req, res){
         newUser.phone_number = req.body.phone_number;
       
       newUser.status = 2;
-      newUser.type = 'user';
       newUser.review_key = _uuid.v1();
     }
 
@@ -500,11 +499,17 @@ exports.createUserPost = function(req, res){
                         console.log(err);
                         _utils.prismResponse(res, null, false, PrismError.serverError);
                       }else{
-                        var activity;
                         if(usr.is_repost){
                           usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
                             usr = usr.toObject();
                             usr.origin_post_creator = org_user;
+                            
+                            //create repost activity
+                            _utils.registerActivityEvent(org_user._id,
+                                                         req.body.creator,
+                                                         'repost',
+                                                         user_post._id);
+
                             _utils.prismResponse(res, usr, true);
                           });
 

@@ -97,7 +97,7 @@ exports.follow = function(req, res){
 
               User.findOneAndUpdate(query, update_data, function(err, follower_update){
                 if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-               
+
                 new Activity({
                   action: 'follow',
                   to: req.params.id,
@@ -219,22 +219,6 @@ exports.unfollow = function(req, res){
 };
 
 /**
- * [fetchFollowTypeById description]
- * @param  {[type]}   type [description]
- * @param  {[type]}   u_id [description]
- * @param  {[type]}   f_id [description]
- * @param  {Function} cb   [description]
- * @return {[type]}        [description]
- */
-// var fetchFollowTypeById = function(type, u_id, f_id, cb){
-//   if(type !== 'follower' || type !== 'following'){
-//     cb(false);
-//   }else{
-//     var criteria, follow_identifier;
-//   }
-// };
-
-/**
  * [fetchIsFollowingById description]
  * @param  {[type]} req [description]
  * @param  {[type]} res [description]
@@ -307,26 +291,6 @@ exports.fetchFollowing = function(req, res){
         _utils.prismResponse(res, result, true);
       }
     });
-    /**
-    User.find({_id: req.params.id}, {following: 1}, function(error, user){
-      if(error){
-        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
-
-      }else{
-        var following_array = [];
-        for(var i = 0; i < user[0].following.length; i++){
-          following_array.push(user[0].following[i]._id);
-        }
-
-        User.find(
-          {_id : {$in: following_array}},
-          {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
-          function(err, result){
-            // console.log(result);
-            _utils.prismResponse(res, result, true);
-        });
-      }
-    });*/
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
@@ -349,30 +313,6 @@ exports.fetchFollowers = function(req, res){
         _utils.prismResponse(res, result, true);
       }
     });
-
-    /**
-    User.find({_id: req.params.id}, {followers : 1}, function(error, user){
-      // debugger;
-      if(error){
-        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
-
-      }else{
-        var followers_array = [];
-        for(var i = 0; i < user[0].followers.length; i++){
-          followers_array.push(user[0].followers[i]._id);
-        }
-
-        User.find(
-          {_id: {$in : followers_array}},
-          {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
-          function(err, result){
-            // console.log(result);
-            _utils.prismResponse(res, result, true);
-        });
-
-        // _utils.prismResponse(res, user, true);
-      }
-    });*/
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }

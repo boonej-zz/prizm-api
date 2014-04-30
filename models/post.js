@@ -67,9 +67,9 @@ var postSchema = new _mongoose.Schema({
   likes_count         : {type: Number, default: 0},
   comments_count      : {type: Number, default: 0},
   tags_count          : {type: Number, default: 0},
-  tags                : [],
+  tags                : {type: Array, default: []},
   comments            : [commentSchema],
-  likes               : [],
+  likes               : {type: Array, default: []},
   hash_tags           : [String],
   hash_tags_count     : {type: Number, default: 0},
   is_flagged          : {type: Boolean, default: false},
@@ -88,7 +88,8 @@ postSchema.statics.canResolve = function(){
     {target_id: {identifier: '_id', model: 'User'}},
     {comments: {identifier: 'creator', model: 'User'}},
     {likes: {identifier: '_id', model: 'User'}},
-    {origin_post_id: {identifier: '_id', model: 'Post'}}
+    {origin_post_id: {identifier: '_id', model: 'Post'}},
+    {tags: {identifier: '_id', model: 'User'}}
   ];
 };
 
@@ -97,13 +98,27 @@ postSchema.statics.selectFields = function(type){
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
             'creator','target_id','likes_count','comments_count','scope',
-            'hash_tags','hash_tags_count'];
+            'hash_tags','hash_tags_count', 'tags', 'tags_count'];
   }else{
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
             'creator','target_id','likes_count','comments_count','scope',
-            'status','hash_tags','hash_tags_count','is_repost','origin_post_id','modify_date',
-            'delete_date'];
+            'status','hash_tags','hash_tags_count', 'tags', 'tags_count',
+            'is_repost','origin_post_id','modify_date', 'delete_date'];
+  }
+};
+
+postSchema.methods.parseAndUpdateTags = function(){
+  var parsed = [];
+  parsed= this.text.match(/(@(\S+))/g);
+  if(parsed.length > 0){
+    for(var i = 0; i < parsed.length; i++){
+      parsed[i] = parsed[i].replace(/@/, "");
+      if(this.tags.length === 0)
+        this.tags.push({_id: parsed[i]});
+      if(this.tags.indexOf(parsed[i]) === -1)
+        this.tags.push({_id: parsed[i]});
+    }
   }
 };
 
@@ -126,6 +141,8 @@ postSchema.methods.format = function(type, add_fields){
     comments_count:       this.comments_count,
     hash_tags_count:      this.hash_tags_count,
     hash_tags:            this.hash_tags,
+    tags:                 this.tags,
+    tags_count:           this.tags_count,
     scope:                this.scope
   };
 
@@ -226,6 +243,11 @@ postSchema.pre('save', function(next){
     if(this.flagged_reporters.length > 0) this.flagPostValidation();
   }
 
+  this.parseAndUpdateTags();
+  if(this.tags > 0){
+    this.tags_count = this.tags.length;
+  }
+
 	next();
 });
 
@@ -238,6 +260,7 @@ postSchema.pre('save', function(next){
  */
 postSchema.pre('update', function(next){
 	this.modify_date = Date.now();
+  this.parseAndUpdateTags();
 	next();
 });
 

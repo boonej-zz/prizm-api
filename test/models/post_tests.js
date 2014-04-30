@@ -19,38 +19,34 @@ describe('Post Model Unit Tests', function(done){
   var mark, edwardo, cameron, erica, sean, maryolin, test_user, test_post;
 
   var setupSocialNetworkUsers = function(cb){
-    var users = _helpers.fetchFakeUsersArray();
-    User.create(users, function(err, m, e, c, e2, s, m2){
-      if(err) throw err;
-      mark = m;
-      edwardo = e;
-      cameron = c;
-      erica = e2;
-      sean = s;
-      maryolin = m2;
+    _helpers.fetchFixtureTestUsers(function(users){
+      mark = users.mark;
+      edwardo = users.edwardo;
+      cameron = users.cameron;
+      erica = users.erica;
+      sean = users.sean;
+      maryolin = users.maryolin;
       cb();
     });
   };
 
   before(function(done){
-    _helpers.destroyTestUser(function(){
-      _helpers.createTestUser(function(user){
-        test_user = user;
-        setupSocialNetworkUsers(function(){
-          done();
-        });
+    _helpers.createTestUser(function(user){
+      test_user = user;
+      _helpers.fetchFixtureTestUsers(function(users){
+        mark = users.mark;
+        edwardo = users.edwardo;
+        cameron = users.cameron;
+        erica = users.erica;
+        sean = users.sean;
+        maryolin = users.maryolin;
+        done();
       });
     });
   });
 
-  after(function(done){
-    _helpers.destroyTestPost(function(){
-      done();
-    });
-  });
-
-	describe('Testing creating new post record', function(done){
-		it('should create post record successfully with requried fields', function(done){
+  describe('Testing creating new post record', function(done){
+    it('should create post record successfully with requried fields', function(done){
       var post = new Post({
         text : 'this is the body of the test post',
         category : 'experiences',
@@ -77,9 +73,25 @@ describe('Post Model Unit Tests', function(done){
         result.scope.should.equal('public');
         result.status.should.equal('active');
         done();
-			});
-		});
-	});
+      });
+    });
+    it('should parse the text string and add @ids to tags array', function(done){
+      var tags_post = new Post({
+        text: 'chillin with @'+mark._id.toString()+' and @'+sean._id.toString(),
+        category: 'experiences',
+        target_id: test_user._id,
+        creator: test_user._id
+      });
+
+      _expect(tags_post.tags.length).to.equal(0);
+      tags_post.parseAndUpdateTags();
+      _expect(tags_post.tags.length).to.be.above(1);
+      _expect(tags_post.tags[0]).to.have.property('_id');
+      _expect(tags_post.tags[0]._id).to.equal(mark._id.toString());
+      done();
+    });
+  });
+
   describe('Testing reporting an inappropriate post', function(done){
     var reporter_post;
 
@@ -121,4 +133,24 @@ describe('Post Model Unit Tests', function(done){
       });
     });
   });
+
+  // describe('Testing parseAndUpdateTags instance method', function(done){
+  //   console.log(mark);
+  //   var tags_post = new Post({
+  //     text: 'chillin with @'+mark._id.toString()+' and @'+sean._id.toString(),
+  //     category: 'experiences',
+  //     target_id: test_user._id,
+  //     creator: test_user._id
+  //   });
+
+  //   it('should parse the text string and add @ids to tags array', function(done){
+  //     _expect(tags_post.tags.length).to.equal(0);
+  //     tags_post.parseAndUpdateTags();
+  //     console.log(tags_post.tags);
+  //     // _expect(tags_post.tags.length).to.be.above(1);
+  //     // _expect(tags_post.tags[0]).to.have.property('_id');
+  //     // _expect(tags_post.tags[0]._id).to.equal(mark._id.toString());
+  //     done();
+  //   });
+  // });
 });

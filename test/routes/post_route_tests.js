@@ -398,7 +398,6 @@ describe('Posts Route Unit Tests', function(done){
       });
     });
     it('should fetch a users news feed', function(done){
-      debugger;
       _expect(feed_result.metadata.success).to.equal(true);
       _expect(feed_result.data.length).to.be.above(3);
       done();
@@ -434,11 +433,16 @@ describe('Posts Route Unit Tests', function(done){
   });
   describe('Testing Like a Post', function(done){
     it('should update the posts record after a successful like', function(done){
-      executeLikeRequest('like',mark._id, test_post1._id, function(err, res){
+      debugger;
+      new Trust({ to:sean._id, from: test_post1.creator, status: 'accepted'})
+      .save(function(err, trust){
+      executeLikeRequest('like',sean._id, test_post1._id, function(err, res){
+        debugger;
         _expect(res.metadata.success).to.equal(true);
         _expect(res.data[0].likes_count).to.equal(1);
         _expect(res.data[0].likes[0]._id).to.equal(mark._id.toString());
         done();
+      });
       });
     });
     it('should return an error with invalid post_id', function(done){
