@@ -19,7 +19,7 @@ var _mongoose   = require('mongoose'),
  * @param {Object} headers The headers object (hash)
  */
 var activityHasBeenViewed = function activityHasBeenViewed(user_id, results){
-  if(result.length > 0){
+  if(results.length > 0){
     var date = results[0].create_date;
     var criteria = {
       to: user_id,
