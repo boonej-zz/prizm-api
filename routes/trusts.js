@@ -38,6 +38,14 @@ var update_trust_error = {
   }
 };
 
+var fetch_trust_error = {
+  status_code: 400,
+  error_info:{
+    error: 'unable_to_fetch_user_trust',
+    error_description: 'The requested trust does not exist'
+  }
+};
+
 
 /**
  * Request validation helper method to ensure minimum request params are included
@@ -197,14 +205,7 @@ var fetchTrustById = function(req, res){
         _utils.prismResponse(res, null, false, PrismError.serverError);
       }else{
         if(!trust){
-          var error = {
-            status_code: 400,
-            error_info:{
-              error: 'unable_to_fetch_user_trust',
-              error_description: 'The requested trust does not exist'
-            }
-          };
-          _utils.prismResponse(res, null, false, error);
+          _utils.prismResponse(res, null, false, fetch_trust_error);
         }else{
           _utils.prismResponse(res, trust, true);
         }
@@ -299,6 +300,68 @@ var deleteTrust = function(req, res){
   validateTrustRequest(req, res, function(){
     res.send('Not fully implemented yet');
   });
+};
+
+var searchForUsersInTrust = function(req, res){
+  if(req.params.id && req.params.name){
+    //first gather an array of user id's that exist in the specified users trusts
+    Trust.find(
+      {$or: [{to: req.params.id}, {from: req.params.id}], status: 'trust_accepted'},
+      {to: 1, from: 1},
+      function(error, trusts){
+        if(error){
+          //server error
+          _logger.log('error',
+                      'Error returned trying to fetch trusts for user search',
+                      {error: error});
+          //return server error in response
+          _utils.prismResponse(res, null, false, PrismError.serverError);
+
+        }else if(!trusts){
+          //nothing was returned, user has no trusts, send fetch error
+          _utils.prismResponse(res, null, false, fetch_trust_error);
+
+        }else{
+          if(trusts.length === 0){
+            _utils.prismResponse(res, null, false, fetch_trust_error);
+
+          }else{
+            var users = [];
+            var iterate = function(item){
+              if(item.to.toString() === req.params.id)
+                users.push(item.from);
+              if(item.from.toString() === req.params.id)
+                users.push(item.to);
+            };
+
+            _.each(trusts, iterate);
+
+          //now search users & return short user if found
+
+          //regex name search characters globally & case incensitive
+          var regex_name = new RegExp(req.params.name, 'gi');
+
+          //fetch users in array that match the regex
+          User.find({_id: {$in: users}, name: regex_name})
+          .select(User.selectFields('short').join(" "))
+          .exec(function(error, users_result){
+            if(error){
+              _logger.log('error',
+                          'An error was returned while searching names in trusts',
+                          {error: error});
+              //server error return issue
+              _utils.prismResponse(res, null, false, PrismError.serverError);
+
+            }else{
+              _utils.prismResponse(res, users_result, true);
+            }
+          });
+        }
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null , false, PrismError.invalidRequest);
+  }
 };
 
 var thisExports = {
