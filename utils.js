@@ -86,7 +86,7 @@ exports.parsedQueryOptions = function(query_params) {
     if(typeof(query_params.skip) !== 'undefined'){
       options.skip = query_params.skip;
 
-    }else {
+    }else{
       options.skip = query_params.skip;
     }
 

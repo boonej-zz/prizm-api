@@ -231,7 +231,7 @@ _app.get('/explore', _gateway, _explore.explore);
 _app.get('/search/hashtags/:hash', _gateway, _explore.search);
 
 /* Search User in Trusts */
-_app.get('/search/:id/trusts/:name', _gateway, _trust.searchForUsersInTrusts);
+//_app.get('/search/:id/trusts/:name', _gateway, _trust.searchForUsersInTrusts);
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
