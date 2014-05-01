@@ -111,13 +111,15 @@ postSchema.statics.selectFields = function(type){
 postSchema.methods.parseAndUpdateTags = function(){
   var parsed = [];
   parsed= this.text.match(/(@(\S+))/g);
-  if(parsed.length > 0){
-    for(var i = 0; i < parsed.length; i++){
-      parsed[i] = parsed[i].replace(/@/, "");
-      if(this.tags.length === 0)
-        this.tags.push({_id: parsed[i]});
-      if(this.tags.indexOf(parsed[i]) === -1)
-        this.tags.push({_id: parsed[i]});
+  if(Array.isArray(parsed)){
+    if(parsed.length > 0){
+      for(var i = 0; i < parsed.length; i++){
+        parsed[i] = parsed[i].replace(/@/, "");
+        if(this.tags.length === 0)
+          this.tags.push({_id: parsed[i]});
+        if(this.tags.indexOf(parsed[i]) === -1)
+          this.tags.push({_id: parsed[i]});
+      }
     }
   }
 };
