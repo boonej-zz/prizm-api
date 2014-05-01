@@ -197,6 +197,12 @@ var fetchTrusts = function(req, res){
   });
 };
 
+/**
+ * Retrieves a specific trust by id
+ *
+ * @param  {HTTPRequest}   req The request object
+ * @param  {HTTPResponse}   res The response object
+ */
 var fetchTrustById = function(req, res){
   validateTrustRequest(req, res, function(){
     var criteria = {_id: req.params.id};
@@ -214,6 +220,12 @@ var fetchTrustById = function(req, res){
   });
 };
 
+/**
+ * Updates the specified trust (status only)
+ *
+ * @param  {HTTPRequest}   req The request object
+ * @param  {HTTPResponse}   res The response object
+ */
 var updateTrust = function(req, res){
   validateTrustRequest(req, res, function(){
     Trust.findOne({_id: req.params.id}, function(err, trust){
@@ -269,6 +281,12 @@ var updateTrust = function(req, res){
   });
 };
 
+/**
+ * Checks to see if a trust between 2 users exists
+ *
+ * @param  {HTTPRequest}   req The request object
+ * @param  {HTTPResponse}   res The response object
+ */
 var exists = function(req, res){
   if(req.params.id && req.params.user_id){
     var criteria = {
@@ -302,6 +320,13 @@ var deleteTrust = function(req, res){
   });
 };
 
+/**
+ * Searches for user names within the specificed users trusts
+ *  Note: trust must be accpeted
+ *
+ * @param  {HTTPRequest}   req The request object
+ * @param  {HTTPResponse}   res The response object
+ */
 var searchForUsersInTrust = function(req, res){
   if(req.params.id && req.params.name){
     //first gather an array of user id's that exist in the specified users trusts
