@@ -87,5 +87,22 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
 };
 
 Mail.prototype.resetPassword = function resetPassword(user, block){
-  return;
+  var approval_link = null;
+  var denial_link = null;
+
+  //create the message
+  this.message = {
+    from_email: 'admin@prizmapp.com',
+    to: [{email: user.email}],
+    subject: 'Prizm Password Reset for ' + user.email,
+    html: '<h1><a href="'+_config.base_uri+'/users/'+user._id+'/review/passwordreset?review_key='+
+      user.reset_key+'>Confirm Password Reset</a></h1>'
+  };
+
+  _logger.log('info', 'reset passwrod email', {message: this.message});
+
+  _mailer(SEND_MESSAGE_ENDPOINT, {message: this.message}, function(error, response){
+    if(error) console.log('Error occured during password reste eamil');
+    else console.log('successful passwordreset email: ' + JSON.stringify(response));
+  });
 };
