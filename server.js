@@ -224,6 +224,8 @@ _app.post('/users/:id/unfollow', _gateway, _follow.unfollow);
 
 _app.get('/users/:id/activites', _gateway, _activity.fetchUserActivity);
 
+_app.post('/users/:email/passwordreset', _gateway, _user.resetPassword);
+
 /* Explore Route */
 _app.get('/explore', _gateway, _explore.explore);
 
@@ -231,7 +233,7 @@ _app.get('/explore', _gateway, _explore.explore);
 _app.get('/search/hashtags/:hash', _gateway, _explore.search);
 
 /* Search User in Trusts */
-_app.get('/search/:id/trusts/:name', _gateway, _trust.searchForUsersInTrusts);
+_app.get('/search/:id/trusts/:name', _gateway, _trust.searchForUsersInTrust);
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){

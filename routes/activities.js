@@ -18,32 +18,28 @@ var _mongoose   = require('mongoose'),
  * @param {String} user_id The "to" user identifier
  * @param {Object} headers The headers object (hash)
  */
-var activityHasBeenViewed = function activityHasBeenViewed(user_id, headers){
-  if(headers['x-arguments']){
-    var args = new Buffer(headers['x-arguments'], 'base64').toString('utf8');
-    args = JSON.parse(args);
+var activityHasBeenViewed = function activityHasBeenViewed(user_id, results){
+  if(results.length > 0){
+    var date = results[0].create_date;
+    var criteria = {
+      to: user_id,
+      has_been_viewed: false,
+      create_date: {$lte: date}
+    };
 
-    if(args.page && args.has_been_viewed === false){
-      var criteria = {
-        to: user_id,
-        has_been_viewed: false,
-        create_date: {$lte: args.page}
-      };
+    var updateOptions = {
+      $set: {has_been_viewed: true}
+    };
 
-      var updateOptions = {
-        $set: {has_been_viewed: true}
-      };
+    //update all records found by this criteria, setting viewed to true
+    Activity.update(criteria, updateOptions, {multi:true}, function(err, updated){
+      if(err) _logger.log('error',
+                          'Activity update failed with error: ' + JSON.stringfiy(err));
 
-      //update all records found by this criteria, setting viewed to true
-      Activity.update(criteria, updateOptions, {multi:true}, function(err, updated){
-        if(err) _logger.log('error',
-                            'Activity update failed with error: ' + JSON.stringfiy(err));
-
-        if(updated) _logger.log('info',
-                                'Activity views successfully updated for user: '+user_id.toString()+
-                                'for dates before : '+args.page);
-      });
-    }
+      if(updated) _logger.log('info',
+                              'Activity views successfully updated for user: '+user_id.toString()+
+                              'for dates before : '+date);
+    });
   }
 };
 
@@ -58,7 +54,9 @@ exports.fetchUserActivity = function fetchUserActivity(req, res){
     var criteria = {to: req.params.id};
     new Twine('Activity', criteria, req, null, function(error, result){
       if(error) _utils.prismResponse(res, null, false, PrismError.serverError);
-      activityHasBeenViewed(req.params.id, req.headers);
+      if(Array.isArray(result)){
+        activityHasBeenViewed(req.params.id, result);
+      }
       _utils.prismResponse(res, result, true);
     });
   }else{

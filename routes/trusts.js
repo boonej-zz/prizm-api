@@ -331,7 +331,7 @@ var searchForUsersInTrust = function(req, res){
   if(req.params.id && req.params.name){
     //first gather an array of user id's that exist in the specified users trusts
     Trust.find(
-      {$or: [{to: req.params.id}, {from: req.params.id}], status: 'trust_accepted'},
+      {$or: [{to: req.params.id}, {from: req.params.id}], status: 'accepted'},
       {to: 1, from: 1},
       function(error, trusts){
         if(error){
@@ -395,7 +395,8 @@ var thisExports = {
   updateTrust: updateTrust,
   deleteTrust: deleteTrust,
   exists:      exists,
-  fetchTrustById: fetchTrustById
+  fetchTrustById: fetchTrustById,
+  searchForUsersInTrust: searchForUsersInTrust
 };
 
 if(process.env.NODE_ENV === 'test'){
