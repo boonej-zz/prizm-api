@@ -67,7 +67,7 @@ exports.review = function review(req, res){
 };
 
 exports.resetPassword = function(req, res){
-  if(req.params.id && req.body.password){
+  if(req.params.email && req.body.password){
     User.findOne({email: req.params.email}, function(err, result){
       if(err || !result) _utils.prismResponse(res, null, false, PrismError.serverError);
       if(result){
@@ -85,7 +85,7 @@ exports.resetPassword = function(req, res){
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, PrismResponse.invalidRequest);
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
 
