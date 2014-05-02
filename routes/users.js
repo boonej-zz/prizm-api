@@ -66,6 +66,29 @@ exports.review = function review(req, res){
   }
 };
 
+exports.resetPassword = function(req, res){
+  if(req.params.id && req.body.password){
+    User.findOne({email: req.params.email}, function(err, result){
+      if(err || !result) _utils.prismResponse(res, null, false, PrismError.serverError);
+      if(result){
+        result.password_reset = req.body.password;
+        result.reset_date = new Date();
+        result.reset_key = _uuid.v1();
+        result.save(function(err, saved){
+          if(err){
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+          }else{
+            _utils.prismResponse(res, {message: 'Please Verify reset in email'}, true);
+          }
+                
+        });
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismResponse.invalidRequest);
+  }
+};
+
 /**
  * Handles authenticating user login request
  *
