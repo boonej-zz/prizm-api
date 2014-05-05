@@ -427,10 +427,17 @@ exports.fetchUserNewsFeed = function(req, res){
             var criteria = {$or: [  {scope: 'public', status: 'active', creator: {$in:following_array}},
                                     {scope: {$in:['trust', 'public']}, status: 'active', creator: {$in:trusts_array}},
                                     {creator: user._id, status: 'active'}]};
+
+            _logger.log('info', 'news feed find criteria', {criteria:criteria});
+
             new Twine('Post', criteria, req, null, function(err, result){
-              if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-              if(result){
+              if(err){
+                _logger.log('error', 'fetch news feed via twine returned error', {error:err});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+
+              }else if(result){
                 _utils.prismResponse(res, result, true);
+
               }else{
                 var error = {
                   status_code: 400,
@@ -440,6 +447,7 @@ exports.fetchUserNewsFeed = function(req, res){
                       ' There is no content to display'
                     }
                   };
+                _logger.log('error', 'user has no news feed content');
                 _utils.prismResponse(res,null,false,error);
               }
             });
