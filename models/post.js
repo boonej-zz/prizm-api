@@ -6,6 +6,7 @@
 var _mongoose   = require('mongoose'),
     _serial     = require('serializer'),
     _crypt      = require('crypto'),
+    _           = require('underscore'),
     _utils      = require(process.env.PRISM_HOME + 'utils'),
     User        = require(process.env.PRISM_HOME + 'models/user').User;
 
@@ -115,10 +116,16 @@ postSchema.methods.parseAndUpdateTags = function(){
     if(parsed.length > 0){
       for(var i = 0; i < parsed.length; i++){
         parsed[i] = parsed[i].replace(/@/, "");
-        if(this.tags.length === 0)
+
+        if(this.tags.length === 0){
           this.tags.push({_id: parsed[i]});
-        if(this.tags.indexOf(parsed[i]) === -1)
-          this.tags.push({_id: parsed[i]});
+        }
+
+        var item = _.matches(parsed[i]);
+
+        if(_.filter(this.tags, item).length === 0){
+          this.tags.push(item);
+        }
       }
     }
   }
