@@ -96,7 +96,7 @@ Mail.prototype.resetPassword = function resetPassword(user, block){
     to: [{email: user.email}],
     subject: 'Prizm Password Reset for ' + user.email,
     html: '<h1><a href="'+_config.base_uri+'/users/'+user._id+'/review/passwordreset?review_key='+
-      user.reset_key+'>Confirm Password Reset</a></h1>'
+      user.reset_key+'&approval=yes">Confirm Password Reset</a></h1>'
   };
 
   _logger.log('info', 'reset passwrod email', {message: this.message});
