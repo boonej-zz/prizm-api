@@ -58,7 +58,8 @@ var userSchema = new _mongoose.Schema({
   review_key            : {type: String, default: null},
   reset_key             : {type: String, default: null},
   reset_date            : {type: String, default: null},
-  password_reset        : {type: String, default: null}
+  password_reset        : {type: String, default: null},
+  device_token          : {type: String, default: null}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
