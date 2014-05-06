@@ -53,6 +53,24 @@ exports.review = function review(req, res){
                 res.send('Succesfully Reviewed User');
               }
             });
+          }else if(user.reset_key === req.query.reset_key &&
+                  req.params.review === 'passwordreset'){
+            user.password = user.password_reset;
+            if(user.hashPassword()){
+              user.password_reset = null;
+              user.reset_key = null;
+              user.reset_date = null;
+              user.save(function(err, result){
+                if(err){
+                  res.send('An error occured while resetting your password, Error: '+JSON.stringify(err));
+                }else{
+                  res.send('Successfully reset your password! Please login with your new credentials!');
+                }
+              });
+            }else{
+              res.send('Unable to reset/hashpassword, please contact system administrator');
+            }
+
           }else{
             res.send('Unable to review user. User is currently not in review');
           }
@@ -174,20 +192,20 @@ exports.register = function(req, res){
       birthday: req.body.birthday
     });
 
-    if(typeof(req.body.password) != 'undefined') 
+    if(typeof(req.body.password) != 'undefined')
       newUser.password = req.body.password;
 
-    if(typeof(req.body.cover_photo_url) != 'undefined') 
+    if(typeof(req.body.cover_photo_url) != 'undefined')
       newUser.cover_photo_url = req.body.cover_photo_url;
 
-    if(typeof(req.body.profile_photo_url) != 'undefined') 
+    if(typeof(req.body.profile_photo_url) != 'undefined')
       newUser.profile_photo_url = req.body.profile_photo_url;
 
     if(typeof(req.body.type) !== 'undefined') newUser.type = req.body.type;
     if(newUser.type === 'institution'){
-      if(typeof(req.body.phone_number) !== 'undefined') 
+      if(typeof(req.body.phone_number) !== 'undefined')
         newUser.phone_number = req.body.phone_number;
-      
+
       newUser.status = 2;
       newUser.review_key = _uuid.v1();
     }
@@ -427,10 +445,17 @@ exports.fetchUserNewsFeed = function(req, res){
             var criteria = {$or: [  {scope: 'public', status: 'active', creator: {$in:following_array}},
                                     {scope: {$in:['trust', 'public']}, status: 'active', creator: {$in:trusts_array}},
                                     {creator: user._id, status: 'active'}]};
+
+            _logger.log('info', 'news feed find criteria', {criteria:criteria});
+
             new Twine('Post', criteria, req, null, function(err, result){
-              if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-              if(result){
+              if(err){
+                _logger.log('error', 'fetch news feed via twine returned error', {error:err});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+
+              }else if(result){
                 _utils.prismResponse(res, result, true);
+
               }else{
                 var error = {
                   status_code: 400,
@@ -440,6 +465,7 @@ exports.fetchUserNewsFeed = function(req, res){
                       ' There is no content to display'
                     }
                   };
+                _logger.log('error', 'user has no news feed content');
                 _utils.prismResponse(res,null,false,error);
               }
             });
@@ -527,7 +553,7 @@ exports.createUserPost = function(req, res){
                           usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
                             usr = usr.toObject();
                             usr.origin_post_creator = org_user;
-                            
+
                             //create repost activity
                             _utils.registerActivityEvent(org_user._id,
                                                          req.body.creator,
