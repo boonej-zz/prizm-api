@@ -272,9 +272,8 @@ var updateTrust = function(req, res){
                   // _utils.prismResponse(res, trust_updated, true);
                 // });
 
-              }else{
-                _utils.prismResponse(res, trust_updated, true);
               }
+                _utils.prismResponse(res, trust_updated, true);
             }
           });
         }
