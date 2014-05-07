@@ -88,7 +88,7 @@ Mail.prototype.resetPassword = function resetPassword(user, block){
     from_email: 'admin@prizmapp.com',
     to: [{email: user.email}],
     subject: 'Prizm Password Reset for ' + user.email,
-    html: '<h1><a href="'+_config.base_uri+'/users/'+user._id+'/review/passwordreset?review_key='+
+    html: '<h1><a href="'+_config.base_uri+'/users/'+user._id+'/review/passwordreset?reset_key='+
       user.reset_key+'&approval=yes">Confirm Password Reset</a></h1>'
   };
 

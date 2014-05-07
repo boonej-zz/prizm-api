@@ -257,22 +257,23 @@ var updateTrust = function(req, res){
               //when a users trusts are fetched this action shows up for the requestor and
               //not the requestee
               if(req.body.status === 'accepted'){
-                new Activity({
-                  to: trust.from,
-                  from: trust.to,
-                  action: 'trust_accepted'
-                }).save(function(err, activity){
+                
+                _utils.registerActivityEvent(trust.from, trust.to, 'trust_accepted');
+                // new Activity({
+                //   to: trust.from,
+                //   from: trust.to,
+                //   action: 'trust_accepted'
+                // }).save(function(err, activity){
                   //log the event but DO NOT return error as the trust was still created
-                  _logger.log('error', 'error creating trust update activity',
-                              {to:trust_updated.from, from:trust_updated.to, err:err});
+                  // _logger.log('error', 'error creating trust update activity',
+                  //             {to:trust_updated.from, from:trust_updated.to, err:err});
 
                   //return response
-                  _utils.prismResponse(res, trust_updated, true);
-                });
+                  // _utils.prismResponse(res, trust_updated, true);
+                // });
 
-              }else{
-                _utils.prismResponse(res, trust_updated, true);
               }
+                _utils.prismResponse(res, trust_updated, true);
             }
           });
         }

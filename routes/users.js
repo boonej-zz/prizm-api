@@ -34,7 +34,8 @@ var _mongoose     = require('mongoose'),
  */
 exports.review = function review(req, res){
   if(req.params.id && req.params.review){
-    if(req.query.review_key && req.query.approval){
+    if(req.query.review_key && req.query.approval || 
+       req.query.reset_key && req.query.approval){
       User.findOne({_id: req.params.id}, function(err, user){
         if(err){
           _utils.prismResponse(res, null, false, PrismError.serverError);
