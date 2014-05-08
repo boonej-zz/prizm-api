@@ -116,16 +116,27 @@ postSchema.methods.parseAndUpdateTags = function(){
     if(Array.isArray(parsed)){
       if(parsed.length > 0){
         for(var i = 0; i < parsed.length; i++){
+          var to_user, from_user, post_id;
+
           parsed[i] = parsed[i].replace(/@/, "");
+          to_user = parsed[i];
 
           if(this.tags.length === 0){
-            this.tags.push({_id: parsed[i]});
+            this.tags.push({_id: to_user});
+            //create user tagged activity event
+            from_user = this.creator.toString();
+            post_id = this._id.toString();
+            _utils.registerAvctivityEvent(to_user, from_user,'tag', post_id);
           }
 
           var item = _.matches(parsed[i]);
 
           if(_.filter(this.tags, item).length === 0){
-            this.tags.push(item);
+            this.tags.push({_id: to_user});
+            //create user tagged activity event
+            from_user = this.creator.toString();
+            post_id = this._id.toString();
+            _utils.registerActivityEvent(to_user, from_user, 'tag', post_id);
           }
         }
       }
@@ -235,11 +246,11 @@ postSchema.methods.fetchRepostShortUser = function(post_id, cb){
  * @param  {Function} next Calls the next() iterator to continue process
  */
 postSchema.pre('save', function(next){
-	//set create & modify dates
-	this.modify_date = Date.now();
+  //set create & modify dates
+  this.modify_date = Date.now();
   if(!this.create_date){
     if(this.create_date === null) this.create_date = Date.now();
-	}
+  }
 
   //check that counts are accurate to arrays, if not increment there values
   if(typeof(this.likes) !== 'undefined'){
@@ -259,7 +270,7 @@ postSchema.pre('save', function(next){
     this.tags_count = this.tags.length;
   }
 
-	next();
+  next();
 });
 
 /**
@@ -270,9 +281,9 @@ postSchema.pre('save', function(next){
  * @param  {Function} next Calls the next() iterator to continue process
  */
 postSchema.pre('update', function(next){
-	this.modify_date = Date.now();
+  this.modify_date = Date.now();
   this.parseAndUpdateTags();
-	next();
+  next();
 });
 
 exports.Post    = _mongoose.model('Post', postSchema);
