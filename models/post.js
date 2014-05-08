@@ -48,6 +48,14 @@ var status_types = {
 };
 
 /**
+ * ParseTagType enum
+ */
+var ParseTagType = {
+  HashTag: 0,
+  UserTag: 1
+};
+
+/**
  * Post Model Schema
  * @type {Mongoose.Schema}
  */
@@ -110,38 +118,68 @@ postSchema.statics.selectFields = function(type){
 };
 
 postSchema.methods.parseAndUpdateTags = function(){
-  var parsed = [];
-  if(this.text){
-    parsed= this.text.match(/(@(\S+))/g);
-    if(Array.isArray(parsed)){
-      if(parsed.length > 0){
-        for(var i = 0; i < parsed.length; i++){
-          var to_user, from_user, post_id;
+  var user_tage = [], hash_tag = [];
 
-          parsed[i] = parsed[i].replace(/@/, "");
-          to_user = parsed[i];
+  if(this.text){
+    user_tag = this.text.match(/(@(\S+))/g);
+    hash_tag = this.text.match(/(#(\S+))/g);
+    this.tagHandler(ParseTagType.UserTag, user_tag);
+    this.tagHandler(ParseTagType.HashTag, hash_tag);
+  }
+};
+
+postSchema.methods.tagHandler = function(type, parsed_array){
+  if(_.isArray(parsed_array)){
+    if(parsed_array.length > 0){
+      if(type === ParseTagType.HashTag){
+        for(var idx in parsed_array){
+          //strip # character from tag
+          parsed_array[idx] = parsed_array[idx].replace(/#/, "");
+        }
+        this.hash_tags = parsed_array;
+        this.hash_tags_count = this.hash_tags.length;
+      }
+      if(type === ParseTagType.UserTag){
+        for(var i = 0; i < parsed_array.length; i++){
+          //strip the @ character from tag
+          var user_id = parsed_array[i].replace(/@/, "");
+          var tag_added = false;
 
           if(this.tags.length === 0){
-            this.tags.push({_id: to_user});
-            //create user tagged activity event
-            from_user = this.creator.toString();
-            post_id = this._id.toString();
-            _utils.registerAvctivityEvent(to_user, from_user,'tag', post_id);
+            this.tags.push({_id: user_id});
+            tag_added = true;
+
+          }else{
+            var item = _.matches(user_id);
+
+            if(_.filter(this.tagsg, item).length === 0){
+              this.tags.push({_id: user_id});
+              tag_added = true;
+            }
           }
 
-          var item = _.matches(parsed[i]);
-
-          if(_.filter(this.tags, item).length === 0){
-            this.tags.push({_id: to_user});
-            //create user tagged activity event
-            from_user = this.creator.toString();
-            post_id = this._id.toString();
-            _utils.registerActivityEvent(to_user, from_user, 'tag', post_id);
-          }
+          if(tag_added) this.sendTagActivityEvent(user_id);
         }
       }
     }
   }
+};
+
+postSchema.methods.sendTagActivityEvent = function(user_id){
+  var from_user, to_user, post_id;
+  
+  to_user   = user_id.toString();
+  
+  if(_.isUndefined(this.creator._id)){
+    from_user = this.creator.toString();
+  }else{
+    from_user = this.creator._id.toString();
+  }
+  
+  post_id = this._id.toString();
+  
+  //register tagged activity event
+  _utils.registerActivityEvent(to_user, from_user, 'tag', post_id);
 };
 
 postSchema.methods.format = function(type, add_fields){
