@@ -204,7 +204,11 @@ Twine.prototype.$__setFilters = function $__setFilters(cb){
   //amend the filters to the existing criteria if exists
   if(this.filters){
     for(var key in this.filters){
-      this.criteria[key] = this.filters[key];
+      if(this.filters[key] === "*"){
+        this.criteria[key] = {$nin: [null]};
+      }else{
+        this.criteria[key] = this.filters[key];
+      }
     }
   }
 };
