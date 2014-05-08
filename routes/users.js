@@ -34,7 +34,7 @@ var _mongoose     = require('mongoose'),
  */
 exports.review = function review(req, res){
   if(req.params.id && req.params.review){
-    if(req.query.review_key && req.query.approval || 
+    if(req.query.review_key && req.query.approval ||
        req.query.reset_key && req.query.approval){
       User.findOne({_id: req.params.id}, function(err, user){
         if(err){
@@ -108,6 +108,82 @@ exports.resetPassword = function(req, res){
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
+
+/**
+ * Adds device token to user object for push notifications
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ */
+exports.registerDevice = function(req, res){
+  if(req.params.id && req.body.device){
+    User.update(
+      {_id: req.params.id}, 
+      {$set: {device_token: req.body.device}},
+      function(err, user){
+        if(err || !user)  {
+          var info = {user:req.params.id, device:req.body.device};
+          if(err){
+            _logger.log('error',
+                        'Error returned while finding user in registerDevice',
+                        info);
+          }else{
+            _logger.log('error',
+                        'unable to find user for device registration',
+                        info);
+          }
+          _utils.prismResponse(res, null, false, PrismError.serverError);
+
+        }else{
+          var message = "Successfully registered device for " + req.params.id;
+          _utils.prismResponse(res, null, {message: message}, true);
+
+        }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
+ * Removes device token from user object "unregistering" for push notifications
+ *
+ * This service is only used for the APN Feedback Service callback
+ * from the push notification server
+ *
+ * *NOTE* If a single device shuts off notifications & that device has
+ * multiple users, all associated users are "unregistered"
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ */
+exports.unregisterDevice = function(req, res){
+  if(req.params.id){
+    User.update(
+      {device_token: req.params.id},
+      {$set: {device_token: null}},
+      {multi: true},
+      function(err, updated){
+        if(err || !updated){
+          var info = {device:req.params.id};
+          if(err){
+            _logger.log('error', 'Error on unregister device', info);
+          }else{
+            _logger.log('error', 'No user devices found to update', info);
+          }
+          _utils.prismResponse(res, null, false, PrismError.serverError);
+
+        }else{
+          var message = "Successfully unregistered all users from device"+req.params.id;
+          _utils.prismResponse  (res, {message:message}, true);
+        }
+      });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidResponse);
+  }
+};
+
+
 
 /**
  * Handles authenticating user login request

@@ -222,8 +222,10 @@ _app.post('/users/:id/follow', _gateway, _follow.follow);
 /* Unfollow a User */
 _app.post('/users/:id/unfollow', _gateway, _follow.unfollow);
 
+/* Fetch Users Activities */
 _app.get('/users/:id/activites', _gateway, _activity.fetchUserActivity);
 
+/* Reset User Password */
 _app.post('/users/:email/passwordreset', _gateway, _user.resetPassword);
 
 /* Explore Route */
@@ -234,6 +236,13 @@ _app.get('/search/hashtags/:hash', _gateway, _explore.search);
 
 /* Search User in Trusts */
 _app.get('/search/:id/trusts/:name', _gateway, _trust.searchForUsersInTrust);
+
+/* Register/Unregister Device for a User */
+_app.post('/users/:id/devices', _gateway, _user.registerDevice);
+
+/* Unregister devices from push notifications */
+_app.post('/devcices/:id', _user.unregisterDevice);
+
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
