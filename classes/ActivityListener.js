@@ -101,7 +101,10 @@ ActivityListener.prototype.activityHandler = function(activity){
       _logger.log('info', 'Successfully created '+saved.action+' activity',
                   {saved_activity:saved});
 
-      new Push('activity', activity);
+      new Push('activity', activity, function(result){
+        console.log("logging result of push"+JSON.stringify(result));
+        _logger.log('info', 'Push notification result', result);
+      });
 
       if(saved.action === 'comment' || saved.action === 'like')
         self.updateTrust(saved);
