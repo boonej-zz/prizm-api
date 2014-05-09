@@ -136,7 +136,7 @@ exports.registerDevice = function(req, res){
 
         }else{
           var message = "Successfully registered device for " + req.params.id;
-          _utils.prismResponse(res, null, {message: message}, true);
+          _utils.prismResponse(res, {message: message}, true);
 
         }
     });

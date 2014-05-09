@@ -241,7 +241,7 @@ _app.get('/search/:id/trusts/:name', _gateway, _trust.searchForUsersInTrust);
 _app.post('/users/:id/devices', _gateway, _user.registerDevice);
 
 /* Unregister devices from push notifications */
-_app.post('/devcices/:id', _user.unregisterDevice);
+_app.post('/devices/:id', _user.unregisterDevice);
 
 
 /* HACK Find User by instagram_id */
