@@ -90,6 +90,27 @@ describe('Post Model Unit Tests', function(done){
       _expect(tags_post.tags[0]._id).to.equal(mark._id.toString());
       done();
     });
+    it('should parse the string and add #hashtags to hash_tags array', function(done){
+      var hash_post = new Post({
+        text: '#testing all these #coolhashes is sooo much #fun #awesome',
+        category: 'experiences',
+        target_id: test_user._id,
+        creator: test_user._id
+      });
+      
+      //should equal 0 before method call
+      _expect(hash_post.hash_tags.length).to.equal(0);
+
+      hash_post.parseAndUpdateTags();
+
+      //should now equal 4 and match the parsed tags
+      _expect(hash_post.hash_tags.length).to.equal(4);
+      _expect(hash_post.hash_tags[0]).to.equal('testing');
+      _expect(hash_post.hash_tags[1]).to.equal('coolhashes');
+      _expect(hash_post.hash_tags[2]).to.equal('fun');
+      _expect(hash_post.hash_tags[3]).to.equal('awesome');
+      done();
+    });
   });
 
   describe('Testing reporting an inappropriate post', function(done){

@@ -578,7 +578,7 @@ exports.likeComment = function(req,res){
     });
 
   }else{
-    _utils.prismResponse(res, null, false, PrismResponse.invalidRequest);
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
 

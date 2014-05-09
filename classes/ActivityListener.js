@@ -16,6 +16,7 @@ var EventEmitter  = require('events').EventEmitter,
     User          = require(process.env.PRISM_HOME + 'models/user').User,
     Comment       = require(process.env.PRISM_HOME + 'models/post').Comment,
     Trust         = require(process.env.PRISM_HOME + 'models/trust').Trust,
+    Push          = require(process.env.PRISM_HOME + 'classes/PushNotification'),
     Activity      = require(process.env.PRISM_HOME + 'models/activity').Activity;
 
 /**
@@ -100,6 +101,11 @@ ActivityListener.prototype.activityHandler = function(activity){
       _logger.log('info', 'Successfully created '+saved.action+' activity',
                   {saved_activity:saved});
 
+      new Push('activity', saved, function(result){
+        console.log("logging result of push"+JSON.stringify(result));
+        _logger.log('info', 'Push notification result', result);
+      });
+
       if(saved.action === 'comment' || saved.action === 'like')
         self.updateTrust(saved);
     });
@@ -120,7 +126,6 @@ ActivityListener.prototype.updateTrust = function(activity){
   var from_user = activity.from.toString();
   if(to_user && from_user){
     Trust.findTrust(to_user, from_user, function(err, trust){
-      debugger;
       if(err){
         _logger.log('error',
                     'An error occured while trying to retrieve trust from activity listener',
