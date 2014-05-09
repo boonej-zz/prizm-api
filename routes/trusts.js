@@ -13,6 +13,7 @@ var _mongoose     = require('mongoose'),
     Post          = require(_prism_home + 'models/post').Post,
     Activity      = require(_prism_home + 'models/activity').Activity,
     Twine         = require(_prism_home + 'classes/Twine'),
+    PushNotification = require(_prism_home + 'classes/PushNotification'),
     Trust         = require(_prism_home + 'models/trust').Trust;
 
 var trust_status = {
@@ -154,6 +155,17 @@ var createTrust = function(req, res){
               //TODO: create an activity? currently after the last activity refactor
               //we were only creating an activity for trusts when someone approves/accepts it
               //return result
+              var activity = {
+                _id: new_trust._id,
+                to: new_trust.to.toString(),
+                from: new_trust.from.toString(),
+                action: 'trust_request'
+              };
+
+              new PushNotification('activity', activity, function(success){
+                _logger.log('info', 'trust request push notification', {success:success});
+              });
+             
               _logger.log('info', 'successful trust created from user: '+new_trust.from.toString()+
                                   ' to user: '+new_trust.toString());
               _utils.prismResponse(res, new_trust, true);

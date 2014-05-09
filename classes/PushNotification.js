@@ -60,7 +60,8 @@ PushNotification.prototype.activity = function activity(){
   if( this.object.action === 'comment' ||
       this.object.action === 'like' ||
       this.object.action === 'tag' ||
-      this.object.action === 'trust_accepted' ){
+      this.object.action === 'trust_accepted' ||
+      this.object.action === 'trust_request'){
 
     var self = this;
 
@@ -69,7 +70,7 @@ PushNotification.prototype.activity = function activity(){
       console.log('logging user returned from object'+JSON.stringify(user));
       if(user && user._id && user.device_token){
         self.device = user.device_token;
-        self.payload = self.object;
+        self.payload = {_id: self.object._id};
         var action = "";
         if(self.object.action === 'comment') action = 'commented on your post';
         if(self.object.action === 'tag') action = 'tagged you in a post';
@@ -79,9 +80,13 @@ PushNotification.prototype.activity = function activity(){
           action = 'liked your comment';
         }
         if(self.object.action === 'trust_accepted') action = 'accepted your trust request';
-
-        self.message.name = user.name + ' ' + action;
-        self.send();
+        if(self.object.action === 'trust_request') action = 'has sent you a trust invite';
+        findUserById(this.object.from, function(from_user){
+          if(from_user && from_user._id){
+            self.message = from_user.name + ' ' + action;
+            self.send();
+          }
+        });
       }
     });
   }
