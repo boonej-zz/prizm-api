@@ -30,6 +30,7 @@ function PushNotification(type, object, block){
   var self = this;
   this.type = type;
   this.object = object;
+  this.payload = null;
   this.message = null;
   this.device = null;
   this.callback = block || null;
@@ -68,7 +69,18 @@ PushNotification.prototype.activity = function activity(){
       console.log('logging user returned from object'+JSON.stringify(user));
       if(user && user._id && user.device_token){
         self.device = user.device_token;
-        self.message = self.object;
+        self.payload = self.object;
+        var action = "";
+        if(self.object.action === 'comment') action = 'commented on your post';
+        if(self.object.action === 'tag') action = 'tagged you in a post';
+        if(self.object.action === 'like' && !self.object.comment_id){
+          action = 'liked your post';
+        }else if(self.object.action === 'like' && self.object.comment_id){
+          action = 'liked your comment';
+        }
+        if(self.object.action === 'trust_accepted') action = 'accepted your trust request';
+
+        self.message.name = user.name + ' ' + action;
         self.send();
       }
     });
@@ -87,7 +99,8 @@ PushNotification.prototype.send = function send(){
       json: true,
       body: {
         device: self.device,
-        alert: self.message
+        alert: self.message,
+        payload: self.payload
       }
     }, function(err, result){
       console.log("pn sending error: " + JSON.stringify(err));

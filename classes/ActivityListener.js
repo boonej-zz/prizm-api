@@ -101,7 +101,7 @@ ActivityListener.prototype.activityHandler = function(activity){
       _logger.log('info', 'Successfully created '+saved.action+' activity',
                   {saved_activity:saved});
 
-      new Push('activity', activity, function(result){
+      new Push('activity', saved, function(result){
         console.log("logging result of push"+JSON.stringify(result));
         _logger.log('info', 'Push notification result', result);
       });
