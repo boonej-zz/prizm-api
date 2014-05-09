@@ -156,7 +156,7 @@ var createTrust = function(req, res){
               //we were only creating an activity for trusts when someone approves/accepts it
               //return result
               var activity = {
-                _id: new_trust._id,
+                _id: new_trust._id.toString(),
                 to: new_trust.to.toString(),
                 from: new_trust.from.toString(),
                 action: 'trust_request'

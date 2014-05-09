@@ -82,6 +82,7 @@ PushNotification.prototype.activity = function activity(){
         if(self.object.action === 'trust_accepted') action = 'accepted your trust request';
         if(self.object.action === 'trust_request') action = 'has sent you a trust invite';
         findUserById(this.object.from, function(from_user){
+          console.log('logger user returned from from_user object:'+JSON.stringify(from_user));
           if(from_user && from_user._id){
             self.message = from_user.name + ' ' + action;
             self.send();
