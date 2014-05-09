@@ -54,8 +54,8 @@ exports.fetchUserActivity = function fetchUserActivity(req, res){
     var criteria = {to: req.params.id};
     new Twine('Activity', criteria, req, null, function(error, result){
       if(error) _utils.prismResponse(res, null, false, PrismError.serverError);
-      if(Array.isArray(result)){
-        activityHasBeenViewed(req.params.id, result);
+      if(Array.isArray(result.data)){
+        activityHasBeenViewed(req.params.id, result.data);
       }
       _utils.prismResponse(res, result, true);
     });
