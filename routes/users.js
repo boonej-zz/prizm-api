@@ -110,6 +110,23 @@ exports.resetPassword = function(req, res){
 };
 
 /**
+ * Removes device_token from all users that have a matching device_token
+ *
+ * @param  {String} device The device token identifier
+ * @param  {Function} block The callback block to be invoked
+ */
+var unregisterDeviceFromUsers = function(device, block){
+  if(!device || !block) throw new Error('A device id & callback are required');
+  User.update(
+    {device_token: device},
+    {$set: {device_token: null}},
+    {multi: true},
+    function(err, updated){
+      block(err, updated);
+  });
+};
+
+/**
  * Adds device token to user object for push notifications
  *
  * @param  {HTTPRequest} req The request object
@@ -117,29 +134,39 @@ exports.resetPassword = function(req, res){
  */
 exports.registerDevice = function(req, res){
   if(req.params.id && req.body.device){
-    User.update(
-      {_id: req.params.id}, 
-      {$set: {device_token: req.body.device}},
-      function(err, user){
-        if(err || !user)  {
-          var info = {user:req.params.id, device:req.body.device};
-          if(err){
-            _logger.log('error',
-                        'Error returned while finding user in registerDevice',
-                        info);
-          }else{
-            _logger.log('error',
-                        'unable to find user for device registration',
-                        info);
-          }
-          _utils.prismResponse(res, null, false, PrismError.serverError);
+    unregisterDeviceFromUsers(req.params.id, function(err, updated){
+      if(err){
+        _logger.log('error',
+                    'Error unregistering previous devices on device register',
+                    {error:err, device:req.body.device, user_id:req.params.id});
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+      }else{
+        User.update(
+          {_id: req.params.id},
+          {$set: {device_token: req.body.device}},
+          function(err, user){
+            if(err || !user)  {
+              var info = {user:req.params.id, device:req.body.device};
+              if(err){
+                _logger.log('error',
+                            'Error returned while finding user in registerDevice',
+                            info);
+              }else{
+                _logger.log('error',
+                            'unable to find user for device registration',
+                            info);
+              }
+              _utils.prismResponse(res, null, false, PrismError.serverError);
 
-        }else{
-          var message = "Successfully registered device for " + req.params.id;
-          _utils.prismResponse(res, {message: message}, true);
+            }else{
+              var message = "Successfully registered device for " + req.params.id;
+              _utils.prismResponse(res, {message: message}, true);
 
-        }
+            }
+        });
+      }
     });
+
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
@@ -159,25 +186,21 @@ exports.registerDevice = function(req, res){
  */
 exports.unregisterDevice = function(req, res){
   if(req.params.id){
-    User.update(
-      {device_token: req.params.id},
-      {$set: {device_token: null}},
-      {multi: true},
-      function(err, updated){
-        if(err || !updated){
-          var info = {device:req.params.id};
-          if(err){
-            _logger.log('error', 'Error on unregister device', info);
-          }else{
-            _logger.log('error', 'No user devices found to update', info);
-          }
-          _utils.prismResponse(res, null, false, PrismError.serverError);
-
+    unregisterDeviceFromUsers(req.params.id, function(err, updated){
+      if(err || !updated){
+        var info = {device:req.params.id};
+        if(err){
+          _logger.log('error', 'Error on unregister device', info);
         }else{
-          var message = "Successfully unregistered all users from device"+req.params.id;
-          _utils.prismResponse  (res, {message:message}, true);
+          _logger.log('error', 'No user devices found to update', info);
         }
-      });
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+
+      }else{
+        var message = "Successfully unregistered all users from device"+req.params.id;
+        _utils.prismResponse  (res, {message:message}, true);
+      }
+    });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidResponse);
   }
