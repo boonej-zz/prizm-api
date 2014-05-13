@@ -142,6 +142,7 @@ postSchema.methods.tagHandler = function(type, parsed_array){
       if(type === ParseTagType.UserTag){
         for(var i = 0; i < parsed_array.length; i++){
           //strip the @ character from tag
+          parsed_array[i] = parsed_array[i].match(/([a-zA-Z0-9]+)/)[0];
           var user_id = parsed_array[i].replace(/@/, "");
           var tag_added = false;
 

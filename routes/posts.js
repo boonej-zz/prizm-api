@@ -28,8 +28,12 @@ exports.fetchUserPosts = function(req, res){
 
     var criteria = {target_id: req.params.id, status: 'active'};
     new Twine('Post', criteria, req, null, function(error, result){
-      if(error) ServerError();
+      if(error){
+        _logger.log('error', 'Fetching Users Posts retunred error', {err:error});
+        ServerError();
+      }else{
         _utils.prismResponse(res, result, true);
+      }
     });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequst);
