@@ -302,9 +302,13 @@ exports.register = function(req, res){
       newUser.profile_photo_url = req.body.profile_photo_url;
 
     if(typeof(req.body.type) !== 'undefined') newUser.type = req.body.type;
+
     if(newUser.type === 'institution'){
       if(typeof(req.body.phone_number) !== 'undefined')
         newUser.phone_number = req.body.phone_number;
+
+      if(typeof(req.body.website) !== 'undefined')
+        newUser.website = req.body.website;
 
       newUser.status = 2;
       newUser.review_key = _uuid.v1();
