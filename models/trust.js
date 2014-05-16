@@ -35,7 +35,9 @@ var trustSchema = new _mongoose.Schema({
   create_date         : { type: Date, default: null },
   modify_date         : { type: Date, default: null },
   delete_date         : { type: Date, default: null },
-  last_modified_by    : { type: String, default: null }
+  last_modified_by    : { type: String, default: null },
+  from_score          : { type: Number, default: null },
+  to_score            : { type: Number, default: null }
 });
 
 trustSchema.static('findTrust', function(user1, user2, callback){
@@ -53,7 +55,7 @@ trustSchema.statics.selectFields = function(type){
   var select = [  'from', 'to', 'status', 'type', 'create_date',
                   'modify_date', 'from_posts_count', 'from_comments_count',
                   'from_likes_count', 'to_posts_count', 'to_comments_count',
-                  'to_likes_count', 'last_modified_by'];
+                  'to_likes_count', 'last_modified_by', 'from_score', 'to_score'];
 
   if(type && type === 'basic'){
     _.union(select, [
@@ -85,16 +87,39 @@ trustSchema.path('status').validate(function(value){
   return /accepted|rejected|pending|cancelled/i.test(value);
 });
 
+trustSchema.methods.calculateTrustScore = function(){
+  var from_score = 0, to_score = 0;
+  if(this.from_posts_count) from_score = from_score + (this.from_posts_count * 0.45);
+  if(this.from_comments_count) from_score = from_score + (this.from_comments_count * 0.35);
+  if(this.from_likes_count) from_score = from_score + (this.from_likes_count * 0.20);
+  if(this.to_posts_count) to_score = to_score + (this.to_posts_count * 0.45);
+  if(this.to_comments_count) to_score = to_score + (this.to_comments_count * 0.35);
+  if(this.to_likes_count) to_score = to_score + (this.to_likes_count * 0.20);
+
+  this.to_score = to_score;
+  this.from_score = from_score;
+
+};
+
+trustSchema.pre('find', function(next){
+  if(!this.to_score || !this.from_score){
+    this.calculateTrustScore();
+  }
+  next();
+});
+
 trustSchema.pre('save', function(next){
   if(!this.create_date){
     this.create_date = new Date();
   }
   this.modify_date = new Date();
+  this.calculateTrustScore();
   next();
 });
 
 trustSchema.pre('update', function(next){
   this.modify_date = new Date();
+  this.calculateTrustScore();
   next();
 });
 
