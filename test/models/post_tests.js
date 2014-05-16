@@ -90,6 +90,20 @@ describe('Post Model Unit Tests', function(done){
       _expect(tags_post.tags[0]._id).to.equal(mark._id.toString());
       done();
     });
+    it('should only allow alpha & numeric characters parsing "@"id', function(done){
+      var tag_test = new Post({
+        text: '@#test',
+        category: 'experiences',
+        target_id: test_user._id,
+        creator: test_user._id
+      });
+
+      _expect(tag_test.tags.length).to.equal(0);
+      tag_test.parseAndUpdateTags();
+      _expect(tag_test.tags.length).to.equal(1);
+      _expect(tag_test.tags[0]._id).to.equal('test');
+      done();
+    });
     it('should parse the string and add #hashtags to hash_tags array', function(done){
       var hash_post = new Post({
         text: '#testing all these #coolhashes is sooo much #fun #awesome',
