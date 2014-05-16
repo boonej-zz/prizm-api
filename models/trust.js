@@ -101,13 +101,6 @@ trustSchema.methods.calculateTrustScore = function(){
 
 };
 
-trustSchema.pre('find', function(next){
-  if(!this.to_score || !this.from_score){
-    this.calculateTrustScore();
-  }
-  next();
-});
-
 trustSchema.pre('save', function(next){
   if(!this.create_date){
     this.create_date = new Date();
