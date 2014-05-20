@@ -351,6 +351,28 @@ describe('Posts Route Unit Tests', function(done){
     });
   });
 
+  describe('Testing fetch Category Post Count', function(done){
+    it('should return cat count by weak and year', function(done){
+      var body = {
+        year: 2014,
+        week: 1,
+        offset: 42
+      };
+
+      _request({
+        body: body,
+        url: 'https://localhost:3000/users/'+mark._id.toString()+'/stats/category',
+        headers: {'Authorization' : 'Bearer ' + test_token.access_token},
+        method: 'POST',
+        json:true,
+        strictSSL: false
+      }, function(err, response){
+        debugger;
+        done();
+      });
+    });
+  });
+
   describe('Testing A Users News Feed', function(done){
     var test_user_post;
     var feed_result;

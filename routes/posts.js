@@ -7,6 +7,7 @@ var _mongoose         = require('mongoose'),
     _prism_home       = process.env.PRISM_HOME,
     _utils            = require(_prism_home + 'utils'),
     _logger           = require('winston'),
+    _                 = require('underscore'),
     PrismError        = require(_prism_home + 'error'),
     Facebook          = require(_prism_home + 'classes/Facebook'),
     Twitter           = require(_prism_home + 'classes/Twitter'),
@@ -16,6 +17,96 @@ var _mongoose         = require('mongoose'),
     Activity          = require(_prism_home + 'models/activity').Activity,
     Twine             = require(_prism_home + 'classes/Twine'),
     Comment           = require(_prism_home + 'models/post').Comment;
+
+/**
+ * Fetchs Users Post Category Stats by Week & Year
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+exports.fetchCategoryPostCountByWeekAndYear = function(req, res){
+  var user_id, week, offset;
+
+  if(req.params.id){
+    if(req.body.week && req.body.year && req.body.offset){
+      user_id = req.params.id;
+      year    = req.body.year;
+      week    = req.body.week;
+      offset  = req.body.offset;
+
+      Post.fetchCategoryPostCountByWeekAndYear(user_id, week, year, offset, function(err, result){
+        _utils.prismResponse(res, formatCategoryByWeekAndYear(result), true);
+      });
+    }else{
+      _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+    }
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+var formatCategoryByWeekAndYear = function(result){
+  var formatted;
+  
+  if(_.isArray(result)){
+
+    if(result.length > 0){
+      formatted = {};
+
+      for(var index in result){
+        var item = result[index];
+        var year = item._id.year;
+        var week = item._id.week;
+        var category = item._id.category;
+        var count = item.count;
+
+        if(!_.has(formatted, year)){
+          formatted[year] = {};
+          formatted[year][week]  = {};
+          formatted[year][week][category] = count;
+
+        }else{
+          if(_.has(formatted[year], week)){
+            if(!_.has(formatted[year][week], category)){
+              formatted[year][week][category] = count;
+            }
+
+          }else{
+            formatted[year][week] = {};
+            formatted[year][week][category] = count;
+          }
+        }
+
+      }
+      return formatted;
+    }
+  }
+  return false;
+};
+
+/**
+ * Users Hashtags Stats for Category
+*/
+exports.fetchHashTagsForCategory = function(req, res){
+  if(!req.params.id){
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+
+  var category = false;
+
+  if(typeof(req.body.category) !== 'undefined') 
+    category = req.body.category;
+
+  Post.fetchHashtagsByCategory(req.params.id, category, function(err, result){
+    if(err){
+      _utils.prismResponse(res, null, false, PrismError.serverError);
+
+    }else{
+      _utils.prismResponse(res, result, true);
+    }
+  });
+};
+
 
 /**
  * Fetch Users Posts

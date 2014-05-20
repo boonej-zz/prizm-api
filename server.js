@@ -225,6 +225,10 @@ _app.post('/users/:id/unfollow', _gateway, _follow.unfollow);
 /* Fetch Users Activities */
 _app.get('/users/:id/activites', _gateway, _activity.fetchUserActivity);
 
+_app.post('/users/:id/stats/category', _gateway, _post.fetchCategoryPostCountByWeekAndYear);
+
+_app.post('/users/:id/stats/hashtags', _gateway, _post.fetchHashtagsForCategory);
+
 /* Reset User Password */
 _app.post('/users/:email/passwordreset', _gateway, _user.resetPassword);
 
