@@ -359,14 +359,29 @@ describe('Posts Route Unit Tests', function(done){
         offset: 42
       };
 
+      var xheaders = new Buffer(JSON.stringify(body)).toString('base64');
+
       _request({
         body: body,
         url: 'https://localhost:3000/users/'+mark._id.toString()+'/stats/category',
-        headers: {'Authorization' : 'Bearer ' + test_token.access_token},
-        method: 'POST',
+        headers: {'Authorization' : 'Bearer ' + test_token.access_token, 'X-Arguments' : xheaders},
+        method: 'GET',
         json:true,
         strictSSL: false
-      }, function(err, response){
+      }, function(err, response, body){
+        debugger;
+        done();
+      });
+    });
+
+    it('should return categories grouped with counts for all time', function(done){
+      _request({
+        url: 'https://localhost:3000/users/'+mark._id.toString()+'/stats/category',
+        headers: {'Authorization' : 'Bearer ' + test_token.access_token},
+        method: 'GET',
+        json: true,
+        strictSSL: false
+      }, function(err, response, body){
         debugger;
         done();
       });
@@ -408,8 +423,8 @@ describe('Posts Route Unit Tests', function(done){
           feed_result = result.body;
           //create trust with a user
           new Trust({
-            to: test_user._id, 
-            from: sean._id, 
+            to: test_user._id,
+            from: sean._id,
             status: 'accepted'
           }).save(function(er, res){
             if (er) throw er;

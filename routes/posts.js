@@ -25,58 +25,82 @@ var _mongoose         = require('mongoose'),
  * @param {HTTPResponse} res The response object
  */
 exports.fetchCategoryPostCountByWeekAndYear = function(req, res){
-  var user_id, week, offset;
+  var user_id, week = null, offset = null, year = null, all_time = false, args;
 
   if(req.params.id){
-    if(req.body.week && req.body.year && req.body.offset){
-      user_id = req.params.id;
-      year    = req.body.year;
-      week    = req.body.week;
-      offset  = req.body.offset;
-
-      Post.fetchCategoryPostCountByWeekAndYear(user_id, week, year, offset, function(err, result){
-        _utils.prismResponse(res, formatCategoryByWeekAndYear(result), true);
-      });
-    }else{
-      _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+    debugger;
+    if(typeof(req.headers['x-arguments']) !== 'undefined'){
+      var digest = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
+      args = JSON.parse(digest);
     }
+
+    user_id = req.params.id;
+
+    if(args){
+      if(args.week && args.year && args.offset){
+        year    = args.year;
+        week    = args.week;
+        offset  = args.offset;
+      }
+    }else{
+      all_time = true;
+    }
+
+    Post.fetchCategoryPostCountByWeekAndYear(user_id, week, year, offset, function(err, result){
+      debugger;
+      _utils.prismResponse(res, formatCategoryByWeekAndYear(result, all_time), true);
+    });
+
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
 
-var formatCategoryByWeekAndYear = function(result){
-  var formatted;
-  
+var formatCategoryByWeekAndYear = function(result, all_time){
+  var formatted, category, count, year, week, item;
+  debugger;
   if(_.isArray(result)){
 
     if(result.length > 0){
       formatted = {};
 
       for(var index in result){
-        var item = result[index];
-        var year = item._id.year;
-        var week = item._id.week;
-        var category = item._id.category;
-        var count = item.count;
+        item = result[index];
 
-        if(!_.has(formatted, year)){
-          formatted[year] = {};
-          formatted[year][week]  = {};
-          formatted[year][week][category] = count;
+        if (all_time) {
+          category = item._id.category;
+          count = item.count;
+
+          formatted[category] = count;
 
         }else{
-          if(_.has(formatted[year], week)){
-            if(!_.has(formatted[year][week], category)){
-              formatted[year][week][category] = count;
-            }
+          year = item._id.year;
+          week = item._id.week;
+          category = item._id.category;
+          count = item.count;
+
+          if(!_.has(formatted, year)){
+            formatted[year] = {};
+            formatted[year][week]  = {};
+            formatted[year][week][category] = count;
 
           }else{
-            formatted[year][week] = {};
-            formatted[year][week][category] = count;
+            if(_.has(formatted[year], week)){
+              if(!_.has(formatted[year][week], category)){
+                formatted[year][week][category] = count;
+              }
+
+            }else{
+              formatted[year][week] = {};
+              formatted[year][week][category] = count;
+            }
           }
         }
-
+        count = null;
+        category = null;
+        year = null;
+        week = null;
+        item = null;
       }
       return formatted;
     }
