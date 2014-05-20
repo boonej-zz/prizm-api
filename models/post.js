@@ -136,9 +136,11 @@ postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week,
     start_week = new _moment();
     start_week.year(year);
     start_week.week(week +1);
+    start_week.startOf('week');
     end_week = new _moment();
     end_week.year(year);
     end_week.week(week + offset);
+    end_week.endOf('week');
   }
 
   //convert user_id into ObjectId if it is passed as a string
