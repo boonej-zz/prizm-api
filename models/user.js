@@ -79,7 +79,7 @@ userSchema.statics.selectFields = function(type){
             'cover_photo_url','email','info','website','city','state',
             'create_date','posts_count','following_count','followers_count',
             'instagram_min_id', 'instagram_token', 'twitter_token',
-            'twitter_min_id','type', 'device_token'];
+            'twitter_min_id','type', 'device_token', 'subtype'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
