@@ -191,7 +191,7 @@ postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week,
  * @param {String} category The post category type
  * @param {Function} cb The callback function/block to be invoked
  */
-postSchema.static('fetchHashtagsCategory', function(user_id, category, cb){
+postSchema.static('fetchHashtagsByCategory', function(user_id, category, cb){
   var has_category = false, criteria, project, group;
 
   if(!user_id)
