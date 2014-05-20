@@ -135,7 +135,7 @@ postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week,
   if(!all_time){
     start_week = new _moment();
     start_week.year(year);
-    start_week.week(week);
+    start_week.week(week +1);
     end_week = new _moment();
     end_week.year(year);
     end_week.week(week + offset);
@@ -216,8 +216,11 @@ postSchema.static('fetchHashtagsByCategory', function(user_id, category, cb){
   };
 
   group = {
-    _id: "$category",
-    hash_tags: {$push: "$hash_tags"}
+    _id: { 
+      category: "$category",
+      hash_tags: "$hash_tags"
+    },
+    count: {$sum: 1}
   };
 
   if(has_category)
@@ -230,7 +233,7 @@ postSchema.static('fetchHashtagsByCategory', function(user_id, category, cb){
     { $group:   group }
   ]);
 
-  aggreage.exec(function(err, result){
+  aggregate.exec(function(err, result){
     cb(err,   result);
   });
 

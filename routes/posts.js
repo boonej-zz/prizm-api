@@ -28,7 +28,6 @@ exports.fetchCategoryPostCountByWeekAndYear = function(req, res){
   var user_id, week = null, offset = null, year = null, all_time = false, args;
 
   if(req.params.id){
-    debugger;
     if(typeof(req.headers['x-arguments']) !== 'undefined'){
       var digest = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
       args = JSON.parse(digest);
@@ -47,7 +46,6 @@ exports.fetchCategoryPostCountByWeekAndYear = function(req, res){
     }
 
     Post.fetchCategoryPostCountByWeekAndYear(user_id, week, year, offset, function(err, result){
-      debugger;
       _utils.prismResponse(res, formatCategoryByWeekAndYear(result, all_time), true);
     });
 
@@ -58,11 +56,11 @@ exports.fetchCategoryPostCountByWeekAndYear = function(req, res){
 
 var formatCategoryByWeekAndYear = function(result, all_time){
   var formatted, category, count, year, week, item;
-  debugger;
+  formatted = {};
+
   if(_.isArray(result)){
 
     if(result.length > 0){
-      formatted = {};
 
       for(var index in result){
         item = result[index];
@@ -102,10 +100,9 @@ var formatCategoryByWeekAndYear = function(result, all_time){
         week = null;
         item = null;
       }
-      return formatted;
     }
   }
-  return false;
+  return formatted;
 };
 
 /**
@@ -126,9 +123,65 @@ exports.fetchHashTagsForCategory = function(req, res){
       _utils.prismResponse(res, null, false, PrismError.serverError);
 
     }else{
-      _utils.prismResponse(res, result, true);
+      _utils.prismResponse(res, formatHashTagsByCategory(result), true);
     }
   });
+};
+
+var formatHashTagsByCategory = function(result){
+  var formatted, item, category, count, hashtag;
+  formatted = {};
+  if(_.isArray(result)){
+    if(result.length > 0){
+
+      for(var i in result){
+        item = result[i];
+        category = item._id.category;
+        hashtag = item._id.hash_tags;
+        count = item.count;
+
+        if(!_.has(formatted, category)){
+          formatted[category] = [];
+        }
+
+        var hash_count = {};
+        hash_count.hash_tag = hashtag;
+        hash_count.count = count;
+        formatted[category].push(hash_count);
+      }
+    }
+  }
+
+  if(!_.isEmpty(formatted)){
+    return sortAndCutFormattedHashTagsByCategory(formatted);
+  }else{
+    return formatted;
+  }
+};
+
+var sortAndCutFormattedHashTagsByCategory = function(result){
+  var sortHashTags = function(array){
+    array.sort(function(a, b){
+      if(a.count > b.count)
+        return -1;
+      if(a.count < b.count)
+        return 1;
+      return  0;
+    });
+    return array;
+  };
+
+  if(_.isObject(result)){
+    for(var category in result){
+      var sort_cat = result[category];
+      sort_cat = _.first(sortHashTags(sort_cat), 5);
+    }
+
+  }else if(_.isArray(result)){
+    result = _.first(sortHashTags(result), 5);
+  }
+
+  return result;
 };
 
 

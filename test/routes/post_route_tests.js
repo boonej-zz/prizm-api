@@ -388,6 +388,21 @@ describe('Posts Route Unit Tests', function(done){
     });
   });
 
+  describe('Testing fetching hashtags stats by category', function(done){
+    it('should return object of categorys with array of hashtag counts', function(done){
+      _request({
+        url: 'https://localhost:3000/users/'+mark._id.toString()+'/stats/hashtags',
+        headers: {'Authorization':'Bearer '+test_token.access_token},
+        method: "GET",
+        json: true,
+        strictSSL: false
+      }, function(err, response, body){
+        debugger;
+        done();
+      });
+    });
+  });
+
   describe('Testing A Users News Feed', function(done){
     var test_user_post;
     var feed_result;
