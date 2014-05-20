@@ -59,7 +59,8 @@ var userSchema = new _mongoose.Schema({
   reset_key             : {type: String, default: null},
   reset_date            : {type: String, default: null},
   password_reset        : {type: String, default: null},
-  device_token          : {type: String, default: null}
+  device_token          : {type: String, default: null},
+  subtype               : {type: String, default: null}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -86,7 +87,8 @@ userSchema.statics.selectFields = function(type){
             'provider','provider_id','provider_token', 'instagram_token',
             'instagram_min_id', 'twitter_token', 'twitter_min_id',
             'provider_token_secret','gender','birthday','address','country',
-            'modify_date','delete_date','status','password', 'type', 'device_token'];
+            'modify_date','delete_date','status','password', 'type', 'device_token',
+            'subtype'];
   }
 };
 
@@ -131,7 +133,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       instagram_min_id:   this.instagram_min_id,
       twitter_token:      this.twitter_token,
       twitter_min_id:     this.twitter_min_id,
-      device_token:       this.device_token
+      device_token:       this.device_token,
+      subtype:            this.subtype
     };
   }
 
