@@ -127,6 +127,15 @@ describe('Post Model Unit Tests', function(done){
     });
   });
 
+  describe('Testing fetching category & hashtag stats', function(done){
+    it("should return successful result", function(done){
+      Post.fetchCategoryPostCountByWeekAndYear(mark._id.toString(), 1, 2013, 82, function(err, stat){
+        debugger;
+        done();
+      });
+    });
+  });
+
   describe('Testing reporting an inappropriate post', function(done){
     var reporter_post;
 

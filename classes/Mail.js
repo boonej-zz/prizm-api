@@ -52,9 +52,11 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
   var denial_link = null;
 
   //create the message
+  var admin = 'admin@prizmapp.com';
+
   this.message = {
-    from_email: 'admin@prizmapp.com',
-    to: [{email: user.email}],
+    from_email: admin,
+    to: [{email: admin}],
     subject: 'Prism Institution Review: ' + user.email,
     html: '<h1>Institution User Review</h1>'+
           '<h2>'+user.email+'</h2><br>'+

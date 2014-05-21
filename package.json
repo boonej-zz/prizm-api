@@ -22,7 +22,8 @@
     "express-winston": "*",
     "nodemailer": "0.6.0",
     "underscore": "1.6.0",
-    "node-mandrill": "*"
+    "node-mandrill": "*",
+    "moment": "*"
   },
   "devDependencies": {
     "mocha": "1.12.0",

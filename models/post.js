@@ -7,6 +7,7 @@ var _mongoose   = require('mongoose'),
     _serial     = require('serializer'),
     _crypt      = require('crypto'),
     _           = require('underscore'),
+    _moment     = require('moment'),
     _utils      = require(process.env.PRISM_HOME + 'utils'),
     User        = require(process.env.PRISM_HOME + 'models/user').User;
 
@@ -117,6 +118,128 @@ postSchema.statics.selectFields = function(type){
   }
 };
 
+/**
+ * Fetchs Post counts by category with a given date (week/year) & offset
+ *
+ * @param {String} user_id The post creator id
+ * @param {Number} week The week of year
+ * @param {Number} year The year
+ * @param {Number} offset The numerical week offset
+ * @param {Function} cb The callback block/function to be invoked
+ */
+postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week, year, offset, cb){
+  var start_week, end_week, all_time = false;
+
+  if(!week && !year && !offset) all_time = true;
+
+  if(!all_time){
+    start_week = new _moment();
+    start_week.year(year);
+    start_week.week(week +1);
+    end_week = new _moment();
+    end_week.year(year);
+    end_week.week(week + offset);
+  }
+
+  //convert user_id into ObjectId if it is passed as a string
+  //-- which most likely it will be.
+  if(typeof(user_id) === 'string') user_id = _mongoose.Types.ObjectId(user_id);
+
+  var criteria = {
+    creator: user_id,
+    status: 'active',
+  };
+
+  var project = {
+    category: 1
+  };
+
+  var group = {
+    _id: {'category': '$category'},
+    count: {$sum :1}
+  };
+
+  if(!all_time){
+    criteria.create_date = {
+      $gt: new Date(start_week.toISOString()),
+      $lt: new Date(end_week.toISOString())
+    };
+    project.week = {$week: "$create_date"};
+    project.year = {$year: "$create_date"};
+    group._id.week = "$week";
+    group._id.year = "$year";
+  }
+
+  var aggregate = this.aggregate([
+    { $match:   criteria },
+    { $project: project },
+    { $group:   group },
+    { $sort:    {count: -1} }
+  ]);
+
+  aggregate.exec(function(err, result){
+    cb(err, result);
+  });
+});
+
+/**
+ * Fetchs Post Hashtags by Category
+ *
+ * if now category is passed, it retrieves all categories and hashtags
+ *
+ * @param {String} user_id The post creator id
+ * @param {String} category The post category type
+ * @param {Function} cb The callback function/block to be invoked
+ */
+postSchema.static('fetchHashtagsByCategory', function(user_id, category, cb){
+  var has_category = false, criteria, project, group;
+
+  if(!user_id)
+    throw new Error('A user_id must be supplied');
+
+  if(category)
+    has_category = true;
+
+  //convert user_id into ObjectId if is string
+  //(can possible be passed as a ObjectId depending on the source)
+  if(typeof(user_id) === 'string')
+    user_id = _mongoose.Types.ObjectId(user_id);
+
+  criteria = {
+    creator: user_id,
+    status: 'active'
+  };
+
+  project = {
+    category: 1,
+    hash_tags: 1
+  };
+
+  group = {
+    _id: { 
+      category: "$category",
+      hash_tags: "$hash_tags"
+    },
+    count: {$sum: 1}
+  };
+
+  if(has_category)
+    criteria.category = category;
+
+  var aggregate = this.aggregate([
+    { $match:   criteria },
+    { $unwind:  "$hash_tags" },
+    { $project: project },
+    { $group:   group }
+  ]);
+
+  aggregate.exec(function(err, result){
+    cb(err,   result);
+  });
+
+
+});
+
 postSchema.methods.parseAndUpdateTags = function(){
   var user_tage = [], hash_tag = [];
 
@@ -168,17 +291,17 @@ postSchema.methods.tagHandler = function(type, parsed_array){
 
 postSchema.methods.sendTagActivityEvent = function(user_id){
   var from_user, to_user, post_id;
-  
+
   to_user   = user_id.toString();
-  
+
   if(_.isUndefined(this.creator._id)){
     from_user = this.creator.toString();
   }else{
     from_user = this.creator._id.toString();
   }
-  
+
   post_id = this._id.toString();
-  
+
   //register tagged activity event
   _utils.registerActivityEvent(to_user, from_user, 'tag', post_id);
 };

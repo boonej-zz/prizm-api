@@ -302,6 +302,7 @@ exports.register = function(req, res){
       newUser.profile_photo_url = req.body.profile_photo_url;
 
     if(typeof(req.body.type) !== 'undefined') newUser.type = req.body.type;
+    if(typeof(req.body.subtype) !== 'undefined') newUser.subtype = req.body.subtype;
 
     if(newUser.type === 'institution'){
       if(typeof(req.body.phone_number) !== 'undefined')
@@ -483,6 +484,7 @@ exports.updateUser = function(req, res){
         if(typeof(body.enrollment) !== 'undefined') user.enrollment = body.enrollment;
         if(typeof(body.state) !== 'undefined') user.state = body.state;
         if(typeof(body.city) !== 'undefined') user.city = body.city;
+        if(typeof(body.subtype) !== 'undefined') user.subtype = body.subtype;
 
         user.save(function(err, saved){
           if(err || !saved){

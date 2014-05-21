@@ -351,6 +351,58 @@ describe('Posts Route Unit Tests', function(done){
     });
   });
 
+  describe('Testing fetch Category Post Count', function(done){
+    it('should return cat count by weak and year', function(done){
+      var body = {
+        year: 2014,
+        week: 1,
+        offset: 42
+      };
+
+      var xheaders = new Buffer(JSON.stringify(body)).toString('base64');
+
+      _request({
+        body: body,
+        url: 'https://localhost:3000/users/'+mark._id.toString()+'/stats/category',
+        headers: {'Authorization' : 'Bearer ' + test_token.access_token, 'X-Arguments' : xheaders},
+        method: 'GET',
+        json:true,
+        strictSSL: false
+      }, function(err, response, body){
+        debugger;
+        done();
+      });
+    });
+
+    it('should return categories grouped with counts for all time', function(done){
+      _request({
+        url: 'https://localhost:3000/users/'+mark._id.toString()+'/stats/category',
+        headers: {'Authorization' : 'Bearer ' + test_token.access_token},
+        method: 'GET',
+        json: true,
+        strictSSL: false
+      }, function(err, response, body){
+        debugger;
+        done();
+      });
+    });
+  });
+
+  describe('Testing fetching hashtags stats by category', function(done){
+    it('should return object of categorys with array of hashtag counts', function(done){
+      _request({
+        url: 'https://localhost:3000/users/'+mark._id.toString()+'/stats/hashtags',
+        headers: {'Authorization':'Bearer '+test_token.access_token},
+        method: "GET",
+        json: true,
+        strictSSL: false
+      }, function(err, response, body){
+        debugger;
+        done();
+      });
+    });
+  });
+
   describe('Testing A Users News Feed', function(done){
     var test_user_post;
     var feed_result;
@@ -386,8 +438,8 @@ describe('Posts Route Unit Tests', function(done){
           feed_result = result.body;
           //create trust with a user
           new Trust({
-            to: test_user._id, 
-            from: sean._id, 
+            to: test_user._id,
+            from: sean._id,
             status: 'accepted'
           }).save(function(er, res){
             if (er) throw er;
