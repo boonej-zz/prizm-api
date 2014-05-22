@@ -224,6 +224,23 @@ describe('Trust Route Unit/Integration Tests ', function(done){
       });
     });
 
+    describe('Testing Update to Trust via Route', function(done){
+      it('should allow you to change the type on update', function(done){
+        var id = trust.data[0]._id.toString();
+        executeRequest('PUT', 
+                       'trusts/'+id, 
+                       {status: "accepted", type: 'accolade'},
+                       function(err, res){
+
+          var result = res.data[0];
+          _expect(result._id.toString()).to.equal(id);
+          _expect(result.type).to.equal('accolade');
+          _expect(result.status).to.equal('accepted');
+          done();
+        });
+      });
+    });
+
     //TODO: fix & update
     describe.skip('Testing Fetching a Users Trusts', function(done){
       var trusts, test_user;
