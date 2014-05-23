@@ -154,7 +154,7 @@ ActivityListener.prototype.updateTrust = function(activity){
               save = true;
             }
             if(activity.action === 'tag' && activity.post_id){
-              trust.to_posts.like({_id: activity.post_id});
+              trust.to_posts.push({_id: activity.post_id});
               trust.to_posts_count++;
               save = true;
             }
