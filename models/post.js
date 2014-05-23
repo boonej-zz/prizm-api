@@ -367,7 +367,7 @@ postSchema.methods.format = function(type, add_fields){
 postSchema.path('category').validate(function(value){
   value.toLowerCase();
   value = value.charAt(0).toUpperCase() + value.slice(1);
-  return /Aspirations|Aspiration|Passions|Passion|Experiences|Experience|Achievements|Achievement|Inspirations|Inspiration|Personal|Personals/i.test(value);
+  return /Aspirations|Aspiration|Passions|Passion|Experiences|Experience|Achievements|Achievement|Inspirations|Inspiration|Personal|Personals|Accolade|Accolades/i.test(value);
 }, 'Invalid Category Type');
 
 /**
