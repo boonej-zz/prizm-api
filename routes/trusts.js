@@ -253,7 +253,10 @@ var updateTrust = function(req, res){
           //update trust status
           if(!_.isUndefined(typeof(req.body.type)))
             trust.type = req.body.type;
-          trust.status = req.body.status;
+
+          if(!_.isUndefined(typeof(req.body.status)))
+            trust.status = req.body.status;
+
           trust.save(function(err, trust_updated){
             if(err){
               _logger.log('error', 'updating trust status failed with error', {err:err});
