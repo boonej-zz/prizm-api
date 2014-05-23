@@ -193,8 +193,8 @@ exports.fetchUserPosts = function(req, res){
     var ServerError = function(){
       _utils.prismResponse(res, null, false, PrismError.serverError);
     };
-
-    var criteria = {target_id: req.params.id, status: 'active'};
+    
+    var criteria = {$or: [{target_id: req.params.id}, {"tags._id" : req.params.id}], status: 'active'};
     new Twine('Post', criteria, req, null, function(error, result){
       if(error){
         _logger.log('error', 'Fetching Users Posts retunred error', {err:error});
