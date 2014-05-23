@@ -141,8 +141,23 @@ Twine.prototype.$__parse = function $__parse(param, default_value){
 Twine.prototype.$__resolveFilterProperties = function $__resolveFilterProperties(){
   var findFilterProperties = function findFilterProperties(object, model_keys, filters){
     for(var filter in object){
+      var found = false;
       if(model_keys.indexOf(filter) !== -1){
         filters[filter] = object[filter];
+        found = true;
+      }
+
+      if(!found){
+        if(filter.match(/\w+\./)){
+          var strippedSubDocProperty = filter.match(/\w+/);
+          if(Array.isArray(strippedSubDocProperty) && strippedSubDocProperty.length > 0){
+            strippedSubDocProperty = strippedSubDocProperty[0];
+            if(model_keys.indexOf(strippedSubDocProperty) !== -1){
+              debugger;
+              filters[filter] = object[filter];
+            }
+          }
+        }
       }
     }
   };

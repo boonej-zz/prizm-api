@@ -346,7 +346,7 @@ exports.register = function(req, res){
 
           });
         }else{
-          _utils.prismResponse( res, null, false, PrismError.serverError, PrismError.serverPrismError.status_code);
+          _utils.prismResponse( res, null, false, PrismError.serverError);
         }
       });
     }else{
@@ -370,7 +370,7 @@ exports.register = function(req, res){
     }
 
   }else{
-    _utils.prismResponse(res, null, false, PrismError.invalidRequest, PrismError.invalidRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
 
@@ -424,7 +424,6 @@ exports.fetchAllUsers = function(req, res){
  */
 exports.fetchUser = function(req, res){
   if(req.params.id){
-    //User.findOne({_id: req.params.id}, function(error, result){
     var criteria = {_id: req.params.id};
     new Twine('User', criteria, req, null, function(error, result){
       if(error){

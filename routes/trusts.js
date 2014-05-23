@@ -67,7 +67,8 @@ var validateTrustRequest = function(req, res, cb){
     }else{
 
       if(req.method === 'PUT' || req.method === 'DELETE'){
-        if(req.method === 'PUT' && req.body.status){
+        if(req.method === 'PUT' && req.body.status ||
+           req.method === 'PUT' && req.body.type){
           cb();
         }else if(req.method === 'DELETE' && req.body.creator){
           cb();
@@ -93,7 +94,6 @@ var validateTrustRequest = function(req, res, cb){
  *
  * @param  {HTTPRequest}   req The request object
  * @param  {HTTPResponse}   res The response object
- * @return {}
  */
 var createTrust = function(req, res){
   validateTrustRequest(req, res, function(){
@@ -165,7 +165,7 @@ var createTrust = function(req, res){
               new PushNotification('activity', activity, function(success){
                 _logger.log('info', 'trust request push notification', {success:success});
               });
-             
+
               _logger.log('info', 'successful trust created from user: '+new_trust.from.toString()+
                                   ' to user: '+new_trust.toString());
               _utils.prismResponse(res, new_trust, true);
@@ -182,7 +182,6 @@ var createTrust = function(req, res){
  *
  * @param  {HTTPRequest}   req The request object
  * @param  {HTTPResponse}   res The response object
- * @return {}
  */
 var fetchTrusts = function(req, res){
   validateTrustRequest(req, res, function(){
@@ -252,38 +251,26 @@ var updateTrust = function(req, res){
           _utils.prismResponse(res, null, false, update_trust_error);
         }else{
           //update trust status
-          trust.status = req.body.status;
+          if(!_.isUndefined(typeof(req.body.type)))
+            trust.type = req.body.type;
+
+          if(!_.isUndefined(typeof(req.body.status)))
+            trust.status = req.body.status;
+
           trust.save(function(err, trust_updated){
             if(err){
               _logger.log('error', 'updating trust status failed with error', {err:err});
               _utils.prismResponse(res, null, false, PrismError.serverError);
-            }else{
-              //TODO: change to utilize utiloty function registerActivityEvent.
-              //REMINDER: in order to fully utilize the registerActivityEvent method
-              //we would have to send out avtivity events for creating posts which is currently
-              //not being tracked or used
 
+            }else{
               //if status update is accepted, create activity. remember that you need to
               //inverse the to/from since the action is being executed against the creator
               //who WAS the `from` user & now is the `to` user. this is necessary so that
               //when a users trusts are fetched this action shows up for the requestor and
               //not the requestee
               if(req.body.status === 'accepted'){
-                
+
                 _utils.registerActivityEvent(trust.from, trust.to, 'trust_accepted');
-                // new Activity({
-                //   to: trust.from,
-                //   from: trust.to,
-                //   action: 'trust_accepted'
-                // }).save(function(err, activity){
-                  //log the event but DO NOT return error as the trust was still created
-                  // _logger.log('error', 'error creating trust update activity',
-                  //             {to:trust_updated.from, from:trust_updated.to, err:err});
-
-                  //return response
-                  // _utils.prismResponse(res, trust_updated, true);
-                // });
-
               }
                 _utils.prismResponse(res, trust_updated, true);
             }

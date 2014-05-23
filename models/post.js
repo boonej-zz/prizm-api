@@ -89,7 +89,8 @@ var postSchema = new _mongoose.Schema({
   origin_post_id      : {type: String, default: null},
   external_provider   : {type: String, default: null},
   external_link       : {type: String, default: null},
-  type                : {type: String, default: 'user'}
+  type                : {type: String, default: 'user'},
+  scope_modify_date   : {type: Date, default: null}
 }, { versionKey: false});
 
 postSchema.statics.canResolve = function(){
@@ -108,13 +109,15 @@ postSchema.statics.selectFields = function(type){
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
             'creator','target_id','likes_count','comments_count','scope',
-            'hash_tags','hash_tags_count', 'tags', 'tags_count'];
+            'hash_tags','hash_tags_count', 'tags', 'tags_count',
+            'scope_modify_date'];
   }else{
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
             'creator','target_id','likes_count','comments_count','scope',
             'status','hash_tags','hash_tags_count', 'tags', 'tags_count',
-            'is_repost','origin_post_id','modify_date', 'delete_date'];
+            'is_repost','origin_post_id','modify_date', 'delete_date',
+            'scope_modify_date'];
   }
 };
 
@@ -136,9 +139,11 @@ postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week,
     start_week = new _moment();
     start_week.year(year);
     start_week.week(week +1);
+    start_week.startOf('week');
     end_week = new _moment();
     end_week.year(year);
     end_week.week(week + offset);
+    end_week.endOf('week');
   }
 
   //convert user_id into ObjectId if it is passed as a string
@@ -269,16 +274,20 @@ postSchema.methods.tagHandler = function(type, parsed_array){
           var user_id = parsed_array[i].replace(/@/, "");
           var tag_added = false;
 
-          if(this.tags.length === 0){
-            this.tags.push({_id: user_id});
-            tag_added = true;
-
-          }else{
-            var item = _.matches(user_id);
-
-            if(_.filter(this.tagsg, item).length === 0){
+          //ensure parsed identifier has the structure of a hex string
+          var checkForHexObjectId = new RegExp("^[0-9a-fA-F]{24}$");
+          if(checkForHexObjectId.test(user_id)){
+            if(this.tags.length === 0){
               this.tags.push({_id: user_id});
               tag_added = true;
+
+            }else{
+              var item = _.matches(user_id);
+
+              if(_.filter(this.tagsg, item).length === 0){
+                this.tags.push({_id: user_id});
+                tag_added = true;
+              }
             }
           }
 
@@ -327,7 +336,8 @@ postSchema.methods.format = function(type, add_fields){
     hash_tags:            this.hash_tags,
     tags:                 this.tags,
     tags_count:           this.tags_count,
-    scope:                this.scope
+    scope:                this.scope,
+    scope_modify_date:    this.scope_modify_date
   };
 
   if(type === 'basic'){

@@ -83,9 +83,9 @@ trustSchema.statics.canResolve = function(){
   ];
 };
 
-trustSchema.path('status').validate(function(value){
-  return /accepted|rejected|pending|cancelled/i.test(value);
-});
+// trustSchema.path('status').validate(function(value){
+//   return /accepted|rejected|pending|cancelled/i.test(value);
+// });
 
 trustSchema.methods.calculateTrustScore = function(){
   var from_score = 0, to_score = 0;

@@ -80,6 +80,23 @@ describe('Twine Class Unit Tests', function(done){
       });
   });
   //TODO: filter tests
+  describe('Testing Filtering Properties', function(done){
+    it('should allow a sub document property to be filtered', function(done){
+      var req = {};
+      var filter = {
+        "tags._id": "533420f9515d6a00001efb74"
+      };
+      filter["tags._id"] = "533420f9515d6a00001efb79";
+      var header = JSON.stringify(filter);
+      header = new Buffer(header).toString('base64');
+      req.headers = {};
+      req.headers['x-arguments'] = header;
+      new Twine('Post', {}, req, null, function(err, results){
+        debugger;
+        done();
+      });
+    });
+  });
   //TODO: paging tests
   //TODO: sorting tests
   //TODO: limit tests

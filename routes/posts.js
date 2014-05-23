@@ -73,7 +73,7 @@ var formatCategoryByWeekAndYear = function(result, all_time){
 
         }else{
           year = item._id.year;
-          week = item._id.week;
+          week = item._id.week + 1;
           category = item._id.category;
           count = item.count;
 
