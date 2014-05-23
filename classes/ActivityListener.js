@@ -106,7 +106,7 @@ ActivityListener.prototype.activityHandler = function(activity){
         _logger.log('info', 'Push notification result', result);
       });
 
-      if(saved.action === 'comment' || saved.action === 'like')
+      if(saved.action === 'comment' || saved.action === 'like' || saved.action === 'tag')
         self.updateTrust(saved);
     });
   }else{
@@ -153,6 +153,11 @@ ActivityListener.prototype.updateTrust = function(activity){
               trust.to_likes_count++;
               save = true;
             }
+            if(activity.action === 'tag' && activity.post_id){
+              trust.to_posts.like({_id: activity.post_id});
+              trust.to_posts_count++;
+              save = true;
+            }
           }
         }
 
@@ -174,6 +179,12 @@ ActivityListener.prototype.updateTrust = function(activity){
             if(activity.action === 'like' && activity.comment_id){
               trust.from_comment_likes.push({_id: activity.post_id});
               trust.from_likes_count++;
+              save = true;
+            }
+
+            if(activity.action === 'tag' && activity.post_id){
+              trust.from_posts.push({_id: activity.post_id});
+              trust.from_posts_count++;
               save = true;
             }
           }
