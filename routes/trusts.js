@@ -251,11 +251,11 @@ var updateTrust = function(req, res){
           _utils.prismResponse(res, null, false, update_trust_error);
         }else{
           //update trust status
-          if(!_.isUndefined(typeof(req.body.type))){
+          if(!_.isUndefined(req.body.type)){
             trust.type = req.body.type;
           }
 
-          if(!_.isUndefined(typeof(req.body.status))){
+          if(!_.isUndefined(req.body.status)){
             trust.status = req.body.status;
           }
 
