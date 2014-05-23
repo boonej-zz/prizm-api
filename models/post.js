@@ -276,7 +276,7 @@ postSchema.methods.tagHandler = function(type, parsed_array){
 
           //ensure parsed identifier has the structure of a hex string
           var checkForHexObjectId = new RegExp("^[0-9a-fA-F]{24}$");
-          if(checkForHexObjectId.text(user_id)){
+          if(checkForHexObjectId.test(user_id)){
             if(this.tags.length === 0){
               this.tags.push({_id: user_id});
               tag_added = true;
