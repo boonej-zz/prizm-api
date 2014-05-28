@@ -115,7 +115,7 @@ exports.fetchHashTagsForCategory = function(req, res){
 
   var category = false;
 
-  if(typeof(req.body.category) !== 'undefined') 
+  if(typeof(req.body.category) !== 'undefined')
     category = req.body.category;
 
   Post.fetchHashtagsByCategory(req.params.id, category, function(err, result){
@@ -193,8 +193,15 @@ exports.fetchUserPosts = function(req, res){
     var ServerError = function(){
       _utils.prismResponse(res, null, false, PrismError.serverError);
     };
-    
-    var criteria = {$or: [{creator: req.params.id}, {"tags._id" : req.params.id}], status: 'active'};
+
+    var criteria = {
+      $or: [
+        {creator: req.params.id}, 
+        {"tags._id" : req.params.id}
+      ], 
+      status: 'active',
+      type: {$ne: 'accolade'}
+    };
     new Twine('Post', criteria, req, null, function(error, result){
       if(error){
         _logger.log('error', 'Fetching Users Posts retunred error', {err:error});
