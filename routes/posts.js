@@ -200,7 +200,7 @@ exports.fetchUserPosts = function(req, res){
         {"tags._id" : req.params.id}
       ], 
       status: 'active',
-      type: {$ne: 'accolade'}
+      category: {$ne: 'accolade'}
     };
     new Twine('Post', criteria, req, null, function(error, result){
       if(error){

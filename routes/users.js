@@ -674,7 +674,7 @@ exports.createUserPost = function(req, res){
                         }else{
                           //if an accolade_target is set send activity & push notification
                           if(user_post.accolade_target){
-                            _utils.registerActivity(org_user._id,
+                            _utils.registerActivityEvent(user_post.accolade_target,
                                                     req.body.creator,
                                                     'accolade',
                                                     user_post._id);
