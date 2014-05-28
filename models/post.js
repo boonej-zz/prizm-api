@@ -71,7 +71,6 @@ var postSchema = new _mongoose.Schema({
   location_longitude  : {type: Number, default: 0},
   location_latitude   : {type: Number, default: 0},
   creator             : {type: _mongoose.Schema.Types.ObjectId, ref: 'User'},
-  target_id           : {type: String, required: true},
   status              : {type: String, default: 'active'},
   file_path           : {type: String, default: ''},
   likes_count         : {type: Number, default: 0},
@@ -90,13 +89,13 @@ var postSchema = new _mongoose.Schema({
   external_provider   : {type: String, default: null},
   external_link       : {type: String, default: null},
   type                : {type: String, default: 'user'},
-  scope_modify_date   : {type: Date, default: null}
+  scope_modify_date   : {type: Date, default: null},
+  accolade_target     : {type: String, default: null}
 }, { versionKey: false});
 
 postSchema.statics.canResolve = function(){
   return [
     {creator: {identifier: '_id', model: 'User'}},
-    {target_id: {identifier: '_id', model: 'User'}},
     {comments: {identifier: 'creator', model: 'User'}},
     {likes: {identifier: '_id', model: 'User'}},
     {origin_post_id: {identifier: '_id', model: 'Post'}},
@@ -108,16 +107,16 @@ postSchema.statics.selectFields = function(type){
   if(type === 'short'){
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
-            'creator','target_id','likes_count','comments_count','scope',
+            'creator','likes_count','comments_count','scope',
             'hash_tags','hash_tags_count', 'tags', 'tags_count',
-            'scope_modify_date'];
+            'scope_modify_date', 'accolade_target'];
   }else{
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
-            'creator','target_id','likes_count','comments_count','scope',
+            'creator','likes_count','comments_count','scope',
             'status','hash_tags','hash_tags_count', 'tags', 'tags_count',
             'is_repost','origin_post_id','modify_date', 'delete_date',
-            'scope_modify_date'];
+            'scope_modify_date', 'accolade_target'];
   }
 };
 
@@ -329,7 +328,7 @@ postSchema.methods.format = function(type, add_fields){
     location_longitude:   this.location_longitude,
     location_latitude:    this.location_latitude,
     creator:              this.creator,
-    target_id:            this.target_id,
+    accolade_target:      this.accolade_target,
     likes_count:          this.likes_count,
     comments_count:       this.comments_count,
     hash_tags_count:      this.hash_tags_count,
