@@ -116,7 +116,7 @@ postSchema.statics.selectFields = function(type){
             'creator','likes_count','comments_count','scope',
             'status','hash_tags','hash_tags_count', 'tags', 'tags_count',
             'is_repost','origin_post_id','modify_date', 'delete_date',
-            'scope_modify_date', 'accolade_target'];
+            'scope_modify_date', 'accolade_target', 'external_provider'];
   }
 };
 
