@@ -628,8 +628,8 @@ exports.createUserPost = function(req, res){
         }else{
           post.type = user.type;
           if(!_.isUndefined(req.body.accolade_target)){
-            post.accolade_target = user._id.toString();
-            post.tags.push({_id: user._id.toString()});
+            post.accolade_target = req.body.accolade_target;
+            post.tags.push({_id: req.body.accolade_target});
           }
           post.save(function(error, user_post){
             if(error){
