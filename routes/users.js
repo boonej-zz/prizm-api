@@ -627,7 +627,10 @@ exports.createUserPost = function(req, res){
 
         }else{
           post.type = user.type;
-          post.target_id = user._id;
+          if(!_.isUndefined(req.body.accolade_target)){
+            post.accolade_target = req.body.accolade_target;
+            post.tags.push({_id: req.body.accolade_target});
+          }
           post.save(function(error, user_post){
             if(error){
               _logger.log('error', 'Error trying to create/save a new post',
@@ -669,6 +672,14 @@ exports.createUserPost = function(req, res){
                           });
 
                         }else{
+                          //if an accolade_target is set send activity & push notification
+                          if(user_post.accolade_target){
+                            _utils.registerActivityEvent(user_post.accolade_target,
+                                                    req.body.creator,
+                                                    'accolade',
+                                                    user_post._id);
+                          }
+
                           _utils.prismResponse(res, usr, true);
                         }
                       }

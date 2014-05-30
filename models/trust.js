@@ -31,7 +31,7 @@ var trustSchema = new _mongoose.Schema({
   to_likes_count      : { type: Number, default: 0 },
   type                : { type: String, default: null },
   status              : { type: String, default: 'pending', 
-                          lowercase: true, required: true },
+                          lowercase: true },
   create_date         : { type: Date, default: null },
   modify_date         : { type: Date, default: null },
   delete_date         : { type: Date, default: null },

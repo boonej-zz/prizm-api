@@ -61,6 +61,7 @@ PushNotification.prototype.activity = function activity(){
       this.object.action === 'like' ||
       this.object.action === 'tag' ||
       this.object.action === 'trust_accepted' ||
+      this.object.action === 'accolade' ||
       this.object.action === 'trust_request'){
 
     var self = this;
@@ -81,6 +82,7 @@ PushNotification.prototype.activity = function activity(){
         }
         if(self.object.action === 'trust_accepted') action = 'accepted your trust request';
         if(self.object.action === 'trust_request') action = 'has sent you a trust invite';
+        if(self.object.action === 'accolade') action = 'has sent you an accolade';
         findUserById(self.object.from, function(from_user){
           console.log('logger user returned from from_user object:'+JSON.stringify(from_user));
           if(from_user && from_user._id){
@@ -94,11 +96,11 @@ PushNotification.prototype.activity = function activity(){
 };
 
 PushNotification.prototype.send = function send(){
-  console.log("this actually gets called!!!!");
   console.log(this.message);
   console.log(this.device);
   if(this.message && this.device){
     var self = this;
+    var last_notification = Date.now();
     _request({
       url: _config.push_server,
       method: "POST",
@@ -110,11 +112,16 @@ PushNotification.prototype.send = function send(){
       }
     }, function(err, result){
       console.log("pn sending error: " + JSON.stringify(err));
-      console.log("pn sending result body: "+JSON.stringify(result.body));
+      //console.log("pn sending result body: "+JSON.stringify(result.body));
       if(err){
-        _logger.log('error', 
-                    'Error trying to send push notification', 
+        _logger.log('error',
+                    'Error trying to send push notification',
                     {notification:self.message, device:self.device, error:err});
+        if(err.code === 'ECONNRESET' && last_notification >= Date.now() - 5000){
+          console.log('Re-sending notification for: '+self.message+ 
+                      '. ECONNRESET recieved and last notification was sent: '+last_notification);
+          self.send();
+        }
         if(self.callback) self.callback({success:false});
       }else{
         _logger.log('info',
@@ -125,5 +132,3 @@ PushNotification.prototype.send = function send(){
     });
   }
 };
-
-

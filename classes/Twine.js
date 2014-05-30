@@ -456,12 +456,14 @@ Twine.prototype.setContainerResolveResults = function setContainerResolveResults
 Twine.prototype.$__ammendResultsWithContainer = function $__ammendResultsWithContainer(container){
   var decision = false;
   var container_keys = Object.keys(container);
-  var key = container_keys[0];
-  _logger.log("info", "ammendResultsWithContainer keys", {container_keys: container_keys, key:key});
-  var add_resolve = false;
-  for(var prop in container[key]){
-    if(!!prop){
-      decision = true;
+  for(var i in container_keys){
+    var key = container_keys[i];
+    _logger.log("info", "ammendResultsWithContainer keys", {container_keys: container_keys, key:key});
+    var add_resolve = false;
+    for(var prop in container[key]){
+      if(!!prop){
+        decision = true;
+      }
     }
   }
   _logger.log('info', 'ammendResultsWithContainerKeys decision: '+decision);
