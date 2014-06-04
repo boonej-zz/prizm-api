@@ -391,6 +391,56 @@ var searchForUsersInTrust = function(req, res){
   }
 };
 
+/**
+ * Searches for usernames that the specified user currently does 
+ * not have a trust with.
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+var searchForUsersNotInTrust = function(req, res){
+  Trust.find(
+    {$or: [{to: req.params.id}, {from: req.params.id}], status: 'accepted'},
+    {to:1, from:1},
+    function(err, trusts){
+      if(err){
+        _logger.log('error',
+                    'There was an error returned while fetching users trusts',
+                    {err:err});
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+
+      }else{
+        var users = [];
+        var iterate = function(item){
+          if(item.to.toString() === req.params.id)
+            users.push(item.from);
+          if(item.from.toString() === req.params.id)
+            users.push(item.to);
+        };
+
+        _.each(trusts, iterate);
+
+        //now search users & return short user if found
+
+        //regex name search characters globally & case incensitive
+        var regex_name = new RegExp(req.params.name, 'gi');
+
+        User.find({_id: {$nin: users}, name: regex_name})
+        .select(User.selectFields('short').join(" "))
+        .exec(function(error, users_result){
+          if(error){
+            _logger.log('error',
+                        'An error returned while searching names in users',
+                        {error:error});
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+          }else{
+            _utils.prismResponse(res, users_result, true);
+          }
+        });
+      }
+    });
+};
+
 var thisExports = {
   createTrust: createTrust,
   fetchTrusts: fetchTrusts,

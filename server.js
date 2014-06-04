@@ -238,6 +238,9 @@ _app.get('/explore', _gateway, _explore.explore);
 /* Search Hash Tags */
 _app.get('/search/hashtags/:hash', _gateway, _explore.search);
 
+/* Search For Users to send trust invites to */
+_app.get('/search/:id/invite/:name', _gateway, _trust.searchForUsersNotInTrust);
+
 /* Search User in Trusts */
 _app.get('/search/:id/trusts/:name', _gateway, _trust.searchForUsersInTrust);
 
