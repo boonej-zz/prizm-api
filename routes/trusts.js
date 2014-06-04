@@ -448,7 +448,8 @@ var thisExports = {
   deleteTrust: deleteTrust,
   exists:      exists,
   fetchTrustById: fetchTrustById,
-  searchForUsersInTrust: searchForUsersInTrust
+  searchForUsersInTrust: searchForUsersInTrust,
+  searchForUsersNotInTrust: searchForUsersNotInTrust
 };
 
 if(process.env.NODE_ENV === 'test'){
