@@ -47,6 +47,7 @@ var userSchema = new _mongoose.Schema({
   followers             : {type: Array, default: []},
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
+  trust_count           : {type: Number, default: 0},
   type                  : {type: String, default: 'user'},
   date_founded          : {type: Date, default: null},
   mascot                : {type: String, default: null},
@@ -79,7 +80,7 @@ userSchema.statics.selectFields = function(type){
             'cover_photo_url','email','info','website','city','state',
             'create_date','posts_count','following_count','followers_count',
             'instagram_min_id', 'instagram_token', 'twitter_token',
-            'twitter_min_id','type', 'device_token', 'subtype'];
+            'twitter_min_id','type', 'device_token', 'subtype', 'trust_count'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -88,7 +89,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'twitter_token', 'twitter_min_id',
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','status','password', 'type', 'device_token',
-            'subtype'];
+            'subtype', 'trust_count'];
   }
 };
 
@@ -128,6 +129,7 @@ userSchema.methods.format = function(type, add_fields, callback){
       posts_count:        this.posts_count,
       following_count:    this.following_count,
       followers_count:    this.followers_count,
+      trust_count:        this.trust_count,
       type:               this.type,
       instagram_token:    this.instagram_token,
       instagram_min_id:   this.instagram_min_id,

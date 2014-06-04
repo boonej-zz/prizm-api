@@ -132,6 +132,17 @@ ActivityListener.prototype.updateTrust = function(activity){
                     {error: err});
 
       }else if(trust){
+        var updateUserTrustCount = function(user_id, block){
+          User.find({_id: user_id}, function(err, user){
+            if(user && user.trust_count){
+              user.trust_count = user.trust_count + 1;
+              user.save(function(err, user_saved){
+                block(err, user_saved);
+              });
+            }
+          });
+        };
+
         var save = false;
         if(activity.from.toString() === trust.to.toString()){
           if(activity.post_id){
@@ -198,9 +209,33 @@ ActivityListener.prototype.updateTrust = function(activity){
                                 'Error saving trusts in activitylistener',
                                 log_info);
 
-            if(saved) _logger.log('info',
-                                  'Updated Trust via ActivityListener',
-                                  log_info);
+            if(saved){
+              _logger.log('info',
+                          'Updated Trust via ActivityListener',
+                          log_info);
+              var to_user_id = activity.to.toString();
+              var from_user_id = activity.from.toString();
+              updateUserTrustCount(to_user_id, function(err, result){
+                if(err){
+                  _logger.log('error',
+                              'error returned updating trust_count for user' + to_user_id);
+
+                }else if(result){
+                  _logger.log('info','updated trust count for "to" user ' + to_user_id);
+
+                  updateUserTrustCount(from_user_id, function(err, result){
+                    if(err){
+                      _logger.log('error',
+                                  'error returned updating trust_count for user' + from_user_id);
+
+                    }else if(result){
+                      _logger.log('info',
+                                  'updated trust count for "from" user '+ from_user_id);
+                    }
+                  });
+                }
+              });
+            }
           });
         }
 
