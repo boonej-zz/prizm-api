@@ -91,19 +91,19 @@ trustSchema.statics.canResolve = function(){
 
 trustSchema.methods.updateUsersTrustCount = function(callback){
   var self = this;
-  var to_user_id = self.to.toString();
-  var from_user_id = self.to.toString();
-  User.updateTrustCount(to_user_id, function(err, success){
+  var to_user_id = this.to;
+  var from_user_id = this.from;
+  _mongoose.model('User').updateTrustCount(to_user_id, function(err, success){
     if(err){
       callback(err);
       return;
     }
-    User.updateTrustCount(from_user_id, function(err, success){
+    _mongoose.model('User').updateTrustCount(from_user_id, function(err, success){
       if(err){
         callback(err);
         return;
       }
-      callbac(null);
+      callback(null);
     });
   });
 };
