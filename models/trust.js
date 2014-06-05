@@ -6,11 +6,12 @@
 var _mongoose     = require('mongoose'),
     _prism_home   = process.env.PRISM_HOME,
     _             = require('underscore'),
-    _utils        = require(_prism_home + 'utils');
+    _utils        = require(_prism_home + 'utils'),
+    User          = require(_prism_home + 'models/user').User;
 
 var trustSchema = new _mongoose.Schema({
   from                : { type: _mongoose.Schema.Types.ObjectId,
-                          ref: 'User', 
+                          ref: 'User',
                           required: true },
   from_posts          : { type: Array, default: [] },
   from_comments       : { type: Array, default: [] },
@@ -20,7 +21,7 @@ var trustSchema = new _mongoose.Schema({
   from_comments_count : { type: Number, default: 0 },
   from_likes_count    : { type: Number, default: 0 },
   to                  : { type: _mongoose.Schema.Types.ObjectId,
-                          ref: 'User', 
+                          ref: 'User',
                           required: true },
   to_posts            : { type: Array, default: [] },
   to_comments         : { type: Array, default: [] },
@@ -30,7 +31,7 @@ var trustSchema = new _mongoose.Schema({
   to_comments_count   : { type: Number, default: 0 },
   to_likes_count      : { type: Number, default: 0 },
   type                : { type: String, default: null },
-  status              : { type: String, default: 'pending', 
+  status              : { type: String, default: 'pending',
                           lowercase: true },
   create_date         : { type: Date, default: null },
   modify_date         : { type: Date, default: null },
@@ -49,6 +50,11 @@ trustSchema.static('findTrust', function(user1, user2, callback){
             // .select(this.selectFields('basic').join(' '))
             .exec(callback);
 });
+
+trustSchema.statics.fetchUserTrustCount = function(user_id, callback){
+  var criteria = {$or: [{to: user_id}, {from: user_id}]};
+  return this.count(criteria).exec(callback);
+};
 
 trustSchema.statics.selectFields = function(type){
   //create the short select by default
@@ -83,9 +89,24 @@ trustSchema.statics.canResolve = function(){
   ];
 };
 
-// trustSchema.path('status').validate(function(value){
-//   return /accepted|rejected|pending|cancelled/i.test(value);
-// });
+trustSchema.methods.updateUsersTrustCount = function(callback){
+  var self = this;
+  var to_user_id = self.to.toString();
+  var from_user_id = self.to.toString();
+  User.updateTrustCount(to_user_id, function(err, success){
+    if(err){
+      callback(err);
+      return;
+    }
+    User.updateTrustCount(from_user_id, function(err, success){
+      if(err){
+        callback(err);
+        return;
+      }
+      callbac(null);
+    });
+  });
+};
 
 trustSchema.methods.calculateTrustScore = function(){
   var from_score = 0, to_score = 0;

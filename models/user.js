@@ -8,6 +8,7 @@ var _mongoose   = require('mongoose'),
     _crypt      = require('crypto'),
     _prism_home = process.env.PRISM_HOME,
     _           = require('underscore'),
+    Trust       = require(_prism_home + 'models/trust').Trust,
     _utils      = require(_prism_home + 'utils');
 
 var userSchema = new _mongoose.Schema({
@@ -91,6 +92,34 @@ userSchema.statics.selectFields = function(type){
             'modify_date','delete_date','status','password', 'type', 'device_token',
             'subtype', 'trust_count'];
   }
+};
+
+userSchema.statics.updateTrustCount = function(user_id, callback){
+  this.findOne({_id: user_id}).exec(function(err, user){
+    if(err){
+      callback(err, null);
+    }else{
+      Trust.fetchUserTrustCount(user._id.toString(), function(err, count){
+        if(err){
+          callback(err, null);
+        }else{
+          if(typeof(count) === 'string') count = parseInt(count);
+          if(user.trust_count !== count){
+            user.trust_count = count;
+            user.save(function(err, saved){
+              if(err){
+                callback(err, null);
+              }else{
+                callback(null, true);
+              }
+            });
+          }else{
+            callback(null, false);
+          }
+        }
+      });
+    }
+  });
 };
 
 userSchema.path('type').validate(function(value){

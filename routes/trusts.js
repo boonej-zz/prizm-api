@@ -273,6 +273,18 @@ var updateTrust = function(req, res){
               if(req.body.status === 'accepted'){
 
                 _utils.registerActivityEvent(trust.from, trust.to, 'trust_accepted');
+
+                trust_updated.updateUsersTrustCount(function(err){
+                  if(err){
+                    _logger.log('error',
+                                'Update Users Trust Count ERROR!',
+                                {error: err});
+                    _utils.prismResponse(res, null, false, PrismError.serverError);
+                    return;
+                  }
+
+                  _utils.prismResponse(res, trust_updated, true);
+                });
               }
                 _utils.prismResponse(res, trust_updated, true);
             }
@@ -392,7 +404,7 @@ var searchForUsersInTrust = function(req, res){
 };
 
 /**
- * Searches for usernames that the specified user currently does 
+ * Searches for usernames that the specified user currently does
  * not have a trust with.
  *
  * @param {HTTPRequest} req The request object
