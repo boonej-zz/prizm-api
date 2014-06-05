@@ -109,14 +109,14 @@ postSchema.statics.selectFields = function(type){
             'location_name','location_longitude','location_latitude',
             'creator','likes_count','comments_count','scope',
             'hash_tags','hash_tags_count', 'tags', 'tags_count',
-            'scope_modify_date', 'accolade_target'];
+            'scope_modify_date', 'accolade_target', 'external_provider'];
   }else{
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
             'creator','likes_count','comments_count','scope',
             'status','hash_tags','hash_tags_count', 'tags', 'tags_count',
             'is_repost','origin_post_id','modify_date', 'delete_date',
-            'scope_modify_date', 'accolade_target'];
+            'scope_modify_date', 'accolade_target', 'external_provider'];
   }
 };
 

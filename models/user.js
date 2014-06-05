@@ -8,6 +8,7 @@ var _mongoose   = require('mongoose'),
     _crypt      = require('crypto'),
     _prism_home = process.env.PRISM_HOME,
     _           = require('underscore'),
+    Trust       = require(_prism_home + 'models/trust').Trust,
     _utils      = require(_prism_home + 'utils');
 
 var userSchema = new _mongoose.Schema({
@@ -47,6 +48,7 @@ var userSchema = new _mongoose.Schema({
   followers             : {type: Array, default: []},
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
+  trust_count           : {type: Number, default: 0},
   type                  : {type: String, default: 'user'},
   date_founded          : {type: Date, default: null},
   mascot                : {type: String, default: null},
@@ -79,7 +81,7 @@ userSchema.statics.selectFields = function(type){
             'cover_photo_url','email','info','website','city','state',
             'create_date','posts_count','following_count','followers_count',
             'instagram_min_id', 'instagram_token', 'twitter_token',
-            'twitter_min_id','type', 'device_token', 'subtype'];
+            'twitter_min_id','type', 'device_token', 'subtype', 'trust_count'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -88,8 +90,36 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'twitter_token', 'twitter_min_id',
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','status','password', 'type', 'device_token',
-            'subtype'];
+            'subtype', 'trust_count'];
   }
+};
+
+userSchema.statics.updateTrustCount = function(user_id, callback){
+  this.findOne({_id: user_id}).exec(function(err, user){
+    if(err){
+      callback(err, null);
+    }else{
+      Trust.fetchUserTrustCount(user._id.toString(), function(err, count){
+        if(err){
+          callback(err, null);
+        }else{
+          if(typeof(count) === 'string') count = parseInt(count);
+          if(user.trust_count !== count){
+            user.trust_count = count;
+            user.save(function(err, saved){
+              if(err){
+                callback(err, null);
+              }else{
+                callback(null, true);
+              }
+            });
+          }else{
+            callback(null, false);
+          }
+        }
+      });
+    }
+  });
 };
 
 userSchema.path('type').validate(function(value){
@@ -128,6 +158,7 @@ userSchema.methods.format = function(type, add_fields, callback){
       posts_count:        this.posts_count,
       following_count:    this.following_count,
       followers_count:    this.followers_count,
+      trust_count:        this.trust_count,
       type:               this.type,
       instagram_token:    this.instagram_token,
       instagram_min_id:   this.instagram_min_id,
