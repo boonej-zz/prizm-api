@@ -153,7 +153,6 @@ Twine.prototype.$__resolveFilterProperties = function $__resolveFilterProperties
           if(Array.isArray(strippedSubDocProperty) && strippedSubDocProperty.length > 0){
             strippedSubDocProperty = strippedSubDocProperty[0];
             if(model_keys.indexOf(strippedSubDocProperty) !== -1){
-              debugger;
               filters[filter] = object[filter];
             }
           }
@@ -205,7 +204,7 @@ Twine.prototype.$__setSort = function $__setSort(){
   if(this.sort){
    var sort = {};
    sort[this.sort_by] = this.sort;
-   if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
+   // if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
    _logger.log('info', 'setting sort', {sort: sort});
    this.fetch.sort(sort);
   }
