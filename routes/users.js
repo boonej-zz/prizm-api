@@ -98,8 +98,13 @@ exports.resetPassword = function(req, res){
             _utils.prismResponse(res, null, false, PrismError.serverError);
           }else{
             var mail = new Mail();
-            mail.resetPassword();
-            _utils.prismResponse(res, {message: 'Please Verify reset in email'}, true);
+            mail.resetPassword(result, function(err, response){
+              if(err){
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+              }else{
+                _utils.prismResponse(res, {message: 'Please Verify reset in email'}, true);
+              }
+            });
           }
         });
       }

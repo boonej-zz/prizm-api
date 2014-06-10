@@ -106,5 +106,6 @@ Mail.prototype.resetPassword = function resetPassword(user, block){
   _mailer(SEND_MESSAGE_ENDPOINT, {message: this.message}, function(error, response){
     if(error) console.log('Error occured during password reste eamil');
     else console.log('successful passwordreset email: ' + JSON.stringify(response));
+    if(block) block(error, response);
   });
 };
