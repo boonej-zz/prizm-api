@@ -281,9 +281,11 @@ postSchema.methods.tagHandler = function(type, parsed_array){
               tag_added = true;
 
             }else{
-              var item = _.matches(user_id);
+              var item = function(i){
+                return i._id === user_id;
+              };
 
-              if(_.filter(this.tagsg, item).length === 0){
+              if(_.filter(this.tags, item).length === 0){
                 this.tags.push({_id: user_id});
                 tag_added = true;
               }

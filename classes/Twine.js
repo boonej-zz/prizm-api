@@ -203,7 +203,8 @@ Twine.prototype.$__setSelect = function $__setSelect(){
 Twine.prototype.$__setSort = function $__setSort(){
   if(this.sort){
    var sort = {};
-   sort[this.sort_by] = this.sort;
+   // sort[this.sort_by] = this.sort;
+   sort._id = this.sort;
    // if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
    _logger.log('info', 'setting sort', {sort: sort});
    this.fetch.sort(sort);
