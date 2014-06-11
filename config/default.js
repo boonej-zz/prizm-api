@@ -63,5 +63,6 @@ module.exports = {
   mandrill: {
     client_secret: 'SHzM16s9ZKmo-5bbQCZXfA'
   },
-  push_server: 'http://ec2-54-186-223-100.us-west-2.compute.amazonaws.com/push'
+  push_server: 'http://ec2-54-186-223-100.us-west-2.compute.amazonaws.com/push',
+  app_name: 'Prizm Dev'
 };
