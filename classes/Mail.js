@@ -58,7 +58,7 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
   this.message = {
     from_email: admin,
     to: [{email: admin}],
-    subject: 'Prism Institution Review: ' + user.email,
+    subject: 'Prizm Institution Review: ' + user.email,
     html: '<h1>Institution User Review</h1>'+
           '<h2>'+user.email+'</h2><br>'+
           '<p>Name: '+user.first_name+'</p>'+
