@@ -95,6 +95,7 @@ exports.resetPassword = function(req, res){
         result.reset_key = _uuid.v1();
         result.save(function(err, saved){
           if(err){
+            _logger.log('error', 'Error returned trying to reset & save password', {err:err});
             _utils.prismResponse(res, null, false, PrismError.serverError);
           }else{
             var mail = new Mail();
