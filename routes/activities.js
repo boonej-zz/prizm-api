@@ -7,8 +7,9 @@ var _mongoose   = require('mongoose'),
     _prism_home = process.env.PRISM_HOME,
     _utils      = require(_prism_home + 'utils'),
     _logger     = require(_prism_home + 'logs.js'),
-    PrismError  = require(_prism_home + 'models/user').User,
-    User        = require(_prism_home + 'models/post').Post,
+    PrismError  = require(_prism_home + 'error'),
+    User        = require(_prism_home + 'models/user').User,
+    Post        = require(_prism_home + 'models/post').Post,
     Twine       = require(_prism_home + 'classes/Twine'),
     Activity    = require(_prism_home + 'models/activity').Activity;
 
