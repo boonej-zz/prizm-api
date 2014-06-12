@@ -62,7 +62,8 @@ var userSchema = new _mongoose.Schema({
   reset_date            : {type: String, default: null},
   password_reset        : {type: String, default: null},
   device_token          : {type: String, default: null},
-  subtype               : {type: String, default: null}
+  subtype               : {type: String, default: null},
+  badge_count           : {type: Number, default: 0}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -119,6 +120,12 @@ userSchema.statics.updateTrustCount = function(user_id, callback){
         }
       });
     }
+  });
+};
+
+userSchema.statics.updateBadgeCount = function(user_id, number, callback){
+  this.update({_id: user_id}, {$set : {badge_count : number}}, function(error, update){
+    callback(err, update);
   });
 };
 

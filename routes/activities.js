@@ -7,8 +7,9 @@ var _mongoose   = require('mongoose'),
     _prism_home = process.env.PRISM_HOME,
     _utils      = require(_prism_home + 'utils'),
     _logger     = require(_prism_home + 'logs.js'),
-    PrismError  = require(_prism_home + 'models/user').User,
-    User        = require(_prism_home + 'models/post').Post,
+    PrismError  = require(_prism_home + 'error'),
+    User        = require(_prism_home + 'models/user').User,
+    Post        = require(_prism_home + 'models/post').Post,
     Twine       = require(_prism_home + 'classes/Twine'),
     Activity    = require(_prism_home + 'models/activity').Activity;
 
@@ -36,9 +37,17 @@ var activityHasBeenViewed = function activityHasBeenViewed(user_id, results){
       if(err) _logger.log('error',
                           'Activity update failed with error: ' + JSON.stringfiy(err));
 
-      if(updated) _logger.log('info',
-                              'Activity views successfully updated for user: '+user_id.toString()+
-                              'for dates before : '+date);
+      if(updated){
+        _logger.log('info',
+                    'Activity views successfully updated for user: '+user_id.toString()+
+                    'for dates before : '+date);
+        User.updateBadgeCount(user_id, 0, function(err, updated){
+          if(err) _logger.log('error',
+                              'Update Badge Count for user '+user_id + ' failed with error',
+                              {err:err});
+          if(updated) _logger.log('info', 'Successful UpdateBadgeCount for user ' + user_id);
+        });
+      }
     });
   }
 };

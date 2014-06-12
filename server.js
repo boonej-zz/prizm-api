@@ -3,6 +3,7 @@
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
+require('newrelic');
 
 process.env.PRISM_HOME = process.cwd() + '/';
 
