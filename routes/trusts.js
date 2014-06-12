@@ -221,11 +221,11 @@ var fetchTrustById = function(req, res){
       if(err){
         _utils.prismResponse(res, null, false, PrismError.serverError);
       }else{
-        if(!trust){
-          _utils.prismResponse(res, null, false, fetch_trust_error);
-        }else{
+        // if(!trust){
+        //   _utils.prismResponse(res, null, false, fetch_trust_error);
+        // }else{
           _utils.prismResponse(res, trust, true);
-        }
+        // }
       }
     });
   });
@@ -309,19 +309,19 @@ var exists = function(req, res){
     };
     Trust.findOne(criteria, function(err, found){
       if(err) _utils.prismReponse(res, null, false, PrismError.serverError);
-      if(_.isEmpty(found)){
-        var error = {
-          status_code: 400,
-          error_info: {
-            error: 'unable_to_find_existing_trust',
-            error_description: 'An existing trust does not currently exist between '+
-                                req.params.id + ' and '+ req.params.user_id
-          }
-        };
-        _utils.prismResponse(res, null, false, error);
-      }else{
+      // if(_.isEmpty(found)){
+        // var error = {
+        //   status_code: 400,
+        //   error_info: {
+        //     error: 'unable_to_find_existing_trust',
+        //     error_description: 'An existing trust does not currently exist between '+
+        //                         req.params.id + ' and '+ req.params.user_id
+        //   }
+        // };
+        // _utils.prismResponse(res, null, false, error);
+      // }else{
         _utils.prismResponse(res, found, true);
-      }
+      // }
     });
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);

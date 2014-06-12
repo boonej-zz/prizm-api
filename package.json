@@ -23,7 +23,8 @@
     "nodemailer": "0.6.0",
     "underscore": "1.6.0",
     "node-mandrill": "*",
-    "moment": "*"
+    "moment": "*",
+    "newrelic": "*"
   },
   "devDependencies": {
     "mocha": "1.12.0",
