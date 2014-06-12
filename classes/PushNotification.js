@@ -33,6 +33,7 @@ function PushNotification(type, object, block){
   this.payload = null;
   this.message = null;
   this.device = null;
+  this.badge = 1;
   this.callback = block || null;
 
   self.process();
@@ -70,8 +71,13 @@ PushNotification.prototype.activity = function activity(){
     findUserById(this.object.to, function(user){
       console.log('logging user returned from object'+JSON.stringify(user));
       if(user && user._id && user.device_token){
+        user.badge_count = user.badge_count + 1;
         self.device = user.device_token;
         self.payload = {_id: self.object._id};
+        self.badge = user.badge_count;
+        user.save(function(error){
+          if(error) _logger.log('error', 'unable to update new badge count', {error:error});
+        });
         var action = "";
         if(self.object.action === 'comment') action = 'commented on your post';
         if(self.object.action === 'tag') action = 'tagged you in a post';
@@ -108,7 +114,8 @@ PushNotification.prototype.send = function send(){
       body: {
         device: self.device,
         alert: self.message,
-        payload: self.payload
+        payload: self.payload,
+        badge: self.badge
       }
     }, function(err, result){
       console.log("pn sending error: " + JSON.stringify(err));

@@ -36,9 +36,17 @@ var activityHasBeenViewed = function activityHasBeenViewed(user_id, results){
       if(err) _logger.log('error',
                           'Activity update failed with error: ' + JSON.stringfiy(err));
 
-      if(updated) _logger.log('info',
-                              'Activity views successfully updated for user: '+user_id.toString()+
-                              'for dates before : '+date);
+      if(updated){
+        _logger.log('info',
+                    'Activity views successfully updated for user: '+user_id.toString()+
+                    'for dates before : '+date);
+        User.updateBadgeCount(user_id, 0, function(err, updated){
+          if(err) _logger.log('error',
+                              'Update Badge Count for user '+user_id + ' failed with error',
+                              {err:err});
+          if(updated) _logger.log('info', 'Successful UpdateBadgeCount for user ' + user_id);
+        });
+      }
     });
   }
 };
