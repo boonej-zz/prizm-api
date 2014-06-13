@@ -197,9 +197,9 @@ var fetchTrusts = function(req, res){
       //if err is set, then it is a server / mongo error. return server error
       if(err){
         _utils.prismResponse(res, null, false, PrismError.serverError);
-      }else if(_.isEmpty(trusts)){
-        //no trusts were returned, send unable_to_fetch_trusts error
-        _utils.prismResponse(res, null, false, error);
+      // }else if(_.isEmpty(trusts)){
+      //   //no trusts were returned, send unable_to_fetch_trusts error
+      //   _utils.prismResponse(res, null, false, error);
       }else{
         //return normal response with result set
         _utils.prismResponse(res, trusts, true);
