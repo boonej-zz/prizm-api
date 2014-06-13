@@ -19,7 +19,7 @@ var _util       = require('util'),
  * Twine Constants
  */
 var DEFAULT_LIMIT = 30;
-var DEFAULT_SORT_BY = 'create_date';
+var DEFAULT_SORT_BY = '_id';
 var DEFAULT_SORT = -1;
 var DEFAULT_PAGE_BY = 'create_date';
 var DEFAULT_PAGE_DIRECTION = -1;
@@ -39,12 +39,6 @@ function Twine(model, criteria, Request, options, callback){
   this.args = self.$__digestHeaderArguments();
   this.options = options;
   this.cb = callback;
-  this.sort = (!self.$__optExists('sort')) ?
-    self.$__parse('sort', DEFAULT_SORT)
-    : options.sort;
-  this.sort_by = (!self.$__optExists('sort_by')) ?
-    self.$__parse('sort_by', DEFAULT_SORT_BY)
-    : options.sort_by;
   this.limit = (!self.$__optExists('limit')) ?
     self.$__parse('limit', DEFAULT_LIMIT)
     : options.limit;
@@ -60,6 +54,12 @@ function Twine(model, criteria, Request, options, callback){
   this.page_direction = (!self.$__optExists('page_direction')) ?
     self.$__parse('page_direction', DEFAULT_PAGE_DIRECTION)
     : options.page_direction;
+  this.sort = (!self.$__optExists('sort')) ?
+    self.$__parse('sort', this.page_direction) 
+    : options.sort;
+  this.sort_by = (!self.$__optExists('sort_by')) ?
+    self.$__parse('sort_by', this.page_by)
+    : options.sort_by;
   this.filters = {};
   this.contains = (!self.$__optExists('contains')) ?
     self.$__parse('contains', null)
@@ -203,9 +203,10 @@ Twine.prototype.$__setSelect = function $__setSelect(){
 Twine.prototype.$__setSort = function $__setSort(){
   if(this.sort){
    var sort = {};
-   // sort[this.sort_by] = this.sort;
-   sort._id = this.sort;
+   sort[this.sort_by] = this.sort;
+   // sort._id = this.sort;
    // if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
+   if(this.sort_by !== DEFAULT_SORT_BY) sort[DEFAULT_SORT_BY] = this.page_direction;
    _logger.log('info', 'setting sort', {sort: sort});
    this.fetch.sort(sort);
   }

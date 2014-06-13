@@ -92,12 +92,30 @@ describe('Twine Class Unit Tests', function(done){
       req.headers = {};
       req.headers['x-arguments'] = header;
       new Twine('Post', {}, req, null, function(err, results){
-        debugger;
+        // debugger;
         done();
       });
     });
   });
   //TODO: paging tests
+  describe('Testing Paging', function(done){
+    it('should default to paging by create_date descending', function(done){
+      var header = new Buffer(JSON.stringify({
+        status: "active",
+        page_by: 'create_date',
+        page_direction: -1,
+        page: "Thu Mar 27 2014 06:00:42 GMT-0700 (PDT)",
+        sort: 1
+      })).toString('base64');
+      var req = {};
+      req.headers = {};
+      req.headers['x-arguments'] = header;
+      new Twine('Post', {}, req, {limit: 5}, function(err, results){
+        debugger;
+        done();
+      });
+    });
+  });
   //TODO: sorting tests
   //TODO: limit tests
   //TODO: contains tests
