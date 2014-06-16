@@ -564,21 +564,23 @@ exports.fetchUserNewsFeed = function(req, res){
                 _logger.log('error', 'fetch news feed via twine returned error', {error:err});
                 _utils.prismResponse(res, null, false, PrismError.serverError);
 
-              }else if(result){
-                _utils.prismResponse(res, result, true);
-
+              // }else if(result){
               }else{
-                var error = {
-                  status_code: 400,
-                    error_info: {
-                      error: 'user_has_no_news_feed_content',
-                      error_description: 'The requested user is not following anyone.'+
-                      ' There is no content to display'
-                    }
-                  };
-                _logger.log('error', 'user has no news feed content');
-                _utils.prismResponse(res,null,false,error);
+                _utils.prismResponse(res, result, true);
               }
+
+              // }else{
+              //   var error = {
+              //     status_code: 400,
+              //       error_info: {
+              //         error: 'user_has_no_news_feed_content',
+              //         error_description: 'The requested user is not following anyone.'+
+              //         ' There is no content to display'
+              //       }
+              //     };
+              //   _logger.log('error', 'user has no news feed content');
+              //   _utils.prismResponse(res,null,false,error);
+              // }
             });
           }
         });
