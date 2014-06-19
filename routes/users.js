@@ -430,7 +430,7 @@ exports.fetchAllUsers = function(req, res){
  */
 exports.fetchUser = function(req, res){
   if(req.params.id){
-    var criteria = {_id: req.params.id};
+    var criteria = {_id: req.params.id, scope: {$in: ['public', 'private']} };
     new Twine('User', criteria, req, null, function(error, result){
       if(error){
         _logger.log('Error', 'Error retrieving user by id: ' + req.params.id);

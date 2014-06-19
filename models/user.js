@@ -125,7 +125,7 @@ userSchema.statics.updateTrustCount = function(user_id, callback){
 
 userSchema.statics.updateBadgeCount = function(user_id, number, callback){
   this.update({_id: user_id}, {$set : {badge_count : number}}, function(error, update){
-    callback(err, update);
+    callback(error, update);
   });
 };
 
