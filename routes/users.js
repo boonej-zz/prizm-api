@@ -468,7 +468,7 @@ exports.fetchAllUsers = function(req, res){
                                     {$gt: req.query.feature_identifier};
     }
   }
-
+  criteria.status = 'active';
   query = _utils.buildQueryObject(User, criteria, options);
   query.select('name first_name last_name profile_photo_url').exec(function(err, users){
     if(err || !users){
@@ -1128,7 +1128,7 @@ exports.search = function(req, res){
     var search_key = Object.keys(args.search)[0];
     if(!search_key) _utils.prismResponse(res, null, false, error);
     var criteria = {};
-    criteria[search_key] = {$regex: formatStringSearchVariable(args.search[search_key])};
+    criteria[search_key] = {$regex: formatStringSearchVariable(args.search[search_key]), status: 'active'};
     new Twine('User', criteria, req, null, function(err, response){
       if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
       _utils.prismResponse(res, response, true);
