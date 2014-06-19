@@ -20,7 +20,8 @@ var trust_status = {
   accepted: 'accepted',
   rejected: 'rejected',
   pending: 'pending',
-  canceled: 'canceled'
+  canceled: 'canceled',
+  inactive: 'inactive'
 };
 
 var create_trust_error = {
@@ -185,7 +186,7 @@ var createTrust = function(req, res){
  */
 var fetchTrusts = function(req, res){
   validateTrustRequest(req, res, function(){
-    var criteria = {$or: [ {to: req.params.id}, {from: req.params.id} ]};
+    var criteria = {$or: [ {to: req.params.id}, {from: req.params.id} ], status: {$ne: 'inactive'}};
     new Twine('Trust', criteria, req, {fields: Trust.selectFields('basic').join(" ")}, function(err, trusts){
       var error = {
         status_code: 400,
@@ -197,9 +198,9 @@ var fetchTrusts = function(req, res){
       //if err is set, then it is a server / mongo error. return server error
       if(err){
         _utils.prismResponse(res, null, false, PrismError.serverError);
-      }else if(_.isEmpty(trusts)){
-        //no trusts were returned, send unable_to_fetch_trusts error
-        _utils.prismResponse(res, null, false, error);
+      // }else if(_.isEmpty(trusts)){
+      //   //no trusts were returned, send unable_to_fetch_trusts error
+      //   _utils.prismResponse(res, null, false, error);
       }else{
         //return normal response with result set
         _utils.prismResponse(res, trusts, true);

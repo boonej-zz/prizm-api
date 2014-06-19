@@ -116,6 +116,64 @@ exports.resetPassword = function(req, res){
 };
 
 /**
+ * Updates the user to inactive 
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+exports.deleteUser = function(req, res){
+  if(!req.params.id){
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }else{
+    User.findOne({_id: req.params.id}, function(error, user){
+      if(error){
+        _logger.log('error',
+                    'A error returned trying to fetch user to delete',
+                    {error:error});
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+
+      }else{
+        user.delete_date = Date.now();
+        user.status = 1;
+        user.save(function(error, saved){
+          if(error){
+            _logger.log('error',
+                        'A error returned trying to save user to delete',
+                        {error:error});
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+          }else{
+            var resBlock = function(){
+              _utils.prismResponse(res, saved.shortUser(), true);
+            };
+            Post.update(
+              {creator: saved._id}, 
+              {$set: {status: 'inactive'}}, 
+              {multi: true}, 
+              function(err, posts){
+                if(err){
+                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                }else{
+                  console.log('Posts set to inactive: ' + JSON.stringify(posts));
+                  Trust.update({$or: [{to: req.params.id}, {from: req.params.id}]},
+                               {$set: {status: 'inactive'}},
+                               {multi: true},
+                               function(err, trusts_updated){
+                                if(err){
+                                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                                }else{
+                                  resBlock();
+                                }
+                              });
+                }
+            });
+          }
+        });
+      }
+    });
+  }
+};
+
+/**
  * Removes device_token from all users that have a matching device_token
  *
  * @param  {String} device The device token identifier
@@ -244,7 +302,7 @@ exports.login = function(req, res){
         }
       });
     }else{
-      var user = User.findOne({email: req.body.email});
+      var user = User.findOne({email: req.body.email, status: 0});
       user.select(User.selectFields('internal').join(" "));
       user.exec(function(error, result){
         if(error){
@@ -410,7 +468,7 @@ exports.fetchAllUsers = function(req, res){
                                     {$gt: req.query.feature_identifier};
     }
   }
-
+  criteria.status = 'active';
   query = _utils.buildQueryObject(User, criteria, options);
   query.select('name first_name last_name profile_photo_url').exec(function(err, users){
     if(err || !users){
@@ -430,7 +488,7 @@ exports.fetchAllUsers = function(req, res){
  */
 exports.fetchUser = function(req, res){
   if(req.params.id){
-    var criteria = {_id: req.params.id};
+    var criteria = {_id: req.params.id };
     new Twine('User', criteria, req, null, function(error, result){
       if(error){
         _logger.log('Error', 'Error retrieving user by id: ' + req.params.id);
@@ -559,26 +617,33 @@ exports.fetchUserNewsFeed = function(req, res){
 
             _logger.log('info', 'news feed find criteria', {criteria:criteria});
 
-            new Twine('Post', criteria, req, null, function(err, result){
+            new Twine('Post', criteria, req, {status: 'active'}, function(err, result){
               if(err){
                 _logger.log('error', 'fetch news feed via twine returned error', {error:err});
                 _utils.prismResponse(res, null, false, PrismError.serverError);
 
-              }else if(result){
-                _utils.prismResponse(res, result, true);
-
+              // }else if(result){
               }else{
-                var error = {
-                  status_code: 400,
-                    error_info: {
-                      error: 'user_has_no_news_feed_content',
-                      error_description: 'The requested user is not following anyone.'+
-                      ' There is no content to display'
-                    }
-                  };
-                _logger.log('error', 'user has no news feed content');
-                _utils.prismResponse(res,null,false,error);
+                for(var index in result){
+                  if(result[index].status === 'inactive'){
+                    delete result[index];
+                  }
+                }
+                _utils.prismResponse(res, result, true);
               }
+
+              // }else{
+              //   var error = {
+              //     status_code: 400,
+              //       error_info: {
+              //         error: 'user_has_no_news_feed_content',
+              //         error_description: 'The requested user is not following anyone.'+
+              //         ' There is no content to display'
+              //       }
+              //     };
+              //   _logger.log('error', 'user has no news feed content');
+              //   _utils.prismResponse(res,null,false,error);
+              // }
             });
           }
         });
@@ -852,7 +917,7 @@ var handleSocialProviderLogin = function(body, callback){
           callback(error, false);
         }else if(response){
 
-          var user = User.findOne({provider_id: response.body.id});
+          var user = User.findOne({provider_id: response.body.id, status: 0});
           user.select(User.selectFields('basic').join(" "));
           user.exec(function(error, response){
             if(error){
@@ -1063,7 +1128,7 @@ exports.search = function(req, res){
     var search_key = Object.keys(args.search)[0];
     if(!search_key) _utils.prismResponse(res, null, false, error);
     var criteria = {};
-    criteria[search_key] = {$regex: formatStringSearchVariable(args.search[search_key])};
+    criteria[search_key] = {$regex: formatStringSearchVariable(args.search[search_key]), status: 'active'};
     new Twine('User', criteria, req, null, function(err, response){
       if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
       _utils.prismResponse(res, response, true);

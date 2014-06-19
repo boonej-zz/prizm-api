@@ -183,6 +183,9 @@ _app.get('/users/:id/following', _gateway, _follow.fetchFollowing);
 /* Fetch Users News Feed */
 _app.get('/users/:id/feed', _gateway, _user.fetchUserNewsFeed);
 
+/* Delete User (set inactive) */
+_app.delete('/users/:id', _gateway, _user.deleteUser);
+
 /* Create Trust */
 _app.post('/users/:id/trusts', _gateway, _trust.createTrust);
 

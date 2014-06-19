@@ -20,7 +20,8 @@ var commentSchema = new _mongoose.Schema({
   creator             : { type: _mongoose.Schema.Types.ObjectId, ref: 'User'},
   create_date         : { type: Date, default: Date.now() },
   likes               : [],
-  likes_count         : {type: Number, default: 0}
+  likes_count         : {type: Number, default: 0},
+  status              : {type: String, default: 'active'}
 });
 
 commentSchema.statics.selectFields = function(type){
@@ -45,7 +46,8 @@ commentSchema.statics.canResolve = function(){
 var status_types = {
   active:   'active',
   deleted:  'deleted',
-  review:   'review'
+  review:   'review',
+  inactive: 'inactive'
 };
 
 /**
