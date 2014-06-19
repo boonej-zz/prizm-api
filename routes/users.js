@@ -279,7 +279,7 @@ exports.login = function(req, res){
         }
       });
     }else{
-      var user = User.findOne({email: req.body.email});
+      var user = User.findOne({email: req.body.email, status: 0});
       user.select(User.selectFields('internal').join(" "));
       user.exec(function(error, result){
         if(error){
@@ -465,7 +465,7 @@ exports.fetchAllUsers = function(req, res){
  */
 exports.fetchUser = function(req, res){
   if(req.params.id){
-    var criteria = {_id: req.params.id, scope: {$in: ['public', 'private']} };
+    var criteria = {_id: req.params.id };
     new Twine('User', criteria, req, null, function(error, result){
       if(error){
         _logger.log('Error', 'Error retrieving user by id: ' + req.params.id);
@@ -889,7 +889,7 @@ var handleSocialProviderLogin = function(body, callback){
           callback(error, false);
         }else if(response){
 
-          var user = User.findOne({provider_id: response.body.id});
+          var user = User.findOne({provider_id: response.body.id, status: 0});
           user.select(User.selectFields('basic').join(" "));
           user.exec(function(error, response){
             if(error){
