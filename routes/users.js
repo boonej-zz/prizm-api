@@ -150,12 +150,20 @@ exports.deleteUser = function(req, res){
               {$set: {status: 'inactive'}}, 
               {multi: true}, 
               function(err, posts){
-                debugger;
                 if(err){
                   _utils.prismResponse(res, null, false, PrismError.serverError);
                 }else{
                   console.log('Posts set to inactive: ' + JSON.stringify(posts));
-                  resBlock();
+                  Trust.update({$or: [{to: req.params.id}, {from: req.params.id}]},
+                               {$set: {status: 'inactive'}},
+                               {multi: true},
+                               function(err, trusts_updated){
+                                if(err){
+                                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                                }else{
+                                  resBlock();
+                                }
+                              });
                 }
             });
           }

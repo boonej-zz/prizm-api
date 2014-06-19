@@ -20,7 +20,8 @@ var trust_status = {
   accepted: 'accepted',
   rejected: 'rejected',
   pending: 'pending',
-  canceled: 'canceled'
+  canceled: 'canceled',
+  inactive: 'inactive'
 };
 
 var create_trust_error = {
@@ -185,7 +186,7 @@ var createTrust = function(req, res){
  */
 var fetchTrusts = function(req, res){
   validateTrustRequest(req, res, function(){
-    var criteria = {$or: [ {to: req.params.id}, {from: req.params.id} ]};
+    var criteria = {$or: [ {to: req.params.id}, {from: req.params.id} ], status: {$ne: 'inactive'}};
     new Twine('Trust', criteria, req, {fields: Trust.selectFields('basic').join(" ")}, function(err, trusts){
       var error = {
         status_code: 400,
