@@ -76,7 +76,7 @@ userSchema.statics.canResolve = function(){
 
 userSchema.statics.selectFields = function(type){
   if(type === 'short'){
-    return ['_id','name','first_name','last_name','profile_photo_url','type'];
+    return ['_id','name','first_name','last_name','profile_photo_url','type', 'status'];
   }else if(type === 'basic'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -144,7 +144,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       first_name: this.first_name,
       last_name: this.last_name,
       profile_photo_url: this.profile_photo_url,
-      type: this.type
+      type: this.type,
+      status: this.status
     };
   }
 
@@ -172,7 +173,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       twitter_token:      this.twitter_token,
       twitter_min_id:     this.twitter_min_id,
       device_token:       this.device_token,
-      subtype:            this.subtype
+      subtype:            this.subtype,
+      status:             this.status
     };
   }
 
@@ -187,7 +189,6 @@ userSchema.methods.format = function(type, add_fields, callback){
     format.address                = this.address;
     format.country                = this.country;
     format.modify_date            = this.modify_date;
-    format.delete_date            = this.status;
   }
 
   if(add_fields){

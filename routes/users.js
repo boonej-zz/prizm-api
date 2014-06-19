@@ -116,6 +116,41 @@ exports.resetPassword = function(req, res){
 };
 
 /**
+ * Updates the user to inactive 
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+exports.deleteUser = function(req, res){
+  if(!req.params.id){
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }else{
+    User.findOne({_id: req.params.id, status: 0}, function(error, user){
+      if(error){
+        _logger.log('error',
+                    'A error returned trying to fetch user to delete',
+                    {error:error});
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+
+      }else{
+        user.delete_date = Date.now();
+        user.status = 1;
+        user.save(function(error, saved){
+          if(error){
+            _logger.log('error',
+                        'A error returned trying to save user to delete',
+                        {error:error});
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+          }else{
+            _utils.prismResponse(res, saved.shortUser(), true);
+          }
+        });
+      }
+    });
+  }
+};
+
+/**
  * Removes device_token from all users that have a matching device_token
  *
  * @param  {String} device The device token identifier
