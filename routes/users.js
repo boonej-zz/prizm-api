@@ -125,7 +125,7 @@ exports.deleteUser = function(req, res){
   if(!req.params.id){
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }else{
-    User.findOne({_id: req.params.id, status: 0}, function(error, user){
+    User.findOne({_id: req.params.id}, function(error, user){
       if(error){
         _logger.log('error',
                     'A error returned trying to fetch user to delete',
@@ -142,7 +142,22 @@ exports.deleteUser = function(req, res){
                         {error:error});
             _utils.prismResponse(res, null, false, PrismError.serverError);
           }else{
-            _utils.prismResponse(res, saved.shortUser(), true);
+            var resBlock = function(){
+              _utils.prismResponse(res, saved.shortUser(), true);
+            };
+            Post.update(
+              {creator: saved._id}, 
+              {$set: {status: 'inactive'}}, 
+              {multi: true}, 
+              function(err, posts){
+                debugger;
+                if(err){
+                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                }else{
+                  console.log('Posts set to inactive: ' + JSON.stringify(posts));
+                  resBlock();
+                }
+            });
           }
         });
       }
@@ -594,13 +609,18 @@ exports.fetchUserNewsFeed = function(req, res){
 
             _logger.log('info', 'news feed find criteria', {criteria:criteria});
 
-            new Twine('Post', criteria, req, null, function(err, result){
+            new Twine('Post', criteria, req, {status: 'active'}, function(err, result){
               if(err){
                 _logger.log('error', 'fetch news feed via twine returned error', {error:err});
                 _utils.prismResponse(res, null, false, PrismError.serverError);
 
               // }else if(result){
               }else{
+                for(var index in result){
+                  if(result[index].status === 'inactive'){
+                    delete result[index];
+                  }
+                }
                 _utils.prismResponse(res, result, true);
               }
 
