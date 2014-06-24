@@ -542,6 +542,8 @@ exports.updateUser = function(req, res){
         if(typeof(body.instagram_min_id) !== 'undefined') user.instagram_min_id = body.instagram_min_id;
         if(typeof(body.twitter_token) !== 'undefined') user.twitter_token = body.twitter_token;
         if(typeof(body.twitter_min_id) !== 'undefined') user.twitter_min_id = body.twitter_min_id;
+        if(typeof(body.tumblr_token) !== 'undefined') user.tumblr_token = body.tumblr_token;
+        if(typeof(body.tumblr_min_id) !== 'undefined') user.tumblr_min_id = body.tumblr_min_id;
         if(typeof(body.mascot) !== 'undefined') user.mascot = body.mascot;
         if(typeof(body.date_founded) !== 'undefined') user.date_founded = body.date_founded;
         if(typeof(body.enrollment) !== 'undefined') user.enrollment = body.enrollment;
@@ -632,18 +634,6 @@ exports.fetchUserNewsFeed = function(req, res){
                 _utils.prismResponse(res, result, true);
               }
 
-              // }else{
-              //   var error = {
-              //     status_code: 400,
-              //       error_info: {
-              //         error: 'user_has_no_news_feed_content',
-              //         error_description: 'The requested user is not following anyone.'+
-              //         ' There is no content to display'
-              //       }
-              //     };
-              //   _logger.log('error', 'user has no news feed content');
-              //   _utils.prismResponse(res,null,false,error);
-              // }
             });
           }
         });
