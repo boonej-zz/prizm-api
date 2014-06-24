@@ -220,10 +220,15 @@ Twine.prototype.$__setFilters = function $__setFilters(cb){
   //amend the filters to the existing criteria if exists
   if(this.filters){
     for(var key in this.filters){
-      if(this.filters[key] === "*"){
+      if(this.filters[key] === "*") {
         this.criteria[key] = {$nin: [null]};
-      }else{
+
+      } else if(_.isArray(this.filters[key])) {
+        this.criteria[key] = {$in: this.filters[key]};
+
+      } else {
         this.criteria[key] = this.filters[key];
+
       }
     }
   }

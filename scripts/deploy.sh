@@ -20,7 +20,9 @@ deploy() {
   echo "Creating prism_api rollback"
   create_rollback
   echo "Syncing source files"
-  rsync --exclude 'node_modules' --exclude '.git'  -r -e "ssh -i $SSHI" ./* ec2-user@$SERVER:$DIR_PATH
+  rsync --exclude 'node_modules' \
+        --exclude '.git' \
+        -r -e "ssh -i $SSHI" ./* ec2-user@$SERVER:$DIR_PATH
 
   if [ "$?" -ne "0" ]; then
     echo $?

@@ -19,6 +19,7 @@ var _thisapp    = require(process.cwd() + '/server.js'),
     Activity    = require(process.env.PRISM_HOME + 'models/activity').Activity,
     Trust       = require(process.env.PRISM_HOME + 'models/user').Trust;
 
+
 describe('Twine Class Unit Tests', function(done){
   var mark, edwardo, cameron, erica, sean, maryolin, DJ;
   var follower = null;
@@ -81,6 +82,14 @@ describe('Twine Class Unit Tests', function(done){
   });
   //TODO: filter tests
   describe('Testing Filtering Properties', function(done){
+    before(function(done){
+      test_post1.scope = 'trust';
+      test_post1.save(function(err, saved){
+        if(err) throw err;
+        done();
+      });
+    });
+
     it('should allow a sub document property to be filtered', function(done){
       var req = {};
       var filter = {
@@ -96,15 +105,45 @@ describe('Twine Class Unit Tests', function(done){
         done();
       });
     });
+    it('should allow multiple values(array) for a filter', function(done){
+      var req = {};
+      var filter = {};
+      filter.scope = ['trust', 'public'];
+      var header = JSON.stringify(filter);
+      header = new Buffer(header).toString('base64');
+      req.headers = {};
+      req.headers['x-arguments'] = header;
+      new Twine('Post', {}, req, null, function(err, results){
+        debugger;
+        done();
+      });
+    });
   });
   //TODO: paging tests
   describe('Testing Paging', function(done){
+    //--- TESTS ----
+    //default paging
+    //specify default paging
+    //page by field, direction, value
+    //invert page by field, direction, value
+    //page by doesnt exist should throw error
+    //page value not of data type page_by should throw error
+    //incorrect page_direction value should throw error
+    //default sort
+    //default sort with no page
+    //specify default sort
+    //sort asc with no sort_by
+    //sort desc with no sort_by
+    //sort and sort by asc
+    //sort and sort by desc
+    //sort by that doesnt exist should throw error
+    //sort direction that doesnt exist should throw err
+    //override with optional to not apply any sort behavior?
     it('should default to paging by create_date descending', function(done){
       var header = new Buffer(JSON.stringify({
-        status: "active",
-        page_by: 'create_date',
-        page_direction: -1,
-        page: "Thu Mar 27 2014 06:00:42 GMT-0700 (PDT)",
+        page_by: ['create_date', 'delete_date'],
+        page_direction: 1,
+        page: "Thu Mar 27 2014 06:10:00 GMT-0700 (PDT)",
         sort: 1
       })).toString('base64');
       var req = {};
@@ -120,8 +159,8 @@ describe('Twine Class Unit Tests', function(done){
   //TODO: limit tests
   //TODO: contains tests
   //TODO: resolve
-    //TODO: recursive resolve
-    //TODO: resolve contains
+  //TODO: recursive resolve
+  //TODO: resolve contains
   describe('Testing Resolve', function(done){
     before(function(done){
       User.findOne({_id: mark._id}, function(err, result){
