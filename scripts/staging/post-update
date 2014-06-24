@@ -1,0 +1,6 @@
+#!/bin/sh
+app=/home/$USER/prism_api
+forever stopall
+unset 'GIT_DIR'
+cd $app && npm install && NODE_ENV=staging forever start /usr/local/bin/npm start
+exec git update-server-info

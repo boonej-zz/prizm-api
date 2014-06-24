@@ -4,18 +4,273 @@
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
 var _mongoose     = require('mongoose'),
+    _             = require('underscore'),
+    _uuid         = require('node-uuid'),
     _prism_home   = process.env.PRISM_HOME,
     _utils        = require(_prism_home + 'utils'),
     _logger       = require(_prism_home + 'logs'),
     PrismError    = require(_prism_home + 'error'),
     Facebook      = require(_prism_home + 'classes/Facebook'),
     Twitter       = require(_prism_home + 'classes/Twitter'),
+    Google        = require(_prism_home + 'classes/Google'),
     User          = require(_prism_home + 'models/user').User,
-    Post          = require(_prism_home + 'models/post').Post;
+    Twine         = require(_prism_home + 'classes/Twine'),
+    Trust         = require(_prism_home + 'models/trust').Trust,
+    Activity      = require(_prism_home + 'models/activity'),
+    Post          = require(_prism_home + 'models/post').Post,
+    Mail          = require(_prism_home + 'classes/Mail');
 
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
  */
+
+/*jshint -W087*/
+
+/**
+ * Handles User review state
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+exports.review = function review(req, res){
+  if(req.params.id && req.params.review){
+    if(req.query.review_key && req.query.approval ||
+       req.query.reset_key && req.query.approval){
+      User.findOne({_id: req.params.id}, function(err, user){
+        if(err){
+          _utils.prismResponse(res, null, false, PrismError.serverError);
+
+        }else{
+          if(user.review_key === req.query.review_key &&
+             user.status === 2){
+            user.type = (req.query.approval === 'yes') ? 'institution_verified' : 'user';
+            user.review_key = null;
+            user.status = 0;
+            user.save(function(err, saved){
+              if(err){
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+
+              }else{
+                res.send('Succesfully Reviewed User');
+              }
+            });
+          }else if(user.reset_key === req.query.reset_key &&
+                  req.params.review === 'passwordreset'){
+            user.password = user.password_reset;
+            if(user.hashPassword()){
+              user.password_reset = null;
+              user.reset_key = null;
+              user.reset_date = null;
+              user.save(function(err, result){
+                if(err){
+                  res.send('An error occured while resetting your password, Error: '+JSON.stringify(err));
+                }else{
+                  res.send('Successfully reset your password! Please login with your new credentials!');
+                }
+              });
+            }else{
+              res.send('Unable to reset/hashpassword, please contact system administrator');
+            }
+
+          }else{
+            res.send('Unable to review user. User is currently not in review');
+          }
+        }
+     });
+    }else{
+      _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+    }
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+exports.resetPassword = function(req, res){
+  if(req.params.email && req.body.password){
+    User.findOne({email: req.params.email}, function(err, result){
+      if(err || !result) _utils.prismResponse(res, null, false, PrismError.serverError);
+      if(result){
+        result.password_reset = req.body.password;
+        result.reset_date = new Date();
+        result.reset_key = _uuid.v1();
+        result.save(function(err, saved){
+          if(err){
+            _logger.log('error', 'Error returned trying to reset & save password', {err:err});
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+          }else{
+            var mail = new Mail();
+            mail.resetPassword(result, function(err, response){
+              if(err){
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+              }else{
+                _utils.prismResponse(res, {message: 'Please Verify reset in email'}, true);
+              }
+            });
+          }
+        });
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
+ * Updates the user to inactive 
+ *
+ * @param {HTTPRequest} req The request object
+ * @param {HTTPResponse} res The response object
+ */
+exports.deleteUser = function(req, res){
+  if(!req.params.id){
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }else{
+    User.findOne({_id: req.params.id}, function(error, user){
+      if(error){
+        _logger.log('error',
+                    'A error returned trying to fetch user to delete',
+                    {error:error});
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+
+      }else{
+        user.delete_date = Date.now();
+        user.status = 1;
+        user.save(function(error, saved){
+          if(error){
+            _logger.log('error',
+                        'A error returned trying to save user to delete',
+                        {error:error});
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+          }else{
+            var resBlock = function(){
+              _utils.prismResponse(res, saved.shortUser(), true);
+            };
+            Post.update(
+              {creator: saved._id}, 
+              {$set: {status: 'inactive'}}, 
+              {multi: true}, 
+              function(err, posts){
+                if(err){
+                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                }else{
+                  console.log('Posts set to inactive: ' + JSON.stringify(posts));
+                  Trust.update({$or: [{to: req.params.id}, {from: req.params.id}]},
+                               {$set: {status: 'inactive'}},
+                               {multi: true},
+                               function(err, trusts_updated){
+                                if(err){
+                                  _utils.prismResponse(res, null, false, PrismError.serverError);
+                                }else{
+                                  resBlock();
+                                }
+                              });
+                }
+            });
+          }
+        });
+      }
+    });
+  }
+};
+
+/**
+ * Removes device_token from all users that have a matching device_token
+ *
+ * @param  {String} device The device token identifier
+ * @param  {Function} block The callback block to be invoked
+ */
+var unregisterDeviceFromUsers = function(device, block){
+  if(!device || !block) throw new Error('A device id & callback are required');
+  User.update(
+    {device_token: device},
+    {$set: {device_token: null}},
+    {multi: true},
+    function(err, updated){
+      block(err, updated);
+  });
+};
+
+/**
+ * Adds device token to user object for push notifications
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ */
+exports.registerDevice = function(req, res){
+  if(req.params.id && req.body.device){
+    unregisterDeviceFromUsers(req.params.id, function(err, updated){
+      if(err){
+        _logger.log('error',
+                    'Error unregistering previous devices on device register',
+                    {error:err, device:req.body.device, user_id:req.params.id});
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+      }else{
+        User.update(
+          {_id: req.params.id},
+          {$set: {device_token: req.body.device}},
+          function(err, user){
+            if(err || !user)  {
+              var info = {user:req.params.id, device:req.body.device};
+              if(err){
+                _logger.log('error',
+                            'Error returned while finding user in registerDevice',
+                            info);
+              }else{
+                _logger.log('error',
+                            'unable to find user for device registration',
+                            info);
+              }
+              _utils.prismResponse(res, null, false, PrismError.serverError);
+
+            }else{
+              var message = "Successfully registered device for " + req.params.id;
+              _utils.prismResponse(res, {message: message}, true);
+
+            }
+        });
+      }
+    });
+
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
+/**
+ * Removes device token from user object "unregistering" for push notifications
+ *
+ * This service is only used for the APN Feedback Service callback
+ * from the push notification server
+ *
+ * *NOTE* If a single device shuts off notifications & that device has
+ * multiple users, all associated users are "unregistered"
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ */
+exports.unregisterDevice = function(req, res){
+  if(req.params.id){
+    unregisterDeviceFromUsers(req.params.id, function(err, updated){
+      if(err || !updated){
+        var info = {device:req.params.id};
+        if(err){
+          _logger.log('error', 'Error on unregister device', info);
+        }else{
+          _logger.log('error', 'No user devices found to update', info);
+        }
+        _utils.prismResponse(res, null, false, PrismError.serverError);
+
+      }else{
+        var message = "Successfully unregistered all users from device"+req.params.id;
+        _utils.prismResponse  (res, {message:message}, true);
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidResponse);
+  }
+};
+
+
 
 /**
  * Handles authenticating user login request
@@ -43,17 +298,13 @@ exports.login = function(req, res){
           }
         }else{
           //succesful login - send back returned user object
-          var user = result.toObject();
-          delete user.posts;
-          delete user.likes;
-          delete user.comments;
-          delete user.provider_token;
-          if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
-          _utils.prismResponse( res, user , true);
+          _utils.prismResponse( res, result, true);
         }
       });
     }else{
-      User.findOne({email: req.body.email}, function(error, result){
+      var user = User.findOne({email: req.body.email, status: 0});
+      user.select(User.selectFields('internal').join(" "));
+      user.exec(function(error, result){
         if(error){
           _utils.prismResponse( res,
                                 null,
@@ -61,7 +312,7 @@ exports.login = function(req, res){
                                 PrismError.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
-            _utils.prismResponse(res, result, true, null, null);
+            _utils.prismResponse(res, result.format('basic'), true, null, null);
           }else{
            _utils.prismResponse(res,
                                 null,
@@ -105,16 +356,32 @@ exports.register = function(req, res){
       birthday: req.body.birthday
     });
 
-    if(typeof(req.body.password) != 'undefined') newUser.password = req.body.password;
+    if(typeof(req.body.password) != 'undefined')
+      newUser.password = req.body.password;
 
-    if(typeof(req.body.cover_photo_url) != 'undefined') newUser.cover_photo_url = req.body.cover_photo_url;
+    if(typeof(req.body.cover_photo_url) != 'undefined')
+      newUser.cover_photo_url = req.body.cover_photo_url;
 
-    if(typeof(req.body.profile_photo_url) != 'undefined') newUser.profile_photo_url = req.body.profile_photo_url;
+    if(typeof(req.body.profile_photo_url) != 'undefined')
+      newUser.profile_photo_url = req.body.profile_photo_url;
+
+    if(typeof(req.body.type) !== 'undefined') newUser.type = req.body.type;
+    if(typeof(req.body.subtype) !== 'undefined') newUser.subtype = req.body.subtype;
+
+    if(newUser.type === 'institution'){
+      if(typeof(req.body.phone_number) !== 'undefined')
+        newUser.phone_number = req.body.phone_number;
+
+      if(typeof(req.body.website) !== 'undefined')
+        newUser.website = req.body.website;
+
+      newUser.status = 2;
+      newUser.review_key = _uuid.v1();
+    }
 
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
       handleSocialProviderRegistration(req.body, function(error, social){
-        // console.log('error/social returned from handle in reg' + error + social);
         if(error && social === false){
           _utils.prismResponse( res, null, false, error, PrismError.status_code);
         }else if(social){
@@ -124,7 +391,6 @@ exports.register = function(req, res){
           if(newUser.provider == 'twitter'){
             newUser.provider_token_secret = req.body.provider_token_secret;
           }
-          // console.log('saving social user: ' + JSON.stringify(newUser));
           newUser.save(function(error, result){
 
             if(error || !result){
@@ -134,12 +400,17 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
             }else{
-              _utils.prismResponse(res, result, true);
+              if(result.review_key && result.status === 2){
+                var mail = new Mail();
+                mail.institutionReview(result.toObject());
+              }
+
+              _utils.prismResponse(res, result.format('basic'), true);
             }
 
           });
         }else{
-          _utils.prismResponse( res, null, false, PrismError.serverError, PrismError.serverPrismError.status_code);
+          _utils.prismResponse( res, null, false, PrismError.serverError);
         }
       });
     }else{
@@ -152,19 +423,18 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
         }else{
-          var user = result.toObject();
-          delete user.password;
-          delete user.posts;
-          delete user.likes;
-          delete user.comments;
+          if(result.review_key && result.status === 2){
+            var mail = new Mail();
+            mail.institutionReview(result.toObject());
+          }
 
-          _utils.prismResponse(res, result, true);
+          _utils.prismResponse(res, result.format('basic'), true);
         }
       });
     }
 
   }else{
-    _utils.prismResponse(res, null, false, PrismError.invalidRequest, PrismError.invalidRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
 
@@ -198,7 +468,7 @@ exports.fetchAllUsers = function(req, res){
                                     {$gt: req.query.feature_identifier};
     }
   }
-
+  criteria.status = 'active';
   query = _utils.buildQueryObject(User, criteria, options);
   query.select('name first_name last_name profile_photo_url').exec(function(err, users){
     if(err || !users){
@@ -218,26 +488,79 @@ exports.fetchAllUsers = function(req, res){
  */
 exports.fetchUser = function(req, res){
   if(req.params.id){
-    User.findOne({_id: req.params.id}, function(error, result){
+    var criteria = {_id: req.params.id };
+    new Twine('User', criteria, req, null, function(error, result){
       if(error){
-        console.log('Error retrieving user by id: ' + req.params.id);
-        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
-                                                PrismError.invalidUserRequest.status_code);
-      }else{
-        var user = result.toObject();
-          if(typeof(user.password) !== 'undefined') delete user.password;
-          if(typeof(user.provider_token) !== 'undefined') delete user.provider_token;
-          if(typeof(user.provider_token_secret) !== 'undefined') delete user.provider_token_secret;
-          delete user.posts;
-          delete user.likes;
-          delete user.comments;
+        _logger.log('Error', 'Error retrieving user by id: ' + req.params.id);
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
 
-        _utils.prismResponse(res, user, true);
+      }else{
+        _utils.prismResponse(res, result, true);
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest,
-                                            PrismError.invalidUserRequest.status_code);
+    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+  }
+};
+
+/**
+ * Updates available User object fields
+ *
+ * @param  {HTTPRequest} req The request object
+ * @param  {HTTPResponse} res The response object
+ * @return {Post} Returns A Post Object array containing ..
+ */
+exports.updateUser = function(req, res){
+  if(req.params.id && Object.keys(req.body).length > 0){
+    User.findOne({_id: req.params.id}, function(err, user){
+      var error = {
+        status_code: 400,
+        error_info: {
+          error: 'unable_to_update_user',
+          error_description: 'An error occured while trying to update the user, please try again.'
+        }
+      };
+
+      if(err || !user){
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+      }else{
+        //check updateable body fields & update them if they exist
+        var body = req.body;
+        if(typeof(body.first_name) !== 'undefined') user.first_name = body.first_name;
+        if(typeof(body.last_name) !== 'undefined') user.last_name = body.last_name;
+        if(typeof(body.info) !== 'undefined') user.info = body.info;
+        if(typeof(body.website) !== 'undefined') user.website = body.website;
+        if(typeof(body.ethnicity) !== 'undefined') user.ethnicity = body.ethnicity;
+        if(typeof(body.affiliations) !== 'undefined') user.affliations = body.affliations;
+        if(typeof(body.religion) !== 'undefined') user.religion = body.religion;
+        if(typeof(body.gender) !== 'undefined') user.gender = body.gender;
+        if(typeof(body.zip_postal) !== 'undefined') user.zip_postal = body.zip_postal;
+        if(typeof(body.birthday) !== 'undefined') user.birthday = body.birthday;
+        if(typeof(body.profile_photo_url) !== 'undefined') user.profile_photo_url = body.profile_photo_url;
+        if(typeof(body.cover_photo_url) !== 'undefined') user.cover_photo_url = body.cover_photo_url;
+        if(typeof(body.instagram_token) !== 'undefined') user.instagram_token = body.instagram_token;
+        if(typeof(body.instagram_min_id) !== 'undefined') user.instagram_min_id = body.instagram_min_id;
+        if(typeof(body.twitter_token) !== 'undefined') user.twitter_token = body.twitter_token;
+        if(typeof(body.twitter_min_id) !== 'undefined') user.twitter_min_id = body.twitter_min_id;
+        if(typeof(body.mascot) !== 'undefined') user.mascot = body.mascot;
+        if(typeof(body.date_founded) !== 'undefined') user.date_founded = body.date_founded;
+        if(typeof(body.enrollment) !== 'undefined') user.enrollment = body.enrollment;
+        if(typeof(body.state) !== 'undefined') user.state = body.state;
+        if(typeof(body.city) !== 'undefined') user.city = body.city;
+        if(typeof(body.subtype) !== 'undefined') user.subtype = body.subtype;
+
+        user.save(function(err, saved){
+          if(err || !saved){
+            _utils.prismResponse(res, null, false, error);
+
+          }else{
+            _utils.prismResponse(res, saved.format('basic'), true);
+          }
+        });
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
 
@@ -257,57 +580,73 @@ exports.fetchUserNewsFeed = function(req, res){
       }else{
         //fetch all posts that are public & the user is following
         var following_array = [];
+        var trusts_array = [];
         for(var i = 0; i < user.following.length; i++){
-
           following_array.push(user.following[i]._id);
         }
 
-        if(following_array.length > 0){
-
-          if(req.query){
-            fetch_options = _utils.parsedQueryOptions(req.query);
-            if(req.query.feature_identifier){
-              if(req.query.direction && req.query.direction == 'older'){
-                fetch_criteria = {scope: 'public', creator: {$in : following_array},
-                                  create_date: { $lt: req.query.feature_identifier}};
-              }else{
-                fetch_criteria = {scope: 'public', creator: {$in : following_array},
-                                  create_date: { $gt: req.query.feature_identifier}};
-              }
-
-              fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
-            }else{
-              fetch_criteria = {scope: 'public', creator: {$in : following_array}};
-              fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
-            }
+        Trust.find({status: 'accepted', $or : [{to:req.params.id},{from:req.params.id}]}, function(err, trusts){
+          if(err){
+            _logger.log('error', 'an error was returned while trying to fetch trusts for feed for user: '+req.params.id);
+            _utils.prismResponse(res, null, false, PrismError.serverError);
 
           }else{
-            fetch_criteria = {scope: 'public', creator: {$in : following_array}};
-            fetch_query = _utils.buildQueryObject(Post, fetch_criteria);
+            if(_.has(trusts, 'length')){
+              for(var t=0; t < trusts.length; t++){
+                var trust = trusts[t].toObject();
+                var to = trust.to.toString();
+                var from = trust.from.toString();
+                var item;
+                if(to === req.params.id){
+                  item = from;
+                }else{
+                  item = to;
+                }
+                trusts_array.push(item);
+              }
+            }
+            //user should see its own posts, so add the user to the following_array
+            //which is used in the search criteria
+
+            //TODO: ensure trust is accepted
+            var posts_array = [];
+
+            var criteria = {$or: [  {scope: 'public', status: 'active', creator: {$in:following_array}},
+                                    {scope: {$in:['trust', 'public']}, status: 'active', creator: {$in:trusts_array}},
+                                    {creator: user._id, status: 'active'}]};
+
+            _logger.log('info', 'news feed find criteria', {criteria:criteria});
+
+            new Twine('Post', criteria, req, {status: 'active'}, function(err, result){
+              if(err){
+                _logger.log('error', 'fetch news feed via twine returned error', {error:err});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+
+              // }else if(result){
+              }else{
+                for(var index in result){
+                  if(result[index].status === 'inactive'){
+                    delete result[index];
+                  }
+                }
+                _utils.prismResponse(res, result, true);
+              }
+
+              // }else{
+              //   var error = {
+              //     status_code: 400,
+              //       error_info: {
+              //         error: 'user_has_no_news_feed_content',
+              //         error_description: 'The requested user is not following anyone.'+
+              //         ' There is no content to display'
+              //       }
+              //     };
+              //   _logger.log('error', 'user has no news feed content');
+              //   _utils.prismResponse(res,null,false,error);
+              // }
+            });
           }
-
-          var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
-          fetch_query.populate(fetch_populate).exec(function(err, feed){
-            if(err){
-              _utils.prismResponse(res,null,false,PrismError.serverError);
-
-            }else{
-              _utils.prismResponse(res,feed,true);
-            }
-          });
-
-        }else{
-          //user is not following anyone. send error
-          var error = {
-            status_code: 400,
-            error_info: {
-              error: 'user_has_no_news_feed_content',
-              error_description: 'The requested user is not following anyone.'+
-              ' There is no content to display'
-            }
-          };
-          _utils.prismResponse(res,null,false,error);
-        }
+        });
       }
     });
   }else{
@@ -315,6 +654,8 @@ exports.fetchUserNewsFeed = function(req, res){
   }
 };
 
+
+//TODO: move to posts route class
 /**
  * [createUserPost description]
  * @param  {[type]} req [description]
@@ -338,10 +679,16 @@ exports.createUserPost = function(req, res){
       if(req.body.file_path && req.body.file_path != 'undefined') post.file_path = req.body.file_path;
       if(req.body.text && req.body.text != 'undefined') post.text = req.body.text;
       if(req.body.scope != 'undefined') post.scope = req.body.scope;
-
+      if(req.body.external_provider !== 'undefined') post.external_provider = req.body.external_provider;
+      if(req.body.external_link !== 'undefined') post.external_link = req.body.external_link;
       if(req.body.hash_tags){
         post.hash_tags = req.body.hash_tags;
         post.hash_tags_count = req.body.hash_tags.length;
+      }
+
+      if(typeof req.body.origin_post_id !== 'undefined'){
+        post.origin_post_id = req.body.origin_post_id;
+        post.is_repost = true;
       }
 
       User.findOne({_id: req.params.id}, function(error, user){
@@ -350,7 +697,11 @@ exports.createUserPost = function(req, res){
           _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
 
         }else{
-          post.target_id = user._id;
+          post.type = user.type;
+          if(!_.isUndefined(req.body.accolade_target)){
+            post.accolade_target = req.body.accolade_target;
+            post.tags.push({_id: req.body.accolade_target});
+          }
           post.save(function(error, user_post){
             if(error){
               _logger.log('error', 'Error trying to create/save a new post',
@@ -377,7 +728,31 @@ exports.createUserPost = function(req, res){
                         console.log(err);
                         _utils.prismResponse(res, null, false, PrismError.serverError);
                       }else{
-                        _utils.prismResponse(res, usr, true);
+                        if(usr.is_repost){
+                          usr.fetchRepostShortUser(usr.origin_post_id, function(err, org_user){
+                            usr = usr.toObject();
+                            usr.origin_post_creator = org_user;
+
+                            //create repost activity
+                            _utils.registerActivityEvent(org_user._id,
+                                                         req.body.creator,
+                                                         'repost',
+                                                         user_post._id);
+
+                            _utils.prismResponse(res, usr, true);
+                          });
+
+                        }else{
+                          //if an accolade_target is set send activity & push notification
+                          if(user_post.accolade_target){
+                            _utils.registerActivityEvent(user_post.accolade_target,
+                                                    req.body.creator,
+                                                    'accolade',
+                                                    user_post._id);
+                          }
+
+                          _utils.prismResponse(res, usr, true);
+                        }
                       }
                     });
                   }
@@ -403,7 +778,7 @@ exports.createUserPost = function(req, res){
 };
 
 
-
+//TODO: move to posts route class
 /**
  * Fetchs Prism Users posts
  *
@@ -422,14 +797,22 @@ exports.fetchUserPosts = function(req, res){
       fetch_options = _utils.parsedQueryOptions(req.query);
       if(req.query.feature_identifier){
         if(req.query.direction && req.query.direction == 'older'){
-          fetch_criteria = {target_id: req.params.id, create_date: { $lt: req.query.feature_identifier}};
+          fetch_criteria = {
+            target_id: req.params.id,
+            create_date: { $lt: req.query.feature_identifier},
+            status: 'active'
+          };
         }else{
-          fetch_criteria = {target_id: req.params.id, create_date: { $gt: req.query.feature_identifier}};
+          fetch_criteria = {
+            target_id: req.params.id,
+            create_date: { $gt: req.query.feature_identifier},
+            status: 'active'
+          };
         }
 
         fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }else{
-        fetch_criteria = {target_id: req.params.id};
+        fetch_criteria = {target_id: req.params.id, status: 'active'};
         fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
       }
 
@@ -465,14 +848,7 @@ exports.fetchUserPosts = function(req, res){
  */
 var isValidRegisterRequest = function(req){
   if( typeof(req.body.first_name) == 'undefined'  ||
-      typeof(req.body.last_name) == 'undefined'   ||
-      // typeof(req.body.email) == 'undefined'     ||
-      typeof(req.body.gender) == 'undefined' ||
-      typeof(req.body.zip_postal) == 'undefined' ||
-      typeof(req.body.city) == 'undefined' ||
-      typeof(req.body.state) == 'undefined' ||
-      typeof(req.body.birthday) == 'undefined' ){
-
+      typeof(req.body.zip_postal) == 'undefined'){
     return false;
 
   }else{
@@ -541,9 +917,11 @@ var handleSocialProviderLogin = function(body, callback){
           callback(error, false);
         }else if(response){
 
-          User.findOne({provider_id: response.body.id}, function(error, response){
+          var user = User.findOne({provider_id: response.body.id, status: 0});
+          user.select(User.selectFields('basic').join(" "));
+          user.exec(function(error, response){
             if(error){
-              callback(PrismError.invalidSocialUser, false);
+              callback(PrismError.serverError, false);
             }else if(response && response._id){
               callback(false, response);
             }else{
@@ -567,7 +945,9 @@ var handleSocialProviderLogin = function(body, callback){
           _logger.info('Succesfuly returned object from authorizing twitter user: ', result);
           _logger.log(result);
 
-          User.findOne({provider_id: result.id.toString()}, function(error, response){
+          var user = User.findOne({provider_id: result.id.toString()});
+          user.select(User.selectFields('basic').join(" "));
+          user.exec(function(error, response){
             if(error){
               _logger.error('Error returned trying to find twitter user in prism.'+
                             ' Users does not exist.', {error: error, twitter_user: result});
@@ -586,6 +966,34 @@ var handleSocialProviderLogin = function(body, callback){
         }else{
           _logger.error('A server error occured. No error or'+
                        ' result was retured from authorizing a twitter user');
+          callback(PrismError.serverError, false);
+        }
+      });
+      break;
+    case 'google':
+      var gplus = new Google(body.provider_token);
+      gplus.authorizeUser(function(error, result){
+        if(error){
+          callback(error, false);
+
+        }else if(typeof result.id !== 'undefined'){
+          //lookup user by provider_id to ensure exists, otherwise registration is required
+          var user = User.findOne({provider_id: result.id.toString()});
+          user.select(User.selectFields('basic').join(' '));
+          user.exec(function(error, response){
+            if(error || !response){
+              _logger.log('error', 'Unable to find googleplus user or server error was thrown',
+                          {error: error, response: response});
+              callback(PrismError.invalideSocialUser, false);
+            }
+
+            _logger.log('info', 'Found Google Plus user to validate login', {user: response});
+            callback(false, response);
+          });
+
+        }else{
+          _logger.log('error', 'Unhandled event caused by no error or result returning',
+                      {result: result, error: error});
           callback(PrismError.serverError, false);
         }
       });
@@ -637,6 +1045,23 @@ var handleSocialProviderRegistration = function(body, callback){
         }
       });
       break;
+    case 'google':
+      var gplus = new Google(body.provider_token);
+      gplus.authorizeUser(function(error, result){
+        if(error || !result){
+          _logger.error('unable to authorize googleplus user in handleRegistration: ',
+                       {error: error, result: result});
+          callback(error, false);
+
+        }else if(result.id){
+          _logger.log('info','successful auth & response for googkeplus authroizeUser in reg');
+          callback(false, result);
+
+        }else{
+          _logger.log('error', 'Unhandled situation with no error and no response from googleplus reg');
+        }
+      });
+      break;
     default:
       //there is no default. therefore the requested provider authorization is
       //not currently supported. Log & reutrn error
@@ -681,4 +1106,34 @@ var isSocialProvider = function(body){
     return true;
   }
   return false;
+};
+
+/**
+ * Search User
+ */
+exports.search = function(req, res){
+  //create invalid search error;
+  var error = {
+    status_code: 400,
+    error_info: {
+      error: 'invalid_search_request',
+      error_description: 'A search key & object value must be included in the X-Arguments httpd header'
+    }
+  };
+  if(req.headers['x-arguments']){
+    var args = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
+    args = JSON.parse(args);
+    if(!args.search) _utils.prismResponse(res, null, false, error);
+
+    var search_key = Object.keys(args.search)[0];
+    if(!search_key) _utils.prismResponse(res, null, false, error);
+    var criteria = {};
+    criteria[search_key] = {$regex: formatStringSearchVariable(args.search[search_key]), status: 'active'};
+    new Twine('User', criteria, req, null, function(err, response){
+      if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+      _utils.prismResponse(res, response, true);
+    });
+  }else{
+    _utils.prismResponse(res, null, false, error);
+  }
 };

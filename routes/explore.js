@@ -4,45 +4,58 @@
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
 var _mongoose     = require('mongoose'),
+    _             = require('underscore'),
     _prism_home   = process.env.PRISM_HOME,
     _utils        = require(_prism_home + 'utils'),
-    _logger       = require('winston'),
+    _logger       = require(_prism_home + 'logs.js'),
+    Twine         = require(_prism_home + 'classes/Twine'),
     PrismError    = require(_prism_home + 'error'),
-    Facebook      = require(_prism_home + 'classes/Facebook'),
-    Twitter       = require(_prism_home + 'classes/Twitter'),
     User          = require(_prism_home + 'models/user').User,
     Post          = require(_prism_home + 'models/post').Post;
 
-module.exports = function(req, res){
-  var fetch_criteria = {},
-      fetch_options = null,
-      fetch_filter,
-      fetch_query;
+/**
+ * BETTER AGGREGATE FOR HASHTAG GROUPING & COUNTS
+ *
+ * $unwind: "$has_tags"
+ * $match: {hash_tags: regex, status:active}
+ * $group: {_id: $hash_tags, count: {$sum :1}}
+ * $sort: {count: -1}
+ * $limit: 30
+ */
 
-  if(req.query && req.query.limit || req.query.feature_identifier){
-    fetch_options = _utils.parsedQueryOptions(req.query);
-    if(req.query.feature_identifier){
-      if(req.query.direction){
-        fetch_criteria = {scope: 'public', create_date: { $lt: req.query.feature_identifier}};
-
-        }else{
-          fetch_criteria = {scope: 'public', create_date: { $gt: req.query.feature_identifier}};
-        }
-
-        if(typeof(req.query.location_name) !== 'undefined')
-          fetch_criteria.location_name = req.query.location_name;
-        fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
-
-      }
+var searchHashTags = function(req, res){
+  if(!req.params.hash){
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
 
   }else{
-    if(!fetch_options) fetch_options = _utils.parsedQueryOptions(req.query);
-    if(fetch_criteria == {}) fetch_criteria = {scope: 'public'};
-    fetch_query = _utils.buildQueryObject(Post, fetch_criteria, fetch_options);
-  }
+    var regex_hash_string = new RegExp(req.params.hash, 'gi');
+    Post.aggregate([
+      { $unwind: "$hash_tags" },
+      { $match: { hash_tags: regex_hash_string, status: 'active', scope: 'public' }},
+      { $group: { _id: "$hash_tags", count: {$sum :1} }},
+      { $sort: { count: -1 }},
+      { $limit: 30 } ],
+      function(err, hashtags){
+        if(err){
+          _utils.prismResponse(res, null, false, PrismError.invalidRequest);
 
-  var fetch_populate = ['creator', 'first_name last_name profile_photo_url'];
-  fetch_query.populate(fetch_populate).exec(function(error, explore){
+        }else{
+
+          //reformat the results properly {hash_tag: '', count: }
+          var response = [];
+          for(var index in hashtags){
+            var item = hashtags[index];
+            response.push({hash_tag: item._id, count: item.count});
+          }
+          _utils.prismResponse(res, response, true);
+        }
+    });
+  }
+};
+
+var explore = function(req, res){
+  var criteria = {status: 'active', scope: 'public', is_flagged: false};
+  var twine = new Twine('Post', criteria, req, null, function(error, explore){
     if(error){
       _utils.prismResponse(res, null, false, PrismError.serverError);
     }else{
@@ -50,3 +63,10 @@ module.exports = function(req, res){
     }
   });
 };
+
+var thisExports = {
+  explore:  explore,
+  search:   searchHashTags
+};
+
+module.exports = thisExports;

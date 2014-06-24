@@ -1,11 +1,13 @@
-/**
+/*
  * Utility/Helper Methods
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
  */
 var _crypto   = require('crypto');
-var Token     = require(process.env.PRISM_HOME + 'models/auth').Token;
-var Client    = require(process.env.PRISM_HOME + 'models/auth').ClientApplication;
+var _home     = process.env.PRISM_HOME;
+var Token     = require(_home + 'models/auth').Token;
+var Client    = require(_home + 'models/auth').ClientApplication;
+var _         = require('underscore');
 
 /**
  * String encryption method
@@ -32,6 +34,16 @@ exports.prismEncrypt = function(string, salt_key){
  */
 exports.prismResponse = function(res, data, success, error, force_status_code){
   var response = {metadata: null, data: null};
+  if(data){
+    if(typeof data.resolve !== 'undefined' &&
+      typeof data.resolve !== null){
+      response.resolve = data.resolve;
+    }
+      if(typeof data.data !== 'undefined' &&
+        typeof data.data !== null){
+        data = data.data;
+    }
+  }
   response.metadata = { success: success };
   response.data = (Array.isArray(data) ? data : [data]);
 
@@ -74,7 +86,7 @@ exports.parsedQueryOptions = function(query_params) {
     if(typeof(query_params.skip) !== 'undefined'){
       options.skip = query_params.skip;
 
-    }else {
+    }else{
       options.skip = query_params.skip;
     }
 
@@ -82,7 +94,6 @@ exports.parsedQueryOptions = function(query_params) {
       obj[query_params.sort_field] = -1;
       obj.create_date = -1;
       options.sort = obj;
-
     }else{
       obj.create_date = -1;
       options.sort = obj;
@@ -195,3 +206,37 @@ exports.authorizeClientRequest = function(req, callback){
   }
 };
 
+/**
+ * Emits an Activity Event on the global process loop
+ *
+ * @param {String} to The target user for this activity
+ * @param {String} from The creator/requestor user for this activity
+ * @param {String} action The activity action type
+ * @param {String} post_id The post object related to the action type (optional)
+ * @param {String} comment_id The comment object related to the action type (optional)
+ * @param {Boolean} has_trust The bool value representing if to & from have a trust (optional)
+ */
+exports.registerActivityEvent = function(to, from, action, post_id, comment_id, has_trust){
+  if(!to && !from && !action){
+    throw new Error('to, from, and action are required to call registerActivityEvent');
+  }else{
+    if(_.isUndefined(post_id))
+      post_id = null;
+
+    if(_.isUndefined(comment_id))
+      comment_id = null;
+
+    if(_.isUndefined(has_trust) || _.isNull(has_trust))
+      has_trust = false;
+
+    //emit activity event
+    process.emit('activity', {
+      to: to.toString(),
+      from: from.toString(),
+      action: action,
+      post_id: post_id,
+      comment_id: comment_id,
+      has_trust: has_trust
+    });
+  }
+};

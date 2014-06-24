@@ -8,7 +8,7 @@ var _mongoose   = require('mongoose'),
     Token       = require(process.env.PRISM_HOME + 'models/auth').Token,
     Client      = require(process.env.PRISM_HOME + 'models/auth').ClientApplication,
     Code        = require(process.env.PRISM_HOME + 'models/auth').Code,
-    Error       = require(process.env.PRISM_HOME + 'error');
+    PrismError  = require(process.env.PRISM_HOME + 'error');
 
 /**
  * Auths Route module constructor & handler
@@ -55,12 +55,12 @@ var createAuthorizationCode = function(req, res){
             redirectSuccessfulAuthorizationCode(res, authCode, redirect_uri);
           });
         }else{
-          redirectAuthorizationError(res, Error.unauthorized.error_info, redirect_uri);
+          redirectAuthorizationError(res, PrismError.unauthorized.error_info, redirect_uri);
         }
       });
     }
   }else{
-    redirectAuthorizationError(res, Error.unsupportedResponseType.error_info, redirect_uri);
+    redirectAuthorizationError(res, PrismError.unsupportedResponseType.error_info, redirect_uri);
   }
 };
 

@@ -1,10 +1,163 @@
 var _prism_home   = process.env.PRISM_HOME,
+    // _mongoose     = require('mongoose'),
     _auth_models  = require(_prism_home + 'models/auth'),
     _utils        = require(_prism_home + 'utils'),
     Token         = _auth_models.Token,
     Client        = _auth_models.ClientApplication,
     Code          = _auth_models.Code,
+    Post          = require(_prism_home + 'models/post').Post,
     User          = require(_prism_home + 'models/user').User;
+
+var test_client, test_code, test_token;
+
+exports.fetchTestToken = function(cb){
+  if(!test_client && !test_code){
+    this.createTestToken(function(){
+      cb(test_token);
+    });
+  }else{
+    cb(test_token);
+  }
+};
+
+
+exports.executeRequest = function(method, url, body, cb){
+  _request({
+    method: method,
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/' + url,
+    headers: {"Authorization":"Bearer " + test_token.access_token},
+    body: (!body)? {} : body
+  }, function(err,result){
+    if(cb) cb(err, result.body);
+  });
+};
+
+exports.setupSocialNetworkUsers = function(cb){
+  var users = _helpers.fetchFakeUsersArray();
+  User.create(users, function(err, m, e, c, e2, s, m2){
+    if(err) throw err;
+    mark = m;
+    edwardo = e;
+    cameron = c;
+    erica = e2;
+    sean = s;
+    maryolin = m2;
+    cb();
+  });
+};
+
+exports.executeFollowRequest = function(u_follower, u_followee, cb){
+  _request({
+    method: 'POST',
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/users/'+u_followee._id+'/follow',
+    headers: {"Authorization": 'Bearer ' + test_token.access_token},
+    body: {creator: u_follower._id}
+  }, function(err, result){
+    if(cb) cb(err, result.body);
+  });
+};
+
+exports.executeLikeRequest = function(type, u_creator, post_id, cb){
+  _request({
+    method: 'POST',
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/posts/'+post_id+'/'+type,
+    headers: {"Authorization" : 'Bearer ' + test_token.access_token},
+    body: {creator: u_creator}
+  }, function(err, res){
+    if(cb) cb(err, res.body);
+  });
+};
+
+exports.executeCommentLikeRequest = function(type, u_creator, post_id, comment_id, cb){
+  _request({
+    method: "POST",
+    strictSSL: false,
+    json:true,
+    url: 'https://localhost:3000/posts/'+post_id+'/comments/'+comment_id+'/'+type,
+    headers: {'Authorization':'Bearer ' + test_token.access_token},
+    body: {creator: u_creator}
+  }, function(err, response){
+    if(cb) cb(err, response.body);
+  });
+};
+
+exports.executeAddCommentRequest = function(u_creator, post_id, cb){
+  _request({
+    method: 'POST',
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/posts/' + post_id + '/comments',
+    headers: {"Authorization" : "Bearer " + test_token.access_token},
+    body: {creator: u_creator, text: 'test commenting on this post'}
+  }, function(err, result){
+    if(cb) cb(err, result.body);
+  });
+};
+
+exports.executeDeleteCommentRequest = function(post_id, comment_id, cb){
+  _request({
+    method: 'DELETE',
+    strictSSL: false,
+    json: true,
+    url: 'https://localhost:3000/posts/'+post_id+'/comments/'+comment_id,
+    headers: {'Authorization' : 'Bearer '+ test_token.access_token}
+  }, function(err, result){
+    if(cb) cb(err, result.body);
+  });
+};
+
+exports.executeDeletePostRequest = function(post_id, creator, cb){
+  executeRequest('DELETE', 'posts/'+post_id, {creator: creator}, function(err, res){
+    if(cb) cb(err, res);
+  });
+};
+
+exports.executeFlagPostRequest = function(post_id, reporter_id, cb){
+  executeRequest('POST', 'posts/'+post_id+'/flag', {reporter: reporter_id}, function(err, res){
+    if(cb) cb(err, res);
+  });
+};
+
+exports.executeUpdatePostRequest = function(post_id, updated_post, cb){
+  executeRequest('PUT', 'posts/'+post_id, updated_post, function(err, res){
+    if(cb) cb(err,res);
+  });
+};
+
+
+var fixtureUsersArray = [
+  'mark',
+  'edwardo',
+  'cameron',
+  'erica',
+  'sean',
+  'maryolin',
+  'DJ'
+];
+
+exports.fetchFixturePosts = function(cb){
+  Post.find({}, function(err, result){
+    if(err) throw err;
+    cb(result);
+  });
+};
+
+exports.fetchFixtureTestUsers = function(cb){
+  var users = {};
+  User.find({first_name: {$in : fixtureUsersArray}}, function(err, result){
+    if(err) throw err;
+    for(var index in result){
+      users[result[index].first_name] = result[index];
+    }
+    cb(users);
+  });
+};
 
 exports.fetchAuthHeader = function(id, secret){
   return "Basic " + (new Buffer(id + ':' + secret).toString('base64'));
@@ -59,19 +212,19 @@ exports.fetchFakeUsersArray = function(){
 
 exports.fetchFakePostsArray = function(testUser, user){
   var posts = [
-            {text: 'test test tes1', creator: testUser._id, target_id: user._id, category: 'experience', create_date: Date.now() - 10 * 60 * 1000},
-            {text: 'test test tes2', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 60 * 60 * 100},
-            {text: 'test test tes3', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 60 * 60 * 1000},
-            {text: 'test test tes4', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 1 * 60 * 60 * 1000},
-            {text: 'test test tes5', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 45 * 60 * 1000},
-            {text: 'test test tes6', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 1000},
-            {text: 'test test tes7', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 2 * 10 * 60 * 1000},
-            {text: 'test test tes8', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 1 * 60 * 60 * 1000},
-            {text: 'test test tes9', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 60 * 1000},
-            {text: 'test test tes10', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() - 10 * 60 * 60 * 1000},
-            {text: 'test test tes11', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 30 * 60 * 1000},
-            {text: 'test test tes12', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 15 * 60 * 1000},
-            {text: 'test test tes13', creator: testUser._id, target_id: user._id, category: 'experience',create_date: Date.now() + 10 * 60 * 100}
+            {text: 'test test tes1', creator: testUser._id, target_id: user._id, category: 'experiences', create_date: Date.now() - 10 * 60 * 1000 , scope: 'public'},
+            {text: 'test test tes2', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() - 60 * 60 * 100, scope: 'public'},
+            {text: 'test test tes3', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes4', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 1 * 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes5', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 45 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes6', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 10 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes7', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 2 * 10 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes8', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() - 1 * 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes9', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 10 * 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes10', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() - 10 * 60 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes11', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 30 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes12', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 15 * 60 * 1000, scope: 'public'},
+            {text: 'test test tes13', creator: testUser._id, target_id: user._id, category: 'experiences',create_date: Date.now() + 10 * 60 * 100, scope: 'public'}
           ];
   return posts;
 };
@@ -84,12 +237,15 @@ exports.createTestToken = function(callback){
 	});
   testClient.save(function(error, client){
     if(error) throw error;
+    test_client = client;
     var testCode = new Code({client_id: client.client_id});
     testCode.save(function(error, code){
       if(error) throw error;
+      test_code = code;
       var testToken = new Token({code: code.code, client_application: client, grant_type: 'authorization_code'})
       .save(function(error, token){
         if(error) throw error;
+        test_token = token;
         callback(token, testCode, testClient);
       });
     });
@@ -105,9 +261,9 @@ exports.destroyTestToken = function(callback){
 
 exports.createTestUser = function(callback){
 	var testUser = new User({
-		first_name: 'DJ',
-    last_name: 'Hayden',
-    email: 'dj.hayden' + Math.floor((Math.random()*100)+1) + '@test.com',
+		first_name: 'DONJUAN',
+    last_name: 'TEST',
+    email: 'dj.hayden.test' + Math.floor((Math.random()*100)+1) + '@test.com',
     password: 'testpassword'
 	}).save(function(err, result){
 		if(err) throw err;
@@ -120,4 +276,11 @@ exports.destroyTestUser = function(callback){
 		if(err) throw err;
 		callback();
 	});
+};
+
+exports.destroyTestPost = function(callback){
+  Post.remove({}, function(err){
+    if(err) throw err;
+    callback();
+  });
 };

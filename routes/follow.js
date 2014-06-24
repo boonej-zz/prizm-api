@@ -11,6 +11,8 @@ var _mongoose     = require('mongoose'),
     Facebook      = require(_prism_home + 'classes/Facebook'),
     Twitter       = require(_prism_home + 'classes/Twitter'),
     User          = require(_prism_home + 'models/user').User,
+    Twine         = require(_prism_home + 'classes/Twine'),
+    Activity      = require(_prism_home + 'models/activity').Activity,
     Post          = require(_prism_home + 'models/post').Post;
 
 /**
@@ -94,8 +96,24 @@ exports.follow = function(req, res){
               };
 
               User.findOneAndUpdate(query, update_data, function(err, follower_update){
-               if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-                _utils.prismResponse(res, {}, true);
+                if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+
+                new Activity({
+                  action: 'follow',
+                  to: req.params.id,
+                  from: req.body.creator
+                }).save(function(err, activity){
+                  if(err){
+                    _logger.log('error', 'an error recieved while creating a FOLLOW activity',
+                                {err:err, activity:activity});
+                    _utils.prismResponse(res, null, false, PrismError.serverError);
+                  }else{
+                    _logger.log('info', 'successfully created FOLLOW activity', {activty:activity});
+                    _utils.prismResponse(res, {message: "Successfully followed "+req.params.id}, true);
+                  }
+                });
+                //return response
+                _utils.prismResponse(res, {message: 'Succesfully followed '+req.params.id}, true);
               });
 
             }else{
@@ -176,8 +194,16 @@ exports.unfollow = function(req, res){
                     if(err) {
                       _utils.prismResponse(res, null, false, PrismError.serverError);
                     }else{
-                       //send back successful unfollow
-                      _utils.prismResponse(res, {}, true);
+                      //emit unfollow activity event
+                      process.emit('activity', {
+                        type: 'unfollow',
+                        action: 'remove',
+                        user: req.body.creator,
+                        target: req.params.id,
+                        object: updated
+                      });
+                      //send back successful unfollow
+                      _utils.prismResponse(res, {message: 'Successfully unfollowed '+req.params.id}, true);
                     }
                   });
                 }
@@ -191,22 +217,6 @@ exports.unfollow = function(req, res){
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
-
-/**
- * [fetchFollowTypeById description]
- * @param  {[type]}   type [description]
- * @param  {[type]}   u_id [description]
- * @param  {[type]}   f_id [description]
- * @param  {Function} cb   [description]
- * @return {[type]}        [description]
- */
-// var fetchFollowTypeById = function(type, u_id, f_id, cb){
-//   if(type !== 'follower' || type !== 'following'){
-//     cb(false);
-//   }else{
-//     var criteria, follow_identifier;
-//   }
-// };
 
 /**
  * [fetchIsFollowingById description]
@@ -272,23 +282,13 @@ exports.fetchIsFollowersById = function(req, res){
  */
 exports.fetchFollowing = function(req, res){
   if(req.params.id){
-    User.find({_id: req.params.id}, {following: 1}, function(error, user){
-      if(error){
-        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
-
+    new Twine('User', {_id: req.params.id}, req, {fields: 'following'}, function(err, result){
+      if(err){
+        _utils.prismResponse(res, null, false, PrismError.ServerError);
       }else{
-        var following_array = [];
-        for(var i = 0; i < user[0].following.length; i++){
-          following_array.push(user[0].following[i]._id);
-        }
-
-        User.find(
-          {_id : {$in: following_array}},
-          {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
-          function(err, result){
-            // console.log(result);
-            _utils.prismResponse(res, result, true);
-        });
+        if(result.data && result.data.length > 0)
+          result.data = result.data[0].following;
+        _utils.prismResponse(res, result, true);
       }
     });
   }else{
@@ -304,26 +304,13 @@ exports.fetchFollowing = function(req, res){
  */
 exports.fetchFollowers = function(req, res){
   if(req.params.id){
-    User.find({_id: req.params.id}, {followers : 1}, function(error, user){
-      // debugger;
-      if(error){
-        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
-
+    new Twine('User', {_id: req.params.id}, req, {fields: 'followers'}, function(err, result){
+      if(err){
+        _utils.prismResponse(res, null, false, PrismError.ServerError);
       }else{
-        var followers_array = [];
-        for(var i = 0; i < user[0].followers.length; i++){
-          followers_array.push(user[0].followers[i]._id);
-        }
-
-        User.find(
-          {_id: {$in : followers_array}},
-          {first_name:1, last_name:1, profile_photo_url:1, posts_count:1},
-          function(err, result){
-            // console.log(result);
-            _utils.prismResponse(res, result, true);
-        });
-
-        // _utils.prismResponse(res, user, true);
+        if(result.data && result.data.length > 0)
+          result.data = result.data[0].followers;
+        _utils.prismResponse(res, result, true);
       }
     });
   }else{
