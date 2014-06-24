@@ -57,6 +57,8 @@ var userSchema = new _mongoose.Schema({
   instagram_min_id      : {type: String, default: null},
   twitter_token         : {type: String, default: null},
   twitter_min_id        : {type: String, default: null},
+  tumblr_token          : {type: String, default: null},
+  tumblr_min_id         : {type: String, default: null},
   review_key            : {type: String, default: null},
   reset_key             : {type: String, default: null},
   reset_date            : {type: String, default: null},
@@ -82,7 +84,8 @@ userSchema.statics.selectFields = function(type){
             'cover_photo_url','email','info','website','city','state',
             'create_date','posts_count','following_count','followers_count',
             'instagram_min_id', 'instagram_token', 'twitter_token',
-            'twitter_min_id','type', 'device_token', 'subtype', 'trust_count'];
+            'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
+            'tumblr_min_id', 'tumblr_token'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -91,7 +94,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'twitter_token', 'twitter_min_id',
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','status','password', 'type', 'device_token',
-            'subtype', 'trust_count'];
+            'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token'];
   }
 };
 
@@ -172,6 +175,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       instagram_min_id:   this.instagram_min_id,
       twitter_token:      this.twitter_token,
       twitter_min_id:     this.twitter_min_id,
+      tumblr_token:       this.tumblr_token,
+      tumblr_min_id:      this.tumblr_min_id,
       device_token:       this.device_token,
       subtype:            this.subtype,
       status:             this.status
