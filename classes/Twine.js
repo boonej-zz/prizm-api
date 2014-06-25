@@ -200,6 +200,7 @@ Twine.prototype.$__setSelect = function $__setSelect(){
 
   this.fetch.select(select.join(" "));
 };
+
 Twine.prototype.$__setSort = function $__setSort(){
   if(this.sort){
    var sort = {};

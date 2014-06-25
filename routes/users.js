@@ -615,7 +615,10 @@ exports.fetchUserNewsFeed = function(req, res){
 
             var criteria = {$or: [  {scope: 'public', status: 'active', creator: {$in:following_array}},
                                     {scope: {$in:['trust', 'public']}, status: 'active', creator: {$in:trusts_array}},
-                                    {creator: user._id, status: 'active'}]};
+                                    {creator: user._id, status: 'active'}
+                                 ],
+                                 is_flagged: false
+            };
 
             _logger.log('info', 'news feed find criteria', {criteria:criteria});
 

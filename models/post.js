@@ -111,14 +111,16 @@ postSchema.statics.selectFields = function(type){
             'location_name','location_longitude','location_latitude',
             'creator','likes_count','comments_count','scope',
             'hash_tags','hash_tags_count', 'tags', 'tags_count',
-            'scope_modify_date', 'accolade_target', 'external_provider'];
+            'scope_modify_date', 'accolade_target', 'external_provider',
+            'is_flagged', 'flagged_count'];
   }else{
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
             'creator','likes_count','comments_count','scope',
             'status','hash_tags','hash_tags_count', 'tags', 'tags_count',
             'is_repost','origin_post_id','modify_date', 'delete_date',
-            'scope_modify_date', 'accolade_target', 'external_provider'];
+            'scope_modify_date', 'accolade_target', 'external_provider',
+            'is_flagged', 'flagged_count'];
   }
 };
 
@@ -340,7 +342,9 @@ postSchema.methods.format = function(type, add_fields){
     tags:                 this.tags,
     tags_count:           this.tags_count,
     scope:                this.scope,
-    scope_modify_date:    this.scope_modify_date
+    scope_modify_date:    this.scope_modify_date,
+    is_flagged:           this.is_flagged,
+    flagged_count:        this.flagged_count
   };
 
   if(type === 'basic'){
