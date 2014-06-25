@@ -544,6 +544,7 @@ exports.updateUser = function(req, res){
         if(typeof(body.twitter_min_id) !== 'undefined') user.twitter_min_id = body.twitter_min_id;
         if(typeof(body.tumblr_token) !== 'undefined') user.tumblr_token = body.tumblr_token;
         if(typeof(body.tumblr_min_id) !== 'undefined') user.tumblr_min_id = body.tumblr_min_id;
+        if(typeof(body.tumblr_token_secret) !== 'undefined') user.tumblr_token_secret = body.tumblr_token_secret;
         if(typeof(body.mascot) !== 'undefined') user.mascot = body.mascot;
         if(typeof(body.date_founded) !== 'undefined') user.date_founded = body.date_founded;
         if(typeof(body.enrollment) !== 'undefined') user.enrollment = body.enrollment;

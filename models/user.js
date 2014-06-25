@@ -59,6 +59,7 @@ var userSchema = new _mongoose.Schema({
   twitter_min_id        : {type: String, default: null},
   tumblr_token          : {type: String, default: null},
   tumblr_min_id         : {type: String, default: null},
+  tumblr_token_secret   : {type: String, default: null},
   review_key            : {type: String, default: null},
   reset_key             : {type: String, default: null},
   reset_date            : {type: String, default: null},
@@ -85,7 +86,7 @@ userSchema.statics.selectFields = function(type){
             'create_date','posts_count','following_count','followers_count',
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
-            'tumblr_min_id', 'tumblr_token'];
+            'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -94,7 +95,8 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'twitter_token', 'twitter_min_id',
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','status','password', 'type', 'device_token',
-            'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token'];
+            'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
+            'tumblr_token_secret'];
   }
 };
 
@@ -154,32 +156,33 @@ userSchema.methods.format = function(type, add_fields, callback){
 
   if(type === 'basic' || type === 'internal'){
     format = {
-      _id:                this._id,
-      name:               this.name,
-      first_name:         this.first_name,
-      last_name:          this.last_name,
-      email:              this.email,
-      info:               this.info,
-      website:            this.website,
-      city:               this.city,
-      state:              this.state,
-      cover_photo_url:    this.cover_photo_url,
-      profile_photo_url:  this.profile_photo_url,
-      create_date:        this.create_date,
-      posts_count:        this.posts_count,
-      following_count:    this.following_count,
-      followers_count:    this.followers_count,
-      trust_count:        this.trust_count,
-      type:               this.type,
-      instagram_token:    this.instagram_token,
-      instagram_min_id:   this.instagram_min_id,
-      twitter_token:      this.twitter_token,
-      twitter_min_id:     this.twitter_min_id,
-      tumblr_token:       this.tumblr_token,
-      tumblr_min_id:      this.tumblr_min_id,
-      device_token:       this.device_token,
-      subtype:            this.subtype,
-      status:             this.status
+      _id:                  this._id,
+      name:                 this.name,
+      first_name:           this.first_name,
+      last_name:            this.last_name,
+      email:                this.email,
+      info:                 this.info,
+      website:              this.website,
+      city:                 this.city,
+      state:                this.state,
+      cover_photo_url:      this.cover_photo_url,
+      profile_photo_url:    this.profile_photo_url,
+      create_date:          this.create_date,
+      posts_count:          this.posts_count,
+      following_count:      this.following_count,
+      followers_count:      this.followers_count,
+      trust_count:          this.trust_count,
+      type:                 this.type,
+      instagram_token:      this.instagram_token,
+      instagram_min_id:     this.instagram_min_id,
+      twitter_token:        this.twitter_token,
+      twitter_min_id:       this.twitter_min_id,
+      tumblr_token:         this.tumblr_token,
+      tumblr_min_id:        this.tumblr_min_id,
+      tumblr_token_secret:  this.tumblr_token_secret,
+      device_token:         this.device_token,
+      subtype:              this.subtype,
+      status:               this.status
     };
   }
 
