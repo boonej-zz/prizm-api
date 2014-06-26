@@ -91,6 +91,7 @@ var postSchema = new _mongoose.Schema({
   external_provider   : {type: String, default: null},
   external_link       : {type: String, default: null},
   type                : {type: String, default: 'user'},
+  subtype             : {type: String, default: null},
   scope_modify_date   : {type: Date, default: null},
   accolade_target     : {type: String, default: null}
 }, { versionKey: false});
@@ -112,7 +113,7 @@ postSchema.statics.selectFields = function(type){
             'creator','likes_count','comments_count','scope',
             'hash_tags','hash_tags_count', 'tags', 'tags_count',
             'scope_modify_date', 'accolade_target', 'external_provider',
-            'is_flagged', 'flagged_count'];
+            'is_flagged', 'flagged_count', 'subtype'];
   }else{
     return ['_id','text','category','create_date','file_path',
             'location_name','location_longitude','location_latitude',
@@ -120,7 +121,7 @@ postSchema.statics.selectFields = function(type){
             'status','hash_tags','hash_tags_count', 'tags', 'tags_count',
             'is_repost','origin_post_id','modify_date', 'delete_date',
             'scope_modify_date', 'accolade_target', 'external_provider',
-            'is_flagged', 'flagged_count'];
+            'is_flagged', 'flagged_count', 'subtype'];
   }
 };
 
@@ -344,7 +345,8 @@ postSchema.methods.format = function(type, add_fields){
     scope:                this.scope,
     scope_modify_date:    this.scope_modify_date,
     is_flagged:           this.is_flagged,
-    flagged_count:        this.flagged_count
+    flagged_count:        this.flagged_count,
+    subtype:              this.subtype
   };
 
   if(type === 'basic'){

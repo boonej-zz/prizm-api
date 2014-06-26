@@ -18,6 +18,12 @@ var _mongoose         = require('mongoose'),
     Twine             = require(_prism_home + 'classes/Twine'),
     Comment           = require(_prism_home + 'models/post').Comment;
 
+var ScopeFilterType = {
+  Private: 3,
+  Trust: 2,
+  Public: 1
+};
+
 /**
  * Fetchs Users Post Category Stats by Week & Year
  *
@@ -192,7 +198,7 @@ exports.fetchUserPosts = function(req, res){
   if(req.params.id){
     var ServerError = function(){
       _utils.prismResponse(res, null, false, PrismError.serverError);
-    };
+    };    
 
     var criteria = {
       $or: [
@@ -202,6 +208,29 @@ exports.fetchUserPosts = function(req, res){
       status: 'active',
       category: {$ne: 'accolade'}
     };
+
+    if(req.headers['x-arguments']) {
+      var args = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
+      args = JSON.parse(args);
+      if(args.scope) {
+        switch(args.scope.split(" ").length){
+          case ScopeFilterType.Public:
+            criteria.scope = "public";
+            break;
+          case ScopeFilterType.Trust:
+            criteria.scope = {$in : ["public", "trust"]};
+            break;
+          default:
+            break;
+        }
+
+        delete args.scope;
+        args = JSON.stringify(args);
+        var repackaged = new Buffer(args).toString('base64');
+        req.headers['x-arguments'] = repackaged;
+      }
+    }
+
     new Twine('Post', criteria, req, null, function(error, result){
       if(error){
         _logger.log('error', 'Fetching Users Posts retunred error', {err:error});
