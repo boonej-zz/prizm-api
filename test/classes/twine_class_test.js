@@ -124,14 +124,18 @@ describe('Twine Class Unit Tests', function(done){
         page_direction: 1,
         page: "Thu Mar 27 2014 07:00:41 GMT-0700 (PDT)",
         sort: -1,
-        sort_by: "create_date"
+        sort_by: "create_date_exist"
       })).toString('base64');
       var req = {};
       req.headers = {};
       req.headers['x-arguments'] = header;
       new Twine('Post', {}, req, {limit: 3}, function(err, results){
         console.log("Starting date :"  + new Date("Thu Mar 27 2014 07:00:41 GMT-0700 (PDT)").toISOString());
-        console.log("Result date : " + results.data[0].create_date.toISOString());
+
+        for(var i=0; i < results.data.length; i++){
+          console.log(new Date(results.data[i].create_date).toISOString());
+        }
+
         debugger;
         done();
       });

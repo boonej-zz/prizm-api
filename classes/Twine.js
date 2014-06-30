@@ -204,7 +204,12 @@ Twine.prototype.$__setSelect = function $__setSelect(){
 Twine.prototype.$__setSort = function $__setSort(){
   if(this.sort){
    var sort = {};
-   sort[this.sort_by] = this.sort;
+   // sort[this.sort_by] = this.sort;
+   if(this.page_direction === 1) {
+      sort[this.page_by] = -1;
+    } else {
+      sort[this.page_by] = 1;
+    }
    // if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
    //if(this.sort_by !== DEFAULT_SORT_BY) sort[DEFAULT_SORT_BY] = this.page_direction;
    _logger.log('info', 'setting sort', {sort: sort});
@@ -266,14 +271,46 @@ Twine.prototype.executeRequest = function executeRequest (){
       response.data = result;
       //if contains or resolve properties are set process, else return response
       if(!self.contains && !self.resolve){
-        self.cb(err, response);
+        //self.cb(err, response);
+        self.$__applyResultSort(err, response);
       }else{
         self.process(response, function(err, process_result){
-          self.cb(err, process_result);
+          // self.cb(err, process_result);
+          self.$__applyResultSort(err, process_result);
         });
       }
     }
   });
+};
+
+Twine.prototype.$__applyResultSort = function applyResultSort(err, response){
+  var self = this;
+  if(response.data.length > 0){
+    var key = self.sort_by;
+    var direction = self.sort;
+
+    response.data.sort(function(a, b){
+      if(_.has(a, key) && _.has(b, key)){
+        if(direction === 1) {
+          if(a[key] > b[key]) return 1;
+          if(a[key] < b[key]) return -1;
+          return 0;
+        } else {
+          if(a[key] > b[key]) return -1;
+          if(a[key] < b[key]) return 1;
+          return 0;
+        }
+      } else {
+        if(!err) {
+          err = new Error("sort_by key does not exist");
+        }
+      }
+    });
+
+    self.cb(err, response);
+  } else {
+    self.cb(err, response);
+  }
 };
 
 Twine.prototype.$__formatChildModelBaseResults = function(base, model_name){
