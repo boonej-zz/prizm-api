@@ -19,7 +19,6 @@ var _thisapp    = require(process.cwd() + '/server.js'),
     Activity    = require(process.env.PRISM_HOME + 'models/activity').Activity,
     Trust       = require(process.env.PRISM_HOME + 'models/user').Trust;
 
-
 describe('Twine Class Unit Tests', function(done){
   var mark, edwardo, cameron, erica, sean, maryolin, DJ;
   var follower = null;
@@ -82,14 +81,6 @@ describe('Twine Class Unit Tests', function(done){
   });
   //TODO: filter tests
   describe('Testing Filtering Properties', function(done){
-    before(function(done){
-      test_post1.scope = 'trust';
-      test_post1.save(function(err, saved){
-        if(err) throw err;
-        done();
-      });
-    });
-
     it('should allow a sub document property to be filtered', function(done){
       var req = {};
       var filter = {
@@ -102,19 +93,6 @@ describe('Twine Class Unit Tests', function(done){
       req.headers['x-arguments'] = header;
       new Twine('Post', {}, req, null, function(err, results){
         // debugger;
-        done();
-      });
-    });
-    it('should allow multiple values(array) for a filter', function(done){
-      var req = {};
-      var filter = {};
-      filter.scope = ['trust', 'public'];
-      var header = JSON.stringify(filter);
-      header = new Buffer(header).toString('base64');
-      req.headers = {};
-      req.headers['x-arguments'] = header;
-      new Twine('Post', {}, req, null, function(err, results){
-        debugger;
         done();
       });
     });
@@ -141,15 +119,19 @@ describe('Twine Class Unit Tests', function(done){
     //override with optional to not apply any sort behavior?
     it('should default to paging by create_date descending', function(done){
       var header = new Buffer(JSON.stringify({
-        page_by: ['create_date', 'delete_date'],
+        // page_by: ['create_date', 'delete_date'],
+        page_by: ['create_date'],
         page_direction: 1,
-        page: "Thu Mar 27 2014 06:10:00 GMT-0700 (PDT)",
-        sort: 1
+        page: "Thu Mar 27 2014 07:00:41 GMT-0700 (PDT)",
+        sort: -1,
+        sort_by: "create_date"
       })).toString('base64');
       var req = {};
       req.headers = {};
       req.headers['x-arguments'] = header;
-      new Twine('Post', {}, req, {limit: 5}, function(err, results){
+      new Twine('Post', {}, req, {limit: 3}, function(err, results){
+        console.log("Starting date :"  + new Date("Thu Mar 27 2014 07:00:41 GMT-0700 (PDT)").toISOString());
+        console.log("Result date : " + results.data[0].create_date.toISOString());
         debugger;
         done();
       });
@@ -159,8 +141,8 @@ describe('Twine Class Unit Tests', function(done){
   //TODO: limit tests
   //TODO: contains tests
   //TODO: resolve
-  //TODO: recursive resolve
-  //TODO: resolve contains
+    //TODO: recursive resolve
+    //TODO: resolve contains
   describe('Testing Resolve', function(done){
     before(function(done){
       User.findOne({_id: mark._id}, function(err, result){

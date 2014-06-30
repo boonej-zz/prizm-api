@@ -205,9 +205,8 @@ Twine.prototype.$__setSort = function $__setSort(){
   if(this.sort){
    var sort = {};
    sort[this.sort_by] = this.sort;
-   // sort._id = this.sort;
    // if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
-   if(this.sort_by !== DEFAULT_SORT_BY) sort[DEFAULT_SORT_BY] = this.page_direction;
+   //if(this.sort_by !== DEFAULT_SORT_BY) sort[DEFAULT_SORT_BY] = this.page_direction;
    _logger.log('info', 'setting sort', {sort: sort});
    this.fetch.sort(sort);
   }
@@ -244,6 +243,7 @@ Twine.prototype.buildBaseRequest = function buildBaseRequest (){
   this.$__setSelect();
   this.$__setSort();
   this.$__setLimit();
+  this.fetch.skip(0);
   //only execute the request if the callback is set. if not
   //the executerequest can take an optional cb -- to invoked seperately
   //TODO: worry about this on second pass.. just call for now
