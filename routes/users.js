@@ -302,7 +302,7 @@ exports.login = function(req, res){
         }
       });
     }else{
-      var user = User.findOne({email: req.body.email, status: 0});
+      var user = User.findOne({email: req.body.email, status: {$in: [0, 2]}});
       user.select(User.selectFields('internal').join(" "));
       user.exec(function(error, result){
         if(error){
