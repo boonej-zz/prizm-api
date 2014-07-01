@@ -202,16 +202,21 @@ Twine.prototype.$__setSelect = function $__setSelect(){
 };
 
 Twine.prototype.$__setSort = function $__setSort(){
-  if(this.sort){
-   var sort = {};
-   // sort[this.sort_by] = this.sort;
-   if(this.page_direction === 1) {
-      sort[this.page_by] = -1;
+  if(this.sort) {
+  var sort = {};
+  // If page is set then sort the db result inverse to page direction
+  // Else apply the sort directly to the db result set as we want the most
+  // recent result set (top records) by sort and sort_by (which should also default
+  // to create_date & descending)
+    if(this.page ){
+      if(this.page_direction === 1) {
+        sort[this.page_by] = -1;
+      } else {
+        sort[this.page_by] = 1;
+      }
     } else {
-      sort[this.page_by] = 1;
+      sort[this.sort_by] = this.sort;
     }
-   // if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
-   //if(this.sort_by !== DEFAULT_SORT_BY) sort[DEFAULT_SORT_BY] = this.page_direction;
    _logger.log('info', 'setting sort', {sort: sort});
    this.fetch.sort(sort);
   }
