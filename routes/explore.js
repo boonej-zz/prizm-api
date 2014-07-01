@@ -31,7 +31,7 @@ var searchHashTags = function(req, res){
     var regex_hash_string = new RegExp(req.params.hash, 'gi');
     Post.aggregate([
       { $unwind: "$hash_tags" },
-      { $match: { hash_tags: regex_hash_string, status: 'active', scope: 'public' }},
+      { $match: { hash_tags: regex_hash_string, active: true, scope: 'public' }},
       { $group: { _id: "$hash_tags", count: {$sum :1} }},
       { $sort: { count: -1 }},
       { $limit: 30 } ],
@@ -54,7 +54,7 @@ var searchHashTags = function(req, res){
 };
 
 var explore = function(req, res){
-  var criteria = {status: 'active', scope: 'public', is_flagged: false};
+  var criteria = {active: true, scope: 'public', is_flagged: false};
   var twine = new Twine('Post', criteria, req, null, function(error, explore){
     if(error){
       _utils.prismResponse(res, null, false, PrismError.serverError);

@@ -42,7 +42,6 @@ var userSchema = new _mongoose.Schema({
   modify_date           : {type: Date, default: null},
   delete_date           : {type: Date, default: null},
   last_login_date       : {type: Date, default: null},
-  status                : {type: Number, default: 0},
   posts_count           : {type: Number, default: 0},
   following             : {type: Array, default: []},
   followers             : {type: Array, default: []},
@@ -66,7 +65,8 @@ var userSchema = new _mongoose.Schema({
   password_reset        : {type: String, default: null},
   device_token          : {type: String, default: null},
   subtype               : {type: String, default: null},
-  badge_count           : {type: Number, default: 0}
+  badge_count           : {type: Number, default: 0},
+  active                : {tyoe: Boolean, default: true},
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -79,11 +79,11 @@ userSchema.statics.canResolve = function(){
 
 userSchema.statics.selectFields = function(type){
   if(type === 'short'){
-    return ['_id','name','first_name','last_name','profile_photo_url','type', 'status'];
+    return ['_id','name','first_name','last_name','profile_photo_url','type', 'active'];
   }else if(type === 'basic'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
-            'create_date','posts_count','following_count','followers_count',
+            'create_date','posts_count', 'active' ,'following_count','followers_count',
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret'];
@@ -94,7 +94,7 @@ userSchema.statics.selectFields = function(type){
             'provider','provider_id','provider_token', 'instagram_token',
             'instagram_min_id', 'twitter_token', 'twitter_min_id',
             'provider_token_secret','gender','birthday','address','country',
-            'modify_date','delete_date','status','password', 'type', 'device_token',
+            'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
             'tumblr_token_secret'];
   }
@@ -150,7 +150,7 @@ userSchema.methods.format = function(type, add_fields, callback){
       last_name: this.last_name,
       profile_photo_url: this.profile_photo_url,
       type: this.type,
-      status: this.status
+      active: this.active
     };
   }
 
@@ -182,7 +182,7 @@ userSchema.methods.format = function(type, add_fields, callback){
       tumblr_token_secret:  this.tumblr_token_secret,
       device_token:         this.device_token,
       subtype:              this.subtype,
-      status:               this.status
+      active:               this.active
     };
   }
 

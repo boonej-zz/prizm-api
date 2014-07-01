@@ -42,10 +42,9 @@ exports.review = function review(req, res){
 
         }else{
           if(user.review_key === req.query.review_key &&
-             user.status === 2){
+             user.type === 'institution'){
             user.type = (req.query.approval === 'yes') ? 'institution_verified' : 'user';
             user.review_key = null;
-            user.status = 0;
             user.save(function(err, saved){
               if(err){
                 _utils.prismResponse(res, null, false, PrismError.serverError);
@@ -134,7 +133,7 @@ exports.deleteUser = function(req, res){
 
       }else{
         user.delete_date = Date.now();
-        user.status = 1;
+        user.active = false;
         user.save(function(error, saved){
           if(error){
             _logger.log('error',
@@ -302,7 +301,7 @@ exports.login = function(req, res){
         }
       });
     }else{
-      var user = User.findOne({email: req.body.email, status: {$in: [0, 2]}});
+      var user = User.findOne({email: req.body.email, active: true});
       user.select(User.selectFields('internal').join(" "));
       user.exec(function(error, result){
         if(error){
@@ -375,7 +374,6 @@ exports.register = function(req, res){
       if(typeof(req.body.website) !== 'undefined')
         newUser.website = req.body.website;
 
-      newUser.status = 2;
       newUser.review_key = _uuid.v1();
     }
 
@@ -400,7 +398,7 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
             }else{
-              if(result.review_key && result.status === 2){
+              if(result.review_key && result.type === 'institution'){
                 var mail = new Mail();
                 mail.institutionReview(result.toObject());
               }
@@ -423,7 +421,7 @@ exports.register = function(req, res){
                                 PrismError.invalidRegisterUserExists,
                                 PrismError.invalidRegisterUserExists.status_code);
         }else{
-          if(result.review_key && result.status === 2){
+          if(result.review_key && result.type === 'institution'){
             var mail = new Mail();
             mail.institutionReview(result.toObject());
           }
@@ -468,7 +466,7 @@ exports.fetchAllUsers = function(req, res){
                                     {$gt: req.query.feature_identifier};
     }
   }
-  criteria.status = 'active';
+  criteria.active = true;
   query = _utils.buildQueryObject(User, criteria, options);
   query.select('name first_name last_name profile_photo_url').exec(function(err, users){
     if(err || !users){
@@ -912,7 +910,7 @@ var handleSocialProviderLogin = function(body, callback){
           callback(error, false);
         }else if(response){
 
-          var user = User.findOne({provider_id: response.body.id, status: 0});
+          var user = User.findOne({provider_id: response.body.id, active: true});
           user.select(User.selectFields('basic').join(" "));
           user.exec(function(error, response){
             if(error){
@@ -1124,7 +1122,7 @@ exports.search = function(req, res){
     if(!search_key) _utils.prismResponse(res, null, false, error);
     var criteria = {};
     criteria[search_key] = {$regex: formatStringSearchVariable(args.search[search_key])};
-    criteria.status = 0;
+    criteria.active = true;
     new Twine('User', criteria, req, null, function(err, response){
       if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
       _utils.prismResponse(res, response, true);
