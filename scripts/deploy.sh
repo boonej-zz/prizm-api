@@ -74,13 +74,13 @@ rollback() {
   environment
   echo ""
   echo "Rolling Back last deployment on $SERVER"
-  ssh -i $SSHI ec2-user@$SERVER "cd /var/www && sudo mv ./prism_api_rollback ./prism_api"
+  ssh -i $SSHI ec2-user@$SERVER "cd /var/www && sudo mv ./prism_api_rollback ./prism_api && sudo mkdir ./prism_api_rollback"
   post_deploy
 }
 
 
 create_rollback() {
-  ssh -i $SSHI ec2-user@$SERVER "cd /var/www && sudo cp -r ./prism_api/* ./prism_api_rollback"
+  ssh -i $SSHI ec2-user@$SERVER "cd /var/www && sudo mkdir ./prism_api_rollback && sudo cp -r ./prism_api/* ./prism_api_rollback"
 }
 
 echo ""

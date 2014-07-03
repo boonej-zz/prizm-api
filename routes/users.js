@@ -509,6 +509,7 @@ exports.fetchUser = function(req, res){
  * @return {Post} Returns A Post Object array containing ..
  */
 exports.updateUser = function(req, res){
+  var did_change_subtype = false;
   if(req.params.id && Object.keys(req.body).length > 0){
     User.findOne({_id: req.params.id}, function(err, user){
       var error = {
@@ -548,15 +549,34 @@ exports.updateUser = function(req, res){
         if(typeof(body.enrollment) !== 'undefined') user.enrollment = body.enrollment;
         if(typeof(body.state) !== 'undefined') user.state = body.state;
         if(typeof(body.city) !== 'undefined') user.city = body.city;
-        if(typeof(body.subtype) !== 'undefined') user.subtype = body.subtype;
+        if(typeof(body.type) !=='undefined') user.type = body.type;
+        if(typeof(body.subtype) !== 'undefined') {
+          user.subtype = body.subtype;
+          did_change_subtype = true;
+        }
 
         user.save(function(err, saved){
           if(err || !saved){
             _utils.prismResponse(res, null, false, error);
 
           }else{
-            _utils.prismResponse(res, saved.format('basic'), true);
-          }
+            // if(did_change_subtype) {
+            //   Post.updateSubtypeToLuminary(user._id.toString(), function(err, posts_updated) {
+            //     if(err) {
+            //       _logger.log('error',
+            //                   'Unable to update user '+user._id.toString()+' posts to luminary',
+            //                   {error:err, user:saved});
+            //     } else {
+            //       _logger.log('info',
+            //                   'Updated user '+user._id.toString()+' posts to luminary. #updated: '+posts_updated);
+            //     }
+
+            //     _utils.prismResponse(res, saved.format('basic'), true);
+            //   });
+            // } else {
+              _utils.prismResponse(res, saved.format('basic'), true);
+            }
+          // }
         });
       }
     });
