@@ -295,6 +295,14 @@ Twine.prototype.$__applyResultSort = function applyResultSort(err, response){
     var direction = self.sort;
 
     response.data.sort(function(a, b){
+      if(typeof a.toObject === 'function') {
+        a = a.toObject();
+      }
+
+      if(typeof b.toObject === 'function') {
+        b = b.toObject();
+      }
+
       if(_.has(a, key) && _.has(b, key)){
         if(direction === 1) {
           if(a[key] > b[key]) return 1;
