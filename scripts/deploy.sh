@@ -42,6 +42,7 @@ post_deploy() {
   ssh -i $SSHI ec2-user@$SERVER "sudo stop prismapi && sudo start prismapi"
   echo ""
   echo ""
+  sleep 3
   echo "Verifying service is running"
   sleep 5
   echo ""

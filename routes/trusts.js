@@ -278,7 +278,6 @@ var updateTrust = function(req, res){
                 _utils.registerActivityEvent(trust.from, trust.to, 'trust_accepted');
 
                 if(trust.from.type === 'institution_verified' && trust.from.subtype && trust.from.subtype !== 'luminary') {
-                  trust.to.type = 'institution_verified';
                   trust.to.subtype = 'luminary';
                   trust.to.save(function(err, to_saved) {
                     console.log("trust.to.save error: "+ JSON.stringify(err));
