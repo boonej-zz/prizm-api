@@ -19,26 +19,26 @@ module.exports = {
 
   social: {
     facebook: {
-      client_id: '601764173232668',
-      client_secret: '23ce3259b183e6b3138b44a96a640bd7',
-      client_token: '39a3c31b9d88efa03ae2ccd739385bdc',
-      app_token: '601764173232668|KLtQOeNF2Ge1pBPN08fbEuylc8w',
+      client_id: '1408826952716972',
+      client_secret: '772f449b10c95a10a2a9a866339e5f90',
+      client_token: '01e689dd2090d202b540c937515e1913',
+      app_token: '1408826952716972|772f449b10c95a10a2a9a866339e5f90',
       base_uri: 'https://graph.facebook.com',
       code_uri: 'https://graph.facebook.com/oauth/code?',
       token_uri: 'https://graph.facebook.com/oauth/access_token?',
       callback_uri: 'https://https://ec2-54-200-41-62.us-west-2.compute.amazonaws.com/callback'
     },
     twitter: {
-      consumer_key: 'Ru65wMMNzljgbdZxie6okg',
-      consumer_secret: 'sJHdOEwTXQDO2y7nEjeHRdt8gX0TUhirOSNk32o',
+      consumer_key: 'MzIoqUFCk7BYUNpCNxtGuhuLu',
+      consumer_secret: 'yGhuwPvSljoVJoD4il2qtHZG0q4hWlXC87Mcdly0pxaFrMHEaf',
       dev_user_access_token: '2349321242-qfXdDvyKPWASbXydkbxIQfmHsYWKh8Bi6fVPAiw',
       dev_user_access_token_secret: 'SWjMYzLS7AzDfnJ1grb4ApYzZEHeSoojcRv2YtohthivB',
       dev_user_id: '2349321242',
       callback_uri: 'https://ec2-54-200-41-62.us-west-2.compute.amazonaws.com/callback'
     },
     google: {
-      client_id: '308658825260.apps.googleusercontent.com',
-      client_secret: '4CFksKO4jeQhTeRlvpqeXrKF',
+      client_id: '657032544324-5m844imcarep80ibnqu7fp2r1aoo0m04.apps.googleusercontent.com',
+      client_secret: '6Dx8PGIFQ9xzY0sxw3rl9Mq3',
       authorize_uri: 'https://www.googleapis.com/plus/v1/people/me?access_token=',
       auth_uri: 'https://accounts.google.com/o/oauth2/auth',
       token_uri: 'https://accounts.google.com/o/oauth2/token',
