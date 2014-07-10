@@ -623,7 +623,7 @@
     "_id": {
       "$oid": "533420fa515d6a00001efb91"
     },
-    "origin_post_id": null,
+    "origin_post_id": "533420f9515d6a00001efb89",
     "is_repost": false,
     "flagged_reporters": [],
     "flagged_count": 0,
@@ -649,6 +649,6 @@
     "create_date": {
       "$date": 1395925242259
     },
-    "text": "test user post"
+    "text": "test test tes12"
   }
 ]

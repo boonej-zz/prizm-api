@@ -36,7 +36,7 @@ function Twine(model, criteria, Request, options, callback){
   this.Schema = this.Model().schema;
   this.criteria = criteria;
   this.Request = Request;
-  this.args = self.$__digestHeaderArguments();
+  this.args = self.$__digestHeaderArguments(self.Request);
   this.options = options;
   this.cb = callback;
   this.limit = (!self.$__optExists('limit')) ?
@@ -81,7 +81,12 @@ function Twine(model, criteria, Request, options, callback){
   }
 
   self.$__resolveFilterProperties();
-  self.buildBaseRequest();
+  
+  //adding check for present callback for testability & ability to execute
+  //requesting after the object is set.
+  if(self.cb) {
+    self.buildBaseRequest();
+  }
 }
 
 var doesObjectKeyExist = function(object, key){
@@ -92,11 +97,11 @@ var doesObjectKeyExist = function(object, key){
   return false;
 };
 
-Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(){
+Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(reqs){
   var res = null;
-  if(this.Request && doesObjectKeyExist(this.Request.headers, X_ARGUMENTS_HEADER)){
+  if(reqs && doesObjectKeyExist(reqs.headers, X_ARGUMENTS_HEADER)){
     //base64 decode the x-args header
-    var args = new Buffer(this.Request.headers[X_ARGUMENTS_HEADER], 'base64').toString('utf8');
+    var args = new Buffer(reqs.headers[X_ARGUMENTS_HEADER], 'base64').toString('utf8');
     res = JSON.parse(args);
     _logger.log('info', 'digested header arguments', {"x-arguments": res});
   }
@@ -202,12 +207,21 @@ Twine.prototype.$__setSelect = function $__setSelect(){
 };
 
 Twine.prototype.$__setSort = function $__setSort(){
-  if(this.sort){
-   var sort = {};
-   sort[this.sort_by] = this.sort;
-   // sort._id = this.sort;
-   // if(this.sort_by && this.sort_by !== DEFAULT_PAGE_BY) sort[DEFAULT_PAGE_BY] = DEFAULT_PAGE_DIRECTION;
-   if(this.sort_by !== DEFAULT_SORT_BY) sort[DEFAULT_SORT_BY] = this.page_direction;
+  if(this.sort) {
+  var sort = {};
+  // If page is set then sort the db result inverse to page direction
+  // Else apply the sort directly to the db result set as we want the most
+  // recent result set (top records) by sort and sort_by (which should also default
+  // to create_date & descending)
+    if(this.page ){
+      if(this.page_direction === 1) {
+        sort[this.page_by] = -1;
+      } else {
+        sort[this.page_by] = 1;
+      }
+    } else {
+      sort[this.sort_by] = this.sort;
+    }
    _logger.log('info', 'setting sort', {sort: sort});
    this.fetch.sort(sort);
   }
@@ -235,20 +249,25 @@ Twine.prototype.$__setFilters = function $__setFilters(cb){
   }
 };
 
-Twine.prototype.buildBaseRequest = function buildBaseRequest (){
-  this.$__setFilters();
-  this.$__setPage();
-  //set intial fetch object with base criteria;
-  this.fetch = this.Model.find(this.criteria);
-  //ammend fetch with page, sort, filter, & select fields
-  this.$__setSelect();
-  this.$__setSort();
-  this.$__setLimit();
-  //only execute the request if the callback is set. if not
-  //the executerequest can take an optional cb -- to invoked seperately
-  //TODO: worry about this on second pass.. just call for now
-  //if(this.cb) this.executeRequest();
-  this.executeRequest();
+Twine.prototype.buildBaseRequest = function buildBaseRequest (cb){
+  if(this.cb) {
+    this.$__setFilters();
+    this.$__setPage();
+    //set intial fetch object with base criteria;
+    this.fetch = this.Model.find(this.criteria);
+    //ammend fetch with page, sort, filter, & select fields
+    this.$__setSelect();
+    this.$__setSort();
+    this.$__setLimit();
+    this.fetch.skip(0);
+    //only execute the request if the callback is set. if not
+    //the executerequest can take an optional cb -- to invoked seperately
+    //TODO: worry about this on second pass.. just call for now
+    //if(this.cb) this.executeRequest();
+    this.executeRequest();
+  } else {
+    throw new Error('A callback block must be supplied to execute a Twine request');
+  }
 };
 
 Twine.prototype.executeRequest = function executeRequest (){
@@ -266,14 +285,54 @@ Twine.prototype.executeRequest = function executeRequest (){
       response.data = result;
       //if contains or resolve properties are set process, else return response
       if(!self.contains && !self.resolve){
-        self.cb(err, response);
+        //self.cb(err, response);
+        self.$__applyResultSort(err, response);
       }else{
         self.process(response, function(err, process_result){
-          self.cb(err, process_result);
+          // self.cb(err, process_result);
+          self.$__applyResultSort(err, process_result);
         });
       }
     }
   });
+};
+
+Twine.prototype.$__applyResultSort = function applyResultSort(err, response){
+  var self = this;
+  if(response.data.length > 0){
+    var key = self.sort_by;
+    var direction = self.sort;
+
+    response.data.sort(function(a, b){
+      if(typeof a.toObject === 'function') {
+        a = a.toObject();
+      }
+
+      if(typeof b.toObject === 'function') {
+        b = b.toObject();
+      }
+
+      if(_.has(a, key) && _.has(b, key)){
+        if(direction === 1) {
+          if(a[key] > b[key]) return 1;
+          if(a[key] < b[key]) return -1;
+          return 0;
+        } else {
+          if(a[key] > b[key]) return -1;
+          if(a[key] < b[key]) return 1;
+          return 0;
+        }
+      } else {
+        if(!err) {
+          err = new Error("sort_by key does not exist");
+        }
+      }
+    });
+
+    self.cb(err, response);
+  } else {
+    self.cb(err, response);
+  }
 };
 
 Twine.prototype.$__formatChildModelBaseResults = function(base, model_name){

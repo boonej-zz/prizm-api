@@ -249,6 +249,26 @@ postSchema.static('fetchHashtagsByCategory', function(user_id, category, cb){
 
 });
 
+/**
+ * When a luminary is confirmed, this method updates all of there
+ * posts subtype to luminary. 
+ *
+ *    shold really only be implemented when a "regular" user 
+ *    accepts a trust from an institution
+ *
+ * @param {String} user_id The post creator id
+ * @param {Function} cb The callback function to be invoked
+ */
+postSchema.static('updateSubtypeToLuminary', function(user_id, cb){
+  this.update(
+    {creator: user_id},
+    {$set: {subtype: "luminary"}},
+    {multi: true},
+    function(err, result) {
+      cb(err, result);
+  });
+});
+
 postSchema.methods.parseAndUpdateTags = function(){
   var user_tage = [], hash_tag = [];
 

@@ -100,8 +100,8 @@ _app.get('/oauth2/authorize', _auth);
 
 /* Default Authorization Code RedirectUri Callback Endpoint - FOR PRISM MOBILE USE ONLY */
 _app.get('/callback', function(req, res){
-	var array = [{authorization_code: req.query.code}];
-	_utils.prismResponse( res, array, true);
+  var array = [{authorization_code: req.query.code}];
+  _utils.prismResponse( res, array, true);
 });
 
 /* Token Request Endpoint */
@@ -286,10 +286,14 @@ if(_app.get('env')  == 'test'){
 
 /* create regular http server listening on port 8080 that re-routes back to https */
 _http.createServer(_httpserver).listen(8080, function(){
-  console.log('HTTP Server listening on port 8080');
+  if(_app.get('env') !== 'test') {
+    console.log('HTTP Server listening on port 8080');
+  }
 });
 
 /* create SSL Server listening on port 3000 */
 _https.createServer(ssl_options, _app).listen(_config.env.port, function(){
-  console.log("Secure Prism Api server listening on port " + _config.env.port);
+  if(_app.get('env') !== 'test') {
+    console.log("Secure Prism Api server listening on port " + _config.env.port);
+  }
 });

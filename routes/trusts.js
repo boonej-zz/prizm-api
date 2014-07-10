@@ -240,7 +240,9 @@ var fetchTrustById = function(req, res){
  */
 var updateTrust = function(req, res){
   validateTrustRequest(req, res, function(){
-    Trust.findOne({_id: req.params.id}, function(err, trust){
+    Trust.findOne({_id: req.params.id})
+    .populate('to from')
+    .exec(function(err, trust){
       //if there is an error return server error
       if(err){
         _logger.log('error', 'fetching trust to update failed with error', {err:err});
@@ -275,17 +277,51 @@ var updateTrust = function(req, res){
 
                 _utils.registerActivityEvent(trust.from, trust.to, 'trust_accepted');
 
-                trust_updated.updateUsersTrustCount(function(err){
-                  if(err){
-                    _logger.log('error',
-                                'Update Users Trust Count ERROR!',
-                                {error: err});
-                    _utils.prismResponse(res, null, false, PrismError.serverError);
-                    return;
-                  }
+                if(trust.from.type === 'institution_verified' && trust.from.subtype && trust.from.subtype !== 'luminary') {
+                  trust.to.subtype = 'luminary';
+                  trust.to.save(function(err, to_saved) {
+                    console.log("trust.to.save error: "+ JSON.stringify(err));
+                    console.log("trust.to.save result: " + JSON.stringify(to_saved));
+                    if(err) {
+                      _utils.prismResponse(res, null, false, PrismError.serverError);
+                      //reset trust to pending?
 
-                  _utils.prismResponse(res, trust_updated, true);
-                });
+                    }
+
+                    trust_updated.updateUsersTrustCount(function(err){
+                      if(err) {
+                        _logger.log('error', 'Update users trust count Error from within update luminary', {error:err});
+                        _utils.prismResponse(res, null, false, PrismError.serverError);
+                        return;
+                      }
+
+                      Post.updateSubtypeToLuminary(trust.to._id.toString(), function(err, post_updated) {
+                        if(err) {
+                          _logger.log('error', 'Unable to update posts subtype to luminary', {error:err});
+                          _utils.prismResponse(res, null, false, PrismError.serverError);
+                          return;
+                        }
+
+                        _utils.prismResponse(res, trust_updated, true);
+                      });
+                    });
+
+                  });
+
+                } else {
+
+                  trust_updated.updateUsersTrustCount(function(err){
+                    if(err){
+                      _logger.log('error',
+                                  'Update Users Trust Count ERROR!',
+                                  {error: err});
+                      _utils.prismResponse(res, null, false, PrismError.serverError);
+                      return;
+                    }
+
+                    _utils.prismResponse(res, trust_updated, true);
+                  });
+                }
               }
                 _utils.prismResponse(res, trust_updated, true);
             }

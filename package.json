@@ -2,7 +2,7 @@
   "name": "prism_api",
   "description": "REST API for Prism mobile platform",
   "author": "DJ Hayden <dj.hayden@stablekernel.com>",
-  "version": "0.4.1",
+  "version": "0.4.5",
   "private": true,
   "scipts": {
     "test": "make test",
@@ -11,7 +11,7 @@
   "dependencies": {
     "express": "3.4.8",
     "connect": "*",
-    "mongoose": "3.8.6",
+    "mongoose": "3.8.x",
     "jade": "*",
     "request": "*",
     "config": "*",
@@ -27,8 +27,8 @@
     "newrelic": "*"
   },
   "devDependencies": {
-    "mocha": "1.12.0",
-    "chai": "1.7.2",
+    "mocha": "1.20.0",
+    "chai": "1.9.1",
     "nock": "0.22.1"
   }
 }
