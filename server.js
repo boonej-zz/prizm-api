@@ -100,8 +100,8 @@ _app.get('/oauth2/authorize', _auth);
 
 /* Default Authorization Code RedirectUri Callback Endpoint - FOR PRISM MOBILE USE ONLY */
 _app.get('/callback', function(req, res){
-	var array = [{authorization_code: req.query.code}];
-	_utils.prismResponse( res, array, true);
+  var array = [{authorization_code: req.query.code}];
+  _utils.prismResponse( res, array, true);
 });
 
 /* Token Request Endpoint */

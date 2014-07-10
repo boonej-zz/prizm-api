@@ -136,7 +136,6 @@ describe('Twine Resolve & Contains Edge Cases', function(done) {
     });
 
     it('should not return an error', function(done) {
-      debugger;
       assert.isFalse(error);
       done();
     });
@@ -155,20 +154,99 @@ describe('Twine Resolve & Contains Edge Cases', function(done) {
     it('should have added a followers property to each resolved User', function(done) {
       var user      = result.resolve.User;
       var user_keys = _.keys(user);
-      for(var key in user_keys) {
+      for(var i in user_keys) {
+        var key = user_keys[i];
         assert.property(user[key], 'followers');
       }
       done();
     });
 
     it('should have an empty followers property except for the control user sean', function(done) {
-      var control = sean._id.toString();
-      var user    = result.resolve.User;
-      for(var key in user_keys) {
-        
+      var control   = sean._id.toString();
+      var user      = result.resolve.User;
+      var user_keys = _.keys(user);
+      for(var i in user_keys) {
+        var key = user_keys[i];
+        if(key === control) {
+          assert.equal(user[key].followers[0]._id, mark._id.toString());
+        } else {
+          assert.isTrue(_.isEmpty(user[key].followers));
+        }
+      }
+      done();
+    });
+  });
+
+  describe('Contains Inside of Nested Resolved Object', function(done) {
+    var origin_post_id, post_key, user_key, user, post;
+    before(function(done) {
+      xargs = {
+        resolve: {
+          origin_post_id: {
+            format: "short",
+            resolve: {
+              creator: {
+                format: "short",
+                contains: {
+                  followers: {
+                    "_id": DJ._id.toString()
+                  }
+                }
+              }
+            }
+          }
+        }
       };
+      req = helpers.basicRequestObject(xargs);
+
+      new Twine('Post', {creator: DJ._id}, req, null, function(err, res) {
+        error = err;
+        result = res;
+        origin_post_id = result.data[0].origin_post_id;
+        post_key = _.keys(result.resolve.Post)[0];
+        user_key = _.keys(result.resolve.User)[0];
+        post = result.resolve.Post;
+        user = result.resolve.User;
+        done();
+      });
+    });
+
+    it('should not return an error', function(done) {
+      assert.isFalse(error);
       done();
     });
 
+    it('should return a User & Post Object in resolve ', function(done) {
+      assert.property(result.resolve, 'User');
+      assert.property(result.resolve, 'Post');
+      assert.isObject(user);
+      assert.isObject(post);
+      done();
+    });
+
+    it('should have a Post object key equal to the result.data origin_post_id', function(done) {
+      assert.equal(post_key, origin_post_id);
+      done();
+    });
+
+    it('should have A User object key equal to the creator of the Post object', function(done) {
+      assert.equal(result.resolve.Post[post_key].creator.toString(), user_key);
+      done();
+    });
+
+    it('should have a followers property added to the User object', function(done) {
+      assert.property(user[user_key], 'followers');
+      done();
+    });
+
+    it('should have only 1 result in User objects followers property', function(done) {
+      assert.lengthOf(user[user_key].followers, 1);
+      done();
+    });
+
+    it('should equal the specified contains value for the followers property on the user object', function(done) {
+      assert.equal(user[user_key].followers[0]._id, DJ._id.toString());
+      done();
+    });
   });
 });

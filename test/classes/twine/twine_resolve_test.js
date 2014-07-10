@@ -171,22 +171,49 @@ describe('Twine Resolve', function(done) {
     });
   });
 
-  //TODO: this functionality doesnt currently exist (and probably shouldnt - too expensive)
-  describe.skip('Nested Resolving', function(done) {
-    var xargs = {resolve: { creator: {format: "short", resolve: {following: {format: "short"}}}}};
+  describe('Nested Resolving', function(done) {
+    var xargs = {resolve: { origin_post_id: {format: "short", resolve: {creator: {format: "short"}}}}};
     var req   = helpers.basicRequestObject(xargs);
     var result;
     var error;
 
     before(function(done) {
-      new Twine('Post', {creator: mark._id}, req, {limit:1}, function(err, res) {
+      new Twine('Post', {creator: DJ._id}, req, null, function(err, res) {
         result = res;
         error = err;
         done();
       });
     });
-    it('should ', function(done) {
-      //debugger;
+    
+    it('should not return an error', function(done) {
+      assert.isFalse(error);
+      done();
+    });
+
+    it('should return a Post Object', function(done) {
+      assert.property(result.resolve, 'Post');
+      assert.isObject(result.resolve.Post);
+      done();
+    });
+
+    it('should return a User Object', function(done) {
+      assert.property(result.resolve, 'User');
+      assert.isObject(result.resolve.User);
+      done();
+    });
+
+    it('should have a Post object key equal to origin_post_id', function(done) {
+      var origin_post_id = result.data[0].origin_post_id;
+      var post_object_key = _.keys(result.resolve.Post)[0];
+      assert.equal(post_object_key, origin_post_id);
+      done();
+    });
+
+    it('should have a User object key equal to Post object creator', function(done) {
+      var post_key = _.keys(result.resolve.Post)[0];
+      var user_key = _.keys(result.resolve.User)[0];
+      var origin_post_creator = result.resolve.Post[post_key].creator.toString();
+      assert.equal(user_key, origin_post_creator);
       done();
     });
   });
