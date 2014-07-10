@@ -19,6 +19,7 @@ var _thisapp    = require(process.cwd() + '/server.js'),
     Activity    = require(process.env.PRISM_HOME + 'models/activity').Activity,
     Trust       = require(process.env.PRISM_HOME + 'models/user').Trust;
 
+
 describe('Twine Class Unit Tests', function(done){
   var mark, edwardo, cameron, erica, sean, maryolin, DJ;
   var follower = null;
@@ -119,23 +120,15 @@ describe('Twine Class Unit Tests', function(done){
     //override with optional to not apply any sort behavior?
     it('should default to paging by create_date descending', function(done){
       var header = new Buffer(JSON.stringify({
-        // page_by: ['create_date', 'delete_date'],
-        page_by: ['create_date'],
+        page_by: ['create_date', 'delete_date'],
         page_direction: 1,
-        page: "Thu Mar 27 2014 07:00:41 GMT-0700 (PDT)",
-        sort: -1,
-        sort_by: "create_date_exist"
+        page: "Thu Mar 27 2014 06:10:00 GMT-0700 (PDT)",
+        sort: 1
       })).toString('base64');
       var req = {};
       req.headers = {};
       req.headers['x-arguments'] = header;
-      new Twine('Post', {}, req, {limit: 3}, function(err, results){
-        console.log("Starting date :"  + new Date("Thu Mar 27 2014 07:00:41 GMT-0700 (PDT)").toISOString());
-
-        for(var i=0; i < results.data.length; i++){
-          console.log(new Date(results.data[i].create_date).toISOString());
-        }
-
+      new Twine('Post', {}, req, {limit: 5}, function(err, results){
         debugger;
         done();
       });

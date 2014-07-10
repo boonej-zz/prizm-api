@@ -10,6 +10,34 @@ var _prism_home   = process.env.PRISM_HOME,
 
 var test_client, test_code, test_token;
 
+var self = this;
+
+exports.basicRequestObject = function(xargs) {
+  if(!xargs) {
+    xargs = {string: "string", num: 234563, ob: {a:1, b:2, c:3}, arr: [0,1,2,3]};
+  }
+
+  var req = {};
+  req.headers = {};
+  req.headers['x-arguments'] = self.packageXargs(xargs);
+  return req;
+};
+
+exports.isHexObjectId = function(t_string) {
+  var checkHex = new RegExp("^[0-9a-fA-F]{24}$");
+  return checkHex.test(t_string);
+};
+
+exports.packageXargs = function(content) {
+  var x = JSON.stringify(content);
+  return new Buffer(x).toString('base64');
+};
+
+exports.unpackXargs = function(xargs) {
+  return JSON.parse(new Buffer(xargs, 'base64').toString('utf8'));
+};
+
+
 exports.fetchTestToken = function(cb){
   if(!test_client && !test_code){
     this.createTestToken(function(){
@@ -19,7 +47,6 @@ exports.fetchTestToken = function(cb){
     cb(test_token);
   }
 };
-
 
 exports.executeRequest = function(method, url, body, cb){
   _request({

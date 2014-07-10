@@ -103,9 +103,13 @@
       {
         "_id": "533420f9515d6a00001efb74",
         "date": "Thu Mar 27 2014 06:00:42 GMT-0700 (PDT)"
+      },
+      {
+        "_id": "533420f9515d6a00001efb7c",
+        "date": "Thu Mar 27 2014 06:00:42 GMT-0700 (PDT)"
       }
     ],
-    "following_count": 1,
+    "following_count": 2,
     "gender": null,
     "info": null,
     "last_login_date": null,
@@ -266,9 +270,13 @@
       {
         "_id": "533420f9515d6a00001efb74",
         "date": "Thu Mar 27 2014 06:00:42 GMT-0700 (PDT)"
+      },
+      {
+        "_id": "533420f9515d6a00001efb78",
+        "date": "Thu Mar 27 2014 06:00:42 GMT-0700 (PDT)"
       }
     ],
-    "followers_count": 1,
+    "followers_count": 2,
     "following": [
       {
         "_id": "533420f9515d6a00001efb74",

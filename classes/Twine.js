@@ -36,7 +36,7 @@ function Twine(model, criteria, Request, options, callback){
   this.Schema = this.Model().schema;
   this.criteria = criteria;
   this.Request = Request;
-  this.args = self.$__digestHeaderArguments();
+  this.args = self.$__digestHeaderArguments(self.Request);
   this.options = options;
   this.cb = callback;
   this.limit = (!self.$__optExists('limit')) ?
@@ -81,7 +81,12 @@ function Twine(model, criteria, Request, options, callback){
   }
 
   self.$__resolveFilterProperties();
-  self.buildBaseRequest();
+  
+  //adding check for present callback for testability & ability to execute
+  //requesting after the object is set.
+  if(self.cb) {
+    self.buildBaseRequest();
+  }
 }
 
 var doesObjectKeyExist = function(object, key){
@@ -92,11 +97,11 @@ var doesObjectKeyExist = function(object, key){
   return false;
 };
 
-Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(){
+Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(reqs){
   var res = null;
-  if(this.Request && doesObjectKeyExist(this.Request.headers, X_ARGUMENTS_HEADER)){
+  if(reqs && doesObjectKeyExist(reqs.headers, X_ARGUMENTS_HEADER)){
     //base64 decode the x-args header
-    var args = new Buffer(this.Request.headers[X_ARGUMENTS_HEADER], 'base64').toString('utf8');
+    var args = new Buffer(reqs.headers[X_ARGUMENTS_HEADER], 'base64').toString('utf8');
     res = JSON.parse(args);
     _logger.log('info', 'digested header arguments', {"x-arguments": res});
   }
@@ -244,21 +249,25 @@ Twine.prototype.$__setFilters = function $__setFilters(cb){
   }
 };
 
-Twine.prototype.buildBaseRequest = function buildBaseRequest (){
-  this.$__setFilters();
-  this.$__setPage();
-  //set intial fetch object with base criteria;
-  this.fetch = this.Model.find(this.criteria);
-  //ammend fetch with page, sort, filter, & select fields
-  this.$__setSelect();
-  this.$__setSort();
-  this.$__setLimit();
-  this.fetch.skip(0);
-  //only execute the request if the callback is set. if not
-  //the executerequest can take an optional cb -- to invoked seperately
-  //TODO: worry about this on second pass.. just call for now
-  //if(this.cb) this.executeRequest();
-  this.executeRequest();
+Twine.prototype.buildBaseRequest = function buildBaseRequest (cb){
+  if(this.cb) {
+    this.$__setFilters();
+    this.$__setPage();
+    //set intial fetch object with base criteria;
+    this.fetch = this.Model.find(this.criteria);
+    //ammend fetch with page, sort, filter, & select fields
+    this.$__setSelect();
+    this.$__setSort();
+    this.$__setLimit();
+    this.fetch.skip(0);
+    //only execute the request if the callback is set. if not
+    //the executerequest can take an optional cb -- to invoked seperately
+    //TODO: worry about this on second pass.. just call for now
+    //if(this.cb) this.executeRequest();
+    this.executeRequest();
+  } else {
+    throw new Error('A callback block must be supplied to execute a Twine request');
+  }
 };
 
 Twine.prototype.executeRequest = function executeRequest (){
