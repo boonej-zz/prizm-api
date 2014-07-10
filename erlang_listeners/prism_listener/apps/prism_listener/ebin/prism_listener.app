@@ -1,0 +1,10 @@
+{application,prism_listener,
+             [{description,[]},
+              {vsn,"1"},
+              {registered,[]},
+              {applications,[kernel,stdlib]},
+              {mod,{prism_listener_app,[]}},
+              {env,[]},
+              {modules,[callback_handler,post_server,prism_auth,prism_config,
+                        prism_instagram_process,prism_listener_app,
+                        prism_listener_sup,prism_post_supervisor]}]}.

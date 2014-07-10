@@ -1,0 +1,10 @@
+application:start(crypto).
+application:start(asn1).
+application:start(public_key).
+application:start(ssl).
+application:start(ranch).
+application:start(cowlib).
+application:start(cowboy).
+application:start(inets).
+application:start(erlcloud).
+application:start(prism_listener).

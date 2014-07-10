@@ -48,7 +48,6 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
   if(!_.has(user, 'email')){
     throw new Error('A user must have a valid email to send for review');
   }
-  var self = this;
   var approval_link = null;
   var denial_link = null;
 
@@ -63,18 +62,12 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
           '<h2>'+user.email+'</h2><br>'+
           '<p>Name: '+user.first_name+'</p>'+
           '<p>Email: '+user.email+'</p>'+
-          '<p>Enrollment: '+user.enrollment+'</p>'+
-          '<p>Mascot: '+user.mascot+'</p>'+
-          '<p>Date Founded: '+user.date_founded+'</p>'+
-          '<p>Address: '+user.address+'</p>'+
-          '<p>City: '+user.city+'</p>'+
-          '<p>State: '+user.state+'</p>'+
-          '<p>Info: '+user.info+'</p>'+
+          '<p>Phone Number: '+user.phone_number+'</p>'+
           '<p>Website: '+user.website+'</p><br>'+
-          '<h1><a href="'+_config.base_uri+'/users/'+user._id+'/review/institution?review_key='+
-          user.review_key+'&approval=yes">Approve</a></h1>'+
-          '<h1><a href="'+_config.base_uri+'/users/'+user._id+'/review/institution?review_key='+
-          user.review_key+'&approval=no">Deny</a></h1>'
+          '<h1><a href="https://ec2-user@ec2-54-200-41-62.us-west-2.compute.amazonaws.com/users/'+
+          user._id+'/review/institution?review_key='+user.review_key+'&approval=yes">Approve</a></h1>'+
+          '<h1><a href="https://ec2-user@ec2-54-200-41-62.us-west-2.compute.amazonaws.com/users/'+
+          user._id+'/review/institution?review_key='+user.review_key+'&approval=no">Deny</a></h1>'
   };
 
   _logger.log('info', 'Institution Review Message', {message: this.message});
