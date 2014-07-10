@@ -67,7 +67,7 @@ var userSchema = new _mongoose.Schema({
   device_token          : {type: String, default: null},
   subtype               : {type: String, default: null},
   badge_count           : {type: Number, default: 0},
-  active                : {type, Boolean, default: true}
+  active                : {type: Boolean, default: true}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
