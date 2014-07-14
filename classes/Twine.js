@@ -494,42 +494,6 @@ Twine.prototype.$__isEmbeddedModelObject = function $__isEmbeddedModelObject(mod
   return false;
 };
 
-// Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(object,id,field){
-//   var distinct_array = [];
-//   _logger.log('info', 'object, id, field to getch distinct values', {field:field, id:id, object:object});
-//   _logger.log('info', 'is object an array: ' + (Array.isArray(object)));
-//   if(Array.isArray(object)){
-//     for(var index in object){
-//       object[index] = (typeof object[index].toObject === 'function')? object[index].toObject() : object[index];
-//       if(typeof object[index][field] == 'undefined' && Array.isArray(object[index])){
-//         for(var c in object[index]){
-//           if(distinct_array.indexOf(object[index][c][field].toString()) === -1)
-//              distinct_array.push(object[index][c][field].toString());
-//         }
-//       }else if(Array.isArray(object[index][field])){
-//         for(var i in object[index][field]){
-//           if(distinct_array.indexOf(object[index][field][i][id].toString()) === -1)
-//             distinct_array.push(object[index][field][i][id].toString());
-//         }
-//       }else{
-//         if(typeof object[index][field] !== 'undefined')
-//           if(doesObjectKeyExist(object[index][field], id)){
-//             if(distinct_array.indexOf(object[index][field][id].toString()) === -1){
-//               distinct_array.push(object[index][field][id].toString());
-//             }
-//           }else{
-//             if(distinct_array.indexOf(object[index][field]) === -1){
-//               distinct_array.push(object[index][field]);
-//             }
-//           }
-//       }
-//     }
-//     return distinct_array;
-//   }else{
-//     return false;
-//   }
-// };
-
 Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForField(data, id, field) {
   var distinct = [];
 
@@ -544,7 +508,6 @@ Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForFiel
 
     if(_.has(item, field)) {
       if(!_.isArray(item[field]) && !_.isNull(item[field])) {
-        // item[field] = [ item[field] ];
         if(!_.contains(distinct, item[field])) distinct.push(item[field].toString());
       }
       _.each(item[field], function(field_array) {
