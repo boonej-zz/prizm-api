@@ -179,6 +179,7 @@ describe('Twine Resolve', function(done) {
 
     before(function(done) {
       new Twine('Post', {creator: DJ._id}, req, null, function(err, res) {
+        debugger;
         result = res;
         error = err;
         done();
@@ -214,6 +215,22 @@ describe('Twine Resolve', function(done) {
       var user_key = _.keys(result.resolve.User)[0];
       var origin_post_creator = result.resolve.Post[post_key].creator.toString();
       assert.equal(user_key, origin_post_creator);
+      done();
+    });
+  });
+  
+  describe('getDistinctValuesForField()', function(done) {
+    var users, id, field;
+
+    before(function(done) {
+      users = [DJ, mark];
+      field = "following";
+      id = "_id";
+      done();
+    });
+
+    it('should test', function(done) {
+      var distinct_test = Twine.prototype.getDistinctValuesForField(users, id, field);
       done();
     });
   });

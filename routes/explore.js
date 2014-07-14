@@ -54,8 +54,10 @@ var searchHashTags = function(req, res){
 };
 
 var explore = function(req, res){
+  console.time('explore');
   var criteria = {status: 'active', scope: 'public', is_flagged: false};
   var twine = new Twine('Post', criteria, req, null, function(error, explore){
+    console.timeEnd('explore');
     if(error){
       _utils.prismResponse(res, null, false, PrismError.serverError);
     }else{

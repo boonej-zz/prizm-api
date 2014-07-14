@@ -31,6 +31,8 @@ var X_ARGUMENTS_HEADER = 'x-arguments';
 module.exports = Twine;
 
 function Twine(model, criteria, Request, options, callback){
+  this.start_time = new Date();
+
   var self = this;
   this.Model = _mongoose.model(model);
   this.Schema = this.Model().schema;
@@ -55,7 +57,7 @@ function Twine(model, criteria, Request, options, callback){
     self.$__parse('page_direction', DEFAULT_PAGE_DIRECTION)
     : options.page_direction;
   this.sort = (!self.$__optExists('sort')) ?
-    self.$__parse('sort', this.page_direction) 
+    self.$__parse('sort', this.page_direction)
     : options.sort;
   this.sort_by = (!self.$__optExists('sort_by')) ?
     self.$__parse('sort_by', this.page_by)
@@ -80,8 +82,22 @@ function Twine(model, criteria, Request, options, callback){
     this.model_keys.push(key);
   }
 
+  this.model_name = model;
+  this.end_time = null;
+  this.trans_time = null;
+
+  this.base_start = null;
+  this.base_end = null;
+
+  this.resolve_start = null;
+  this.resolve_end = null;
+
+  this.contains_start = null;
+  this.contains_end = null;
+
+
   self.$__resolveFilterProperties();
-  
+
   //adding check for present callback for testability & ability to execute
   //requesting after the object is set.
   if(self.cb) {
@@ -91,10 +107,15 @@ function Twine(model, criteria, Request, options, callback){
 
 var doesObjectKeyExist = function(object, key){
   // return (typeof object.key !== 'undefined');
-  for(var found in object){
-    if(found === key) return true;
+  if(_.isNull(object) || _.isUndefined(object)) {
+    return false;
   }
-  return false;
+
+  if(typeof object.toObject === 'function') {
+    object = object.toObject();
+  }
+
+  return _.has(object, key);
 };
 
 Twine.prototype.$__digestHeaderArguments = function $__digestHeaderArguments(reqs){
@@ -273,13 +294,16 @@ Twine.prototype.buildBaseRequest = function buildBaseRequest (cb){
 Twine.prototype.executeRequest = function executeRequest (){
   var response = {};
   var self = this;
+  self.base_start = new Date();
   self.fetch.exec(function(err, result){
+    self.base_end = new Date();
     //if there is an error returned from the fetch its server related
     //so send it back immediately
     if(err) self.cb(err, null);
     //if the result set is empty, invoke callback immediately, else process
     if(_.isEmpty(result)){
-      self.cb(err, result);
+      // self.cb(err, result);
+      self.returnResult(err, result);
     }else{
       //set the base result set in the response object
       response.data = result;
@@ -295,6 +319,33 @@ Twine.prototype.executeRequest = function executeRequest (){
       }
     }
   });
+};
+
+Twine.prototype.returnResult = function returnResult (err, resp) {
+  var self = this;
+  self.end_time = new Date();
+
+  console.log(" \n\n ----- START OF TWINE TRANSACTION ------");
+  console.log(" TWINE TRANSACTION CRITERIA: " + JSON.stringify(this.criteria));
+  console.log(" TWINE TRANSACTION ARGS: " + JSON.stringify(this.args));
+  self.total_time = (self.end_time.getTime() - self.start_time.getTime())/1000;
+  console.log('start/end:' + self.start_time + '/' + self.end_time + ' -> ' + self.total_time + 'ms' );
+  //calc base req time
+  var btotal = (self.base_end.getTime() - self.base_start.getTime())/1000;
+  console.log('baserequest: '+btotal+'ms');
+  //calc contains total time
+  if(self.contains_end && self.contains_start) {
+    var ctotal = (self.contains_end.getTime() - self.contains_start.getTime())/1000;
+    console.log('contains total: '+ ctotal + 'ms');
+  }
+  //calc resolve total time
+  if(self.resolve_end && self.resolve_start) {
+    var rtotal = (self.resolve_end.getTime() - self.resolve_start.getTime())/1000;
+    console.log('resolve total: '+ rtotal + 'ms');
+  }
+  //calc total time
+  console.log("------ END OF TWINE TRANSACTION ------- \n");
+  self.cb(err, resp);
 };
 
 Twine.prototype.$__applyResultSort = function applyResultSort(err, response){
@@ -329,9 +380,11 @@ Twine.prototype.$__applyResultSort = function applyResultSort(err, response){
       }
     });
 
-    self.cb(err, response);
+    // self.cb(err, response);
+    self.returnResult(err, response);
   } else {
-    self.cb(err, response);
+    //self.cb(err, response);
+    self.returnResult(err, response);
   }
 };
 
@@ -355,9 +408,15 @@ Twine.prototype.process = function process (base, block){
   //if contains does exist send to resolve -- if nothing to resolve it will invoke
   //the callback `block` and finish the process, thus retuning the result
   if(!self.contains){
+    if(!self.resolve || _.isEmpty(self.resolve)) {
+      block(false, base);
+      return;
+    }
     self.processResolve(base, self.resolve, container, block);
   }else{
+    self.contains_start = new Date();
     self.processContains(base, self.contains, function(base){
+      self.contains_end = new Date();
       //bubble up error?
       if(!self.resolve){
         block(false, base);
@@ -368,64 +427,32 @@ Twine.prototype.process = function process (base, block){
   }
 };
 
-Twine.prototype.processContains = function processContains(base, contains, block){
-  _logger.log('info', 'contains to be processed', {contains: contains});
-  for(var contain in contains){
-    //set contain key
-    var k = Object.keys(contains[contain])[0];
-    _logger.log('info','key', {key: k});
-    //set contain value
-    var v = contains[contain][k];
-    _logger.log('info', 'value', {value: v});
-    //loop through each array in the result set & compare to contains key, value
-    _logger.log('info', 'contain loop key value', {contain:contain, contains:contains, key:k, value:v});
+Twine.prototype.processContains = function processContains(base, contains, block) {
+  var field         = _.keys(contains)[0];
+  var does_contain  = contains[field];
 
-    if(typeof base.data === 'undefined'){
-      base.data = base;
+  if(typeof base.data === 'undefined') {
+    base.data = base;
+  }
+
+  for(var idx in base.data) {
+    var item = base.data[idx];
+
+    if(typeof item.toObject === 'function') {
+      item = item.toObject();
     }
 
-    for(var num in base.data){
-      var found = false;
-      var has_key = false;
-      _logger.log('info', 'index of base.data to be evaluated', {object: base.data[num]});
-      if(doesObjectKeyExist(base.data[num], contain)){
-        has_key = true;
-        for(var check in base.data[num][contain]){
-          _logger.log('info', 'does base.data index ' + num +
-                      ' field ' +contain+ ' field index + '+check+' key + '+k+' == value: '+v);
-          _logger.log('info','field value to compare: ' + JSON.stringify(base.data[num][contain][check]));
-          if(typeof base.data[num][contain][check] !== 'undefined')
-            if(typeof base.data[num][contain][check][k] !== 'undefined')
-              if(base.data[num][contain][check][k] === v){
-                _logger.log('info', 'contains key value found: ' +base.data[num][contain][check][k]+ ' matching v value: '+ v);
-                var key_value_res = {};
-                key_value_res[k] = v;
-                base.data[num][contain] = [key_value_res];
-                found = true;
-              }
-        }
-        if(!found && has_key) base.data[num][contain] = [];
-      }else if(Array.isArray(base.data[num])){
-        for(var i in base.data[num]){
-          if(doesObjectKeyExist(base.data[num][i], contain)){
-            has_key = true;
-            for(var check in base.data[num][i][contain]){
-              if(typeof base.data[num][i][contain][check] !== 'undefined' &&
-                 typeof base.data[num][i][contain][check][k] !== 'undefined'){
-                if(base.data[num][i][contain][check][k] === v){
-                  var key_value_res = {};
-                  key_value_res[k] = v;
-                  base.data[num][i][contain] = key_value_res;
-                  found = true;
-                }
-              }
-            }
-          }
-          if(!found && has_key) base.data[num][i][contain] = [];
-        }
-      }
+    if(_.has(item, field)) {
+      base.data[idx][field] = _.where(item[field], does_contain);
     }
   }
+
+  var reduced = _.omit(contains, field);
+  if(_.keys(reduced).length > 0) {
+    this.processContains(base, reduced, block);
+    return;
+  }
+
   block(base);
 };
 
@@ -467,40 +494,70 @@ Twine.prototype.$__isEmbeddedModelObject = function $__isEmbeddedModelObject(mod
   return false;
 };
 
-Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(object,id,field){
-  var distinct_array = [];
-  _logger.log('info', 'object, id, field to getch distinct values', {field:field, id:id, object:object});
-  _logger.log('info', 'is object an array: ' + (Array.isArray(object)));
-  if(Array.isArray(object)){
-    for(var index in object){
-      object[index] = (typeof object[index].toObject === 'function')? object[index].toObject() : object[index];
-      if(typeof object[index][field] == 'undefined' && Array.isArray(object[index])){
-        for(var c in object[index]){
-          if(distinct_array.indexOf(object[index][c][field].toString()) === -1)
-             distinct_array.push(object[index][c][field].toString());
-        }
-      }else if(Array.isArray(object[index][field])){
-        for(var i in object[index][field]){
-          if(distinct_array.indexOf(object[index][field][i][id].toString()) === -1)
-            distinct_array.push(object[index][field][i][id].toString());
-        }
-      }else{
-        if(typeof object[index][field] !== 'undefined')
-          if(doesObjectKeyExist(object[index][field], id)){
-            if(distinct_array.indexOf(object[index][field][id].toString()) === -1){
-              distinct_array.push(object[index][field][id].toString());
-            }
-          }else{
-            if(distinct_array.indexOf(object[index][field]) === -1){
-              distinct_array.push(object[index][field]);
-            }
-          }
-      }
-    }
-    return distinct_array;
-  }else{
+// Twine.prototype.getDistinctValuesForField = function getDistinctValuesForField(object,id,field){
+//   var distinct_array = [];
+//   _logger.log('info', 'object, id, field to getch distinct values', {field:field, id:id, object:object});
+//   _logger.log('info', 'is object an array: ' + (Array.isArray(object)));
+//   if(Array.isArray(object)){
+//     for(var index in object){
+//       object[index] = (typeof object[index].toObject === 'function')? object[index].toObject() : object[index];
+//       if(typeof object[index][field] == 'undefined' && Array.isArray(object[index])){
+//         for(var c in object[index]){
+//           if(distinct_array.indexOf(object[index][c][field].toString()) === -1)
+//              distinct_array.push(object[index][c][field].toString());
+//         }
+//       }else if(Array.isArray(object[index][field])){
+//         for(var i in object[index][field]){
+//           if(distinct_array.indexOf(object[index][field][i][id].toString()) === -1)
+//             distinct_array.push(object[index][field][i][id].toString());
+//         }
+//       }else{
+//         if(typeof object[index][field] !== 'undefined')
+//           if(doesObjectKeyExist(object[index][field], id)){
+//             if(distinct_array.indexOf(object[index][field][id].toString()) === -1){
+//               distinct_array.push(object[index][field][id].toString());
+//             }
+//           }else{
+//             if(distinct_array.indexOf(object[index][field]) === -1){
+//               distinct_array.push(object[index][field]);
+//             }
+//           }
+//       }
+//     }
+//     return distinct_array;
+//   }else{
+//     return false;
+//   }
+// };
+
+Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForField(data, id, field) {
+  var distinct = [];
+
+  if(!_.isArray(data)) {
     return false;
   }
+
+  _.each(data, function(item) {
+    if(typeof item.toObject === 'function') {
+      item = item.toObject();
+    }
+
+    if(_.has(item, field)) {
+      if(!_.isArray(item[field]) && !_.isNull(item[field])) {
+        // item[field] = [ item[field] ];
+        if(!_.contains(distinct, item[field])) distinct.push(item[field].toString());
+      }
+      _.each(item[field], function(field_array) {
+        if(_.has(field_array, id)) {
+          if(!_.contains(distinct, field_array[id])) {
+            distinct.push(field_array[id]);
+          }
+        }
+      });
+    }
+  });
+
+  return distinct;
 };
 
 Twine.prototype.setContainerResolveResults = function setContainerResolveResults(key,id,cont,results){
@@ -567,6 +624,7 @@ Twine.prototype.$__buildResolveFetchSelect = function $__buildResolveFetchSelect
 
 Twine.prototype.processResolve = function processResolve(base, map, container, block){
   var self = this;
+  if(!self.resolve_start) self.resolve_start = new Date();
   //set resolve key
   _logger.log('info', 'map from resolve', {map:map});
   var resolve_field = Object.keys(map)[0];
@@ -599,6 +657,7 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
     _logger.log('info', 'fetch resolve results: ', {err:err, results:res});
     //if err, its server related, bubble up and invoke block
     if(err){
+      self.resolve_end = new Date();
       block(err, false);
     }else{
       //check to ensure the model property is set for setting resolved result sets..
@@ -609,7 +668,9 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
       var key = resolve_map_object.model;
       // appliy contains if it exists
       if(doesObjectKeyExist(resolve_map_object, 'contains')){
+        self.contains_start = new Date();
         self.processContains(res, resolve_map_object.contains, function(result){
+            self.contains_end = new Date();
             container = self.setContainerResolveResults(can_resolve[resolve_field].model,
                                             can_resolve[resolve_field].identifier,
                                             container, result);
@@ -618,6 +679,7 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
             if(Object.keys(map).length > 0){
               self.processResolve(base, map, container, block);
             }else{
+              self.resolve_end = new Date();
               block(false, base);
             }
         });
@@ -632,6 +694,7 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
             self.processResolve(base, map, container, block);
           }else{
             if(self.$__ammendResultsWithContainer(container)) base.resolve = container;
+            self.resolve_end = new Date();
             block(false, base);
           }
         });
@@ -644,6 +707,7 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
           self.processResolve(base, map, container, block);
         }else{
           if(self.$__ammendResultsWithContainer(container)) base.resolve = container;
+          self.resolve_end = new Date();
           block(false, base);
         }
       }
