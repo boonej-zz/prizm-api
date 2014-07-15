@@ -97,7 +97,7 @@ var validateTrustRequest = function(req, res, cb){
  * @param  {HTTPResponse}   res The response object
  */
 var createTrust = function(req, res){
-  validateTrustRequest(req, res, function(){
+  validateTrustRequest(req, res, function() {
     var was_cancelled;
     var trust;
     var create_trust_error = {
@@ -107,72 +107,110 @@ var createTrust = function(req, res){
         error_description: 'Trust relationshop already exists'
       }
     };
+
+    var trust_100_error = {
+      status_code: 400,
+      error_info: {
+        error: 'unable_to_create_trust_100_limit',
+        error_description: ''
+      }
+    };
+
     var criteria = {
       $or:[ {to: req.params.id, from:req.body.creator},
             {to: req.body.creator, from:req.params.id} ]
     };
 
-    Trust.findOne(criteria, function(err, exists){
-      //if an error is returned, its server related, return 500
-      if(err){
+    User.find({_id: {$in: [req.params.id, req.body.creator] } }, function(err, users) {
+      if(err) {
         _utils.prismResponse(res, null, false, PrismError.serverError);
-      }else{
-        //if a trust between 2 users already exists && the status
-        //type is not equal to cancelled, then return exists error
-        if(!_.isEmpty(exists) && exists.status !== 'cancelled'){
-          _logger.log('error','unable to create trust',
-                      {error:create_trust_error, to:req.params.id, from:req.body.creator});
-          _utils.prismResponse(res, null, false, create_trust_error);
-        }else if(!_.isEmpty(exists)){
-          _logger.log('info', 'updating trust status from cancelled to pending',
-                      {from:req.body.creator, to:req.params.id});
-          //update status to pending & save/return
-          exists.status = 'pending';
-          //if the requestor is not the 'FROM' user, switch reverse the order
-          if(exists.from.toString() !== req.body.creator){
-            exists.to = req.params.id;
-            exists.from = req.body.creator;
+
+      } else {
+        if(users.length > 2) {
+          _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+
+        } else {
+          var send_trust_100_error = function(user_name) {
+            trust_100_error.error_info.error_description = user_name + ' Has hit the trust limit of 100';
+            _utils.prismResponse(res, null, false, trust_100_error);
+          };
+
+          if(users[0].trust_count === 100) {
+            send_trust_100_error(users[0].name);
+            return;
           }
-          exists.save(function(err, updated){
-            if(err){
-              _logger.log('error', 'error occurred trying to create new trust from cancelled',
-                          {err:err});
-              _utils.prismResponse(res, false, null, PrismError.serverError);
-            }
-          });
-        }else{
-          //trust doesnt exist, create a new trust
-          trust = new Trust({
-            to: req.params.id,
-            from: req.body.creator,
-            status: 'pending'
-          });
-          trust.save(function(err, new_trust){
-            //if error , send server error
-            if(err){
-              _logger.log('error', 'error returned while creating new trust', {err:err});
-              _utils.prismResponse(res, null, false, PrismResponse);
-            }else{
-              //TODO: create an activity? currently after the last activity refactor
-              //we were only creating an activity for trusts when someone approves/accepts it
-              //return result
-              var activity = {
-                _id: new_trust._id.toString(),
-                to: new_trust.to.toString(),
-                from: new_trust.from.toString(),
-                action: 'trust_request'
-              };
 
-              new PushNotification('activity', activity, function(success){
-                _logger.log('info', 'trust request push notification', {success:success});
-              });
-
-              _logger.log('info', 'successful trust created from user: '+new_trust.from.toString()+
-                                  ' to user: '+new_trust.toString());
-              _utils.prismResponse(res, new_trust, true);
-            }
-          });
+          if(users[1].trust_count === 100) {
+            send_trust_100_error(users[1].name);
+            return;
+          }
         }
+
+        Trust.findOne(criteria, function(err, exists){
+          //if an error is returned, its server related, return 500
+          if(err) {
+            _utils.prismResponse(res, null, false, PrismError.serverError);
+
+          } else {
+            //if a trust between 2 users already exists && the status
+            //type is not equal to cancelled, then return exists error
+            if(!_.isEmpty(exists) && exists.status !== 'cancelled') {
+              _logger.log('error','unable to create trust',
+                          {error:create_trust_error, to:req.params.id, from:req.body.creator});
+              _utils.prismResponse(res, null, false, create_trust_error);
+            } else if(!_.isEmpty(exists)) {
+              _logger.log('info', 'updating trust status from cancelled to pending',
+                          {from:req.body.creator, to:req.params.id});
+              //update status to pending & save/return
+              exists.status = 'pending';
+              //if the requestor is not the 'FROM' user, switch reverse the order
+              if(exists.from.toString() !== req.body.creator) {
+                exists.to = req.params.id;
+                exists.from = req.body.creator;
+              }
+              exists.save(function(err, updated) {
+                if(err) {
+                  _logger.log('error', 'error occurred trying to create new trust from cancelled',
+                              {err:err});
+                  _utils.prismResponse(res, false, null, PrismError.serverError);
+                }
+              });
+            } else {
+              //trust doesnt exist, create a new trust
+              trust = new Trust({
+                to: req.params.id,
+                from: req.body.creator,
+                status: 'pending'
+              });
+              trust.save(function(err, new_trust) {
+                //if error , send server error
+                if(err) {
+                  _logger.log('error', 'error returned while creating new trust', {err:err});
+                  _utils.prismResponse(res, null, false, PrismResponse);
+
+                } else {
+                  //TODO: create an activity? currently after the last activity refactor
+                  //we were only creating an activity for trusts when someone approves/accepts it
+                  //return result
+                  var activity = {
+                    _id: new_trust._id.toString(),
+                    to: new_trust.to.toString(),
+                    from: new_trust.from.toString(),
+                    action: 'trust_request'
+                  };
+
+                  new PushNotification('activity', activity, function(success) {
+                    _logger.log('info', 'trust request push notification', {success:success});
+                  });
+
+                  _logger.log('info', 'successful trust created from user: '+new_trust.from.toString()+
+                                      ' to user: '+new_trust.toString());
+                  _utils.prismResponse(res, new_trust, true);
+                }
+              });
+            }
+          }
+        });
       }
     });
   });
