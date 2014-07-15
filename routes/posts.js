@@ -198,7 +198,7 @@ exports.fetchUserPosts = function(req, res){
   if(req.params.id){
     var ServerError = function(){
       _utils.prismResponse(res, null, false, PrismError.serverError);
-    };    
+    };
 
     var criteria = {
       $or: [
@@ -655,11 +655,19 @@ exports.fetchPostLikes = function(req, res){
  */
 exports.fetchCommentLikes = function(req, res){
   if(req.params.id && req.params.comment_id){
+    // new Twine('Post', {_id: req.params.id, "comments._id": req.params.comment_id}, req, null, function(err, result) {
+    //   if(err) {
+    //     _utils.prismResponse(res, null , false, PrismServer.serverError);
+    //   } else {
+    //     _utils.prismResponse(res, result, true);
+    //   }
+    // });
     Post.find({
       _id: req.params.id,
       "comments._id": req.params.comment_id
     },
     {comments:1}, function(err, post){
+      console.log(post);
       var comments_likes_error = {
         status_code: 400,
         error_info: {
@@ -672,21 +680,29 @@ exports.fetchCommentLikes = function(req, res){
         _utils.prismResponse(res, null, false, PrismError.serverError);
 
       }else{
-        if(post[0].comments.length === 1 && post[0].comments[0].likes_count >0){
+        var comment;
+        var comments = post[0].comments;
+        var requested_comment = _.filter(comments, function(comment) {
+          return comment._id.toString() === req.params.comment_id;
+        });
+        requested_comment = requested_comment[0];
+
+        if(requested_comment.likes_count > 0) {
           var likes_users = [];
           var likes_user_ids = [];
 
-          post[0].comments[0].likes.forEach(function(like){
+          _.each(requested_comment.likes, function(like){
             likes_user_ids.push(like._id);
           });
+
           if(likes_user_ids.length > 0){
             User.find({_id: {$in: likes_user_ids}}, function(err, users){
-              if(users.length === likes_user_ids.length){
-                users.forEach(function(user){
+              if(users.length === likes_user_ids.length) {
+                _.each(users, function(user) {
                   likes_users.push(user.shortUser());
                 });
-                var response = {likes_count: post[0].comments[0].likes_count,
-                                likes: likes_users};
+
+                var response = {likes_count: requested_comment.likes_count, likes:likes_users};
                 _utils.prismResponse(res, response, true);
 
               }else{
