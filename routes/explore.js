@@ -32,7 +32,7 @@ var searchHashTags = function(req, res){
     Post.aggregate([
       { $unwind: "$hash_tags" },
       { $match: { hash_tags: regex_hash_string, status: 'active', scope: 'public' }},
-      { $group: { _id: "$hash_tags", count: {$sum :1} }},
+      { $group: { _id: {$toLower : "$hash_tags"}, count: {$sum :1} }},
       { $sort: { count: -1 }},
       { $limit: 30 } ],
       function(err, hashtags){
@@ -54,10 +54,23 @@ var searchHashTags = function(req, res){
 };
 
 var explore = function(req, res){
-  console.time('explore');
   var criteria = {status: 'active', scope: 'public', is_flagged: false};
+
+  //decode xargs and check if hash_tags filter is set
+  //if hash_tags filter is set, pull the value out of xargs and
+  //update search criteria. then omit hash_tags value & re-encode back
+  //into request headers
+  var xargs = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
+  xargs = JSON.parse(xargs);
+  if(_.has(xargs, 'hash_tags')) {
+    var regex_hash = new RegExp('^'+xargs.hash_tags+'$', 'i');
+    criteria = {status: 'active', scope: 'public', is_flagged: false, hash_tags: regex_hash};
+    xargs = _.omit(xargs, 'hash_tags');
+    xargs = JSON.stringify(xargs);
+    req.headers['x-arguments'] = new Buffer(xargs).toString('base64');
+  }
+
   var twine = new Twine('Post', criteria, req, null, function(error, explore){
-    console.timeEnd('explore');
     if(error){
       _utils.prismResponse(res, null, false, PrismError.serverError);
     }else{
