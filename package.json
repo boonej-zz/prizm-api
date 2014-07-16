@@ -2,7 +2,7 @@
   "name": "prism_api",
   "description": "REST API for Prism mobile platform",
   "author": "DJ Hayden <dj.hayden@stablekernel.com>",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "private": true,
   "scipts": {
     "test": "make test",
