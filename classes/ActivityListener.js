@@ -72,43 +72,48 @@ var isInTestMode = function(){
 ActivityListener.prototype.activityHandler = function(activity){
   var self = this;
   if(activity.action && activity.to && activity.from){
+    if(activity.to === activity.from) {
+      //activity is to & from same user. do not send activity event
+      return;
 
-    var new_activity = new Activity({
-      to: activity.to,
-      from: activity.from,
-      action: activity.action,
-    });
-
-    if(_.has(activity, 'post_id'))
-      new_activity.post_id = activity.post_id;
-
-    if(_.has(activity, 'comment_id'))
-      new_activity.comment_id = activity.comment_id;
-
-    new_activity.save(function(err, saved){
-      if(err){
-        _logger.log('error', 'Error occured saving new activity',
-                    {activity:activity});
-        return;
-      }
-
-      if(!saved){
-        _logger.log('error', 'There was no saved record returned - server error?',
-                    {error:err, saved:saved, activity:activity});
-        return;
-      }
-
-      _logger.log('info', 'Successfully created '+saved.action+' activity',
-                  {saved_activity:saved});
-
-      new Push('activity', saved, function(result){
-        console.log("logging result of push"+JSON.stringify(result));
-        _logger.log('info', 'Push notification result', result);
+    } else {
+      var new_activity = new Activity({
+        to: activity.to,
+        from: activity.from,
+        action: activity.action,
       });
 
-      if(saved.action === 'comment' || saved.action === 'like' || saved.action === 'tag')
-        self.updateTrust(saved);
-    });
+      if(_.has(activity, 'post_id'))
+        new_activity.post_id = activity.post_id;
+
+      if(_.has(activity, 'comment_id'))
+        new_activity.comment_id = activity.comment_id;
+
+      new_activity.save(function(err, saved){
+        if(err){
+          _logger.log('error', 'Error occured saving new activity',
+                      {activity:activity});
+          return;
+        }
+
+        if(!saved){
+          _logger.log('error', 'There was no saved record returned - server error?',
+                      {error:err, saved:saved, activity:activity});
+          return;
+        }
+
+        _logger.log('info', 'Successfully created '+saved.action+' activity',
+                    {saved_activity:saved});
+
+        new Push('activity', saved, function(result){
+          console.log("logging result of push"+JSON.stringify(result));
+          _logger.log('info', 'Push notification result', result);
+        });
+
+        if(saved.action === 'comment' || saved.action === 'like' || saved.action === 'tag')
+          self.updateTrust(saved);
+      });
+    }
   }else{
     _logger.log('error', 'Activity action, to, & from, must be set to create'+
                           ' a new activity record', {activity: activity});
