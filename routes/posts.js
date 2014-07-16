@@ -758,13 +758,6 @@ exports.likeComment = function(req,res){
           }
         }
       }
-      // if(comment.comments[0].likes &&
-      //   comment.comments[0].likes.length > 0){
-      //   for(var i=0; i<comment.comments[0].likes.length; i++){
-      //     if(comment.comments[0].likes[i]._id === req.body.creator)
-      //       already_likes = true;
-      //   }
-      // }
 
       if(already_likes){
         var like_error = {

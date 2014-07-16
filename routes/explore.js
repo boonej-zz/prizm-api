@@ -53,8 +53,21 @@ var searchHashTags = function(req, res){
   }
 };
 
+var shuffleExploreResults = function(results) {
+  //shuffle result set using the Fisher-Yates shuffle provided nicely in underscore
+  if(_.isArray(results) && !_.isEmpty(results)) {
+    results = _.shuffle(results);
+    //return only the top 30 result set
+    return _.first(results, 30);
+  }
+
+  return results;
+};
+
 var explore = function(req, res){
   var criteria = {status: 'active', scope: 'public', is_flagged: false};
+  var randomize_result = true;
+  var options = {limit:60};
 
   //decode xargs and check if hash_tags filter is set
   //if hash_tags filter is set, pull the value out of xargs and
@@ -70,10 +83,21 @@ var explore = function(req, res){
     req.headers['x-arguments'] = new Buffer(xargs).toString('base64');
   }
 
-  var twine = new Twine('Post', criteria, req, null, function(error, explore){
+  //check to ensure the fetch is not for "featured", if it is, set options to null &
+  //randomize_result to false
+  console.log("xargs for explore" + JSON.stringify(xargs));
+  if(_.has(xargs, 'type') && xargs.type === 'institution_verified') {
+    options = null;
+    randomize_result = false;
+  }
+
+  var twine = new Twine('Post', criteria, req, options, function(error, explore){
     if(error){
       _utils.prismResponse(res, null, false, PrismError.serverError);
     }else{
+      if(randomize_result) {
+        explore.data = shuffleExploreResults(explore.data);
+      }
       _utils.prismResponse(res, explore, true);
     }
   });
