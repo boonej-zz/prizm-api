@@ -131,7 +131,7 @@ var createTrust = function(req, res){
 
         } else {
           var send_trust_100_error = function(user_name) {
-            trust_100_error.error_info.error_description = user_name + ' Has hit the trust limit of 100';
+            trust_100_error.error_info.error_description = user_name + ' has hit the trust limit';
             _utils.prismResponse(res, null, false, trust_100_error);
           };
 
