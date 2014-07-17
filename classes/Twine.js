@@ -500,6 +500,11 @@ Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForFiel
   if(!_.isArray(data)) {
     return false;
   }
+  
+  //check to see if its a child model array set
+  if(_.isArray(data[0]) && data.length === 1) {
+    data = data[0];
+  }
 
   _.each(data, function(item) {
     if(typeof item.toObject === 'function') {
