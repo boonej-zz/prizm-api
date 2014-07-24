@@ -3,6 +3,6 @@ module.exports = {
   app_name: 'Prizm Production',
   mongo: {
     host: 'internal-PrizmProductionDB-588525252.us-west-2.elb.amazonaws.com',
-    name: 'prizm'
+    name: 'prism'
   }
 };
