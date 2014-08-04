@@ -9,8 +9,9 @@
  */
 module.exports = {
   mongo: {
-    host: 'boonej:L0ng5h0T1@kahana.mongohq.com:10007',
-    name: 'prizm_development'
+           host: process.env.DB_USER + ':' + process.env.DB_PASS + 
+             '@kahana.mongohq.com:10007',
+           name: 'prizm_development'
   },
 
   env: {
