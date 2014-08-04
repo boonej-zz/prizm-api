@@ -300,4 +300,8 @@ _https.createServer(ssl_options, _app).listen(_config.env.port, function(){
   }
 });
 */
+_app.all('*', function(req, res, next){
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://' + req.host + req.originalUrl);
+});
 _app.listen(process.env.PORT || 3000);
