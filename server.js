@@ -285,6 +285,7 @@ if(_app.get('env')  == 'test'){
 }
 
 /* create regular http server listening on port 8080 that re-routes back to https */
+/*
 _http.createServer(_httpserver).listen(8080, function(){
   if(_app.get('env') !== 'test') {
     console.log('HTTP Server listening on port 8080');
@@ -292,8 +293,11 @@ _http.createServer(_httpserver).listen(8080, function(){
 });
 
 /* create SSL Server listening on port 3000 */
+/*
 _https.createServer(ssl_options, _app).listen(_config.env.port, function(){
   if(_app.get('env') !== 'test') {
     console.log("Secure Prism Api server listening on port " + _config.env.port);
   }
 });
+*/
+_app.listen(process.env.PORT || 3000);
