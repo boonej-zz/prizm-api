@@ -14,7 +14,7 @@ module.exports = {
   },
 
   env: {
-    port: 3000
+    port: 443
   },
 
   social: {
