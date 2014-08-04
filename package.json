@@ -3,6 +3,7 @@
   "description": "REST API for Prism mobile platform",
   "author": "DJ Hayden <dj.hayden@stablekernel.com>",
   "version": "0.6.6",
+  "engine": "node 0.10.25",
   "private": true,
   "scipts": {
     "test": "make test",
