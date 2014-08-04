@@ -9,8 +9,8 @@
  */
 module.exports = {
   mongo: {
-    host: 'localhost',
-    name: 'prism'
+    host: 'boonej:L0ng5h0T1@kahana.mongohq.com:10007',
+    name: 'prizm_development'
   },
 
   env: {
