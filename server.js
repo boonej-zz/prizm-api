@@ -36,7 +36,7 @@ var _app            = _express();
 var _httpserver     = _express();
 
 //general settings */
-_app.set('views', '/views'));
+_app.set('views', path.join(__dirname, 'views'));
 _app.set('view engine', 'ejs');
 _app.use(_express.bodyParser());
 _app.use(_express.methodOverride());
