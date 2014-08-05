@@ -36,10 +36,11 @@ var _app            = _express();
 var _httpserver     = _express();
 
 //general settings */
-_app.use(_express.bodyParser());
-_app.use(_express.methodOverride());
 _app.set('views', path.join(__dirname, 'views'));
 _app.set('view engine', 'ejs');
+_app.use(_express.bodyParser());
+_app.use(_express.methodOverride());
+
 
 /* environment specific settings */
   errorTransports = [
