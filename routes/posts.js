@@ -1022,6 +1022,9 @@ exports.fetchPostById = function(req, res){
 
       }else{
         _logger.log('info', 'post_id '+req.params.id+' found via fetchPostById');
+        if (req.accepts('text/html') {
+          res.send('Hello');
+        }
         _utils.prismResponse(res, post, true);
 
       }
