@@ -1018,14 +1018,16 @@ exports.fetchPostById = function(req, res){
         _logger.log('error',
                     'unable to find post by id',
                     {result:post, post_id:req.params.id, error:post_empty_error});
-      if (req.accepts('text/html') {
-        res.render('post', {post: post});
-      }
-        _utils.prismResponse(res, null, false, post_empty_error);
+              _utils.prismResponse(res, null, false, post_empty_error);
 
       }else{
         _logger.log('info', 'post_id '+req.params.id+' found via fetchPostById');
+        if (req.accepts('text/html') {
+          res.render('post', {post: post});
+        }
+
         _utils.prismResponse(res, post, true);
+
 
       }
     });
