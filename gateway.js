@@ -44,7 +44,7 @@ module.exports = function(req, res, next){
  */
 var needsAuthorization = function(req){
   var path = _utils.requestPathArray(req);
-  if (req.get('Accepts') == 'text/html') {
+  if (path[0] == 'posts') {
     return false;
   }
   if(path){
