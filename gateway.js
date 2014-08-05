@@ -16,8 +16,7 @@ var _mongoose     = require('mongoose'),
     PrismError    = require(_prism_home + 'error');
 
 module.exports = function(req, res, next){
-  var path = _utils.requestPathArray(req);
-  if(needsAuthorization(path, req)){
+  if(needsAuthorization(req)){
     validateAuthorization(req, function(valid, err){
       if(err) logger.log('error','validateAuthroization returned an error:');
       if(!valid && err){
@@ -43,8 +42,9 @@ module.exports = function(req, res, next){
  * @param  {String} req_path The request path
  * @return {Boolean}          Returns true/false based on path
  */
-var needsAuthorization = function(req_path, req){
-  var path = req_path;
+var needsAuthorization = function(req){
+  return false;
+  var path = _utils.requestPathArray(req);
   if(path && path[0] == 'oauth2' ){
     if(path.length == 2 && path[1] != 'login') return false;
   }
