@@ -43,7 +43,7 @@ module.exports = function(req, res, next){
  * @return {Boolean}          Returns true/false based on path
  */
 var needsAuthorization = function(req){
-  var path = req.path.split('/');
+  var path = req.path.substr(1).split('/');
   console.log('the request is ' + path);
   if (path[0] == 'posts') {
     return false;
