@@ -45,13 +45,10 @@ module.exports = function(req, res, next){
 var needsAuthorization = function(req){
   var path = req.path.substr(1).split('/');
   console.log('the request is ' + path);
-  if (path[0] == 'posts' && req.is('text/html') && path.lenght == 2) {
-    return false;
-  }
   if(path){
     if(path[0] == 'oauth2' && path.length == 2 && path[1] != 'login'){
       return false;
-    } else if (req.get('content-type') == 'text/html') {
+    } else if (path[0] == 'posts' && req.is('text/html') && path.length == 2) {
       return false;
     }
   }
