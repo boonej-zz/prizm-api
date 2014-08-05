@@ -47,7 +47,7 @@ var needsAuthorization = function(req){
   if(path){
     if(path[0] == 'oauth2' && path.length == 2 && path[1] != 'login'){
       return false;
-    } else if (path[0] == 'posts') {
+    } else if (req.get('content-type') == 'text/html') {
       return false;
     }
   }
