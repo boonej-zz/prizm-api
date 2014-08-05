@@ -93,6 +93,14 @@ process.on('uncaughtException', function (err) {
 
 /********************** API ROUTES ************************/
 /* Root Endpoint */
+_app.all('*', function(req, res, next){
+  if (req.headers['x-forwarded-proto'] != 'https') {
+    res.redirect('https://' + req.host + req.originalUrl);
+  } else {
+    next();
+  }
+});
+
 _app.get('/', function(req,res){ res.send('Welcome to the Prism API'); });
 
 /* Authentication Code Endpoint */
@@ -300,11 +308,4 @@ _https.createServer(ssl_options, _app).listen(_config.env.port, function(){
   }
 });
 */
-_app.get('*', function(req, res, next){
-  if (req.headers['x-forwarded-proto'] != 'https') {
-    res.redirect('https://' + req.host + req.originalUrl);
-  } else {
-    next();
-  }
-});
 _app.listen(process.env.PORT || 3000);
