@@ -997,10 +997,6 @@ exports.fetchPostAndLikeById = function(req, res){
  *                    utility prismResponse method.
  */
 exports.fetchPostById = function(req, res){
-  res.send('done');
-  if (req.get('Content-type') == 'text/html') {
-    res.write('we are rocking');
-  }
   if(req.params.id){
     new Twine('Post', {_id: req.params.id}, req, null, function(err, post){
       //if err it is server related
@@ -1022,7 +1018,9 @@ exports.fetchPostById = function(req, res){
         _logger.log('error',
                     'unable to find post by id',
                     {result:post, post_id:req.params.id, error:post_empty_error});
-
+      if (req.accepts('text/html') {
+        res.render('post', {post: post});
+      }
         _utils.prismResponse(res, null, false, post_empty_error);
 
       }else{
