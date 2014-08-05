@@ -29,6 +29,7 @@ var _express        = require('express'),
     _winston        = require('winston'),
     ActivityListener = require(_prism_home + 'classes/ActivityListener'),
     _activity       = require(_prism_home + 'routes/activities');
+    path            = require('path');
     new ActivityListener();
 
 var _app            = _express();
