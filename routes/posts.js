@@ -997,7 +997,7 @@ exports.fetchPostAndLikeById = function(req, res){
  *                    utility prismResponse method.
  */
 exports.fetchPostById = function(req, res){
-  res.write('done');
+  res.send('done');
   if (req.get('Content-type') == 'text/html') {
     res.write('we are rocking');
   }
