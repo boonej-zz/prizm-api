@@ -25,7 +25,8 @@
     "underscore": "1.6.0",
     "node-mandrill": "*",
     "moment": "*",
-    "newrelic": "*"
+    "newrelic": "*",
+    "ejs": "~0.8.5"
   },
   "devDependencies": {
     "mocha": "1.20.0",
