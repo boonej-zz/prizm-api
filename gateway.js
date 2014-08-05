@@ -43,14 +43,13 @@ module.exports = function(req, res, next){
  * @return {Boolean}          Returns true/false based on path
  */
 var needsAuthorization = function(req){
-  return false;
   var path = _utils.requestPathArray(req);
-  if(path && path[0] == 'oauth2' ){
-    if(path.length == 2 && path[1] != 'login') return false;
-  }
-  if(path && path[0] == 'posts') {
-    //if (req.get('Content-type') == 'text/html') return false;
-    return false;
+  if(path){
+    if(path[0] == 'oauth2' && path.length == 2 && path[1] != 'login'){
+      return false;
+    } else if (path[0] == 'posts') {
+      return false;
+    }
   }
   return true;
 };
