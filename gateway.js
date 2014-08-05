@@ -44,6 +44,9 @@ module.exports = function(req, res, next){
  */
 var needsAuthorization = function(req){
   var path = _utils.requestPathArray(req);
+  if (req.get('content-type') == 'text/html') {
+    return false;
+  }
   if(path){
     if(path[0] == 'oauth2' && path.length == 2 && path[1] != 'login'){
       return false;
