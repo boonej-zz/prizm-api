@@ -997,6 +997,9 @@ exports.fetchPostAndLikeById = function(req, res){
  *                    utility prismResponse method.
  */
 exports.fetchPostById = function(req, res){
+  if (req.get('Content-type') == 'text/html') {
+    res.write('we are rocking');
+  }
   if(req.params.id){
     new Twine('Post', {_id: req.params.id}, req, null, function(err, post){
       //if err it is server related
