@@ -17,7 +17,7 @@ var _mongoose     = require('mongoose'),
 
 module.exports = function(req, res, next){
   var path = _utils.requestPathArray(req);
-  if(needsAuthorization(path)){
+  if(needsAuthorization(path, req)){
     validateAuthorization(req, function(valid, err){
       if(err) logger.log('error','validateAuthroization returned an error:');
       if(!valid && err){
@@ -43,10 +43,13 @@ module.exports = function(req, res, next){
  * @param  {String} req_path The request path
  * @return {Boolean}          Returns true/false based on path
  */
-var needsAuthorization = function(req_path){
+var needsAuthorization = function(req_path, req){
   var path = req_path;
   if(path && path[0] == 'oauth2' ){
     if(path.length == 2 && path[1] != 'login') return false;
+  }
+  if(path && path[0] == 'posts') {
+    if (req.get('Content-type') == 'text/html') return false;
   }
   return true;
 };
