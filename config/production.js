@@ -4,5 +4,10 @@ module.exports = {
   mongo: {
     host: 'prizm:vuxar6facUth@54.191.239.14',
     name: 'prizm'
+  },
+  social: {
+    google: {
+              callback_uri: 'https://prizm-fe-prd-1163268161.us-west-2.elb.amazonaws.com/callback'
+            }
   }
 };
