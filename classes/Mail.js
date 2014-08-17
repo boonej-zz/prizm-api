@@ -14,7 +14,7 @@ var _mongoose     = require('mongoose'),
 
 var SEND_MESSAGE_ENDPOINT = '/messages/send';
 var DEV_EC2_URI = 'https://ec2-user@ec2-54-186-28-238.us-west-2.compute.amazonaws.com';
-var STAGING_EC2_URI = 'https://https://ec2-54-200-41-62.us-west-2.compute.amazonaws.com';
+var STAGING_EC2_URI = 'https://ec2-54-200-41-62.us-west-2.compute.amazonaws.com';
 
 /**
  * Expose Module
@@ -64,7 +64,7 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
           '<p>Email: '+user.email+'</p>'+
           '<p>Phone Number: '+user.phone_number+'</p>'+
           '<p>Website: '+user.website+'</p><br>'+
-          '<h1><a href="https://ec2-user@ec2-54-200-41-62.us-west-2.compute.amazonaws.com/users/'+
+          '<h1><a href="https://prizm-fe-prd-1163268161.us-west-2.elb.amazonaws.com/users/'+
           user._id+'/review/institution?review_key='+user.review_key+'&approval=yes">Approve</a></h1>'+
           '<h1><a href="https://ec2-user@ec2-54-200-41-62.us-west-2.compute.amazonaws.com/users/'+
           user._id+'/review/institution?review_key='+user.review_key+'&approval=no">Deny</a></h1>'
