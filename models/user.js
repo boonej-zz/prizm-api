@@ -161,6 +161,7 @@ userSchema.methods.format = function(type, add_fields, callback){
       first_name:           this.first_name,
       last_name:            this.last_name,
       birthday:             this.birthday,
+      gender:               this.gender,
       email:                this.email,
       info:                 this.info,
       website:              this.website,
