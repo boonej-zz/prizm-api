@@ -80,8 +80,13 @@ PushNotification.prototype.activity = function activity(){
         });
         var action = "";
         if(self.object.action === 'comment') action = 'commented on your post';
-        if(self.object.action === 'tag') action = 'tagged you in a post';
-        if(self.object.action === 'like' && !self.object.comment_id){
+        if(self.object.action === 'tag') {
+          if (! self.object.comment_id) {
+            action = 'tagged you in a post';
+          } else {
+            action = 'tagged you in a comment';
+          }
+        }         if(self.object.action === 'like' && !self.object.comment_id){
           action = 'liked your post';
         }else if(self.object.action === 'like' && self.object.comment_id){
           action = 'liked your comment';
