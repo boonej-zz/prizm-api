@@ -292,7 +292,7 @@ exports.createPostComment = function(req, res){
             _utils.registerActivityEvent(post.creator,
                                          req.body.creator,
                                          'comment',
-                                         req.params.id,
+                                         post._id,
                                          comment._id);
             //return response
             var response = {comments: comment_with_user, comments_count: saved.comments_count};
