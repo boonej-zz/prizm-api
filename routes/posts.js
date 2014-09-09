@@ -272,7 +272,7 @@ exports.createPostComment = function(req, res){
         }else{
           post.comments.push(comment);
           post.comments_count = post.comments_count + 1;
-          post.save(function(err, saved){
+                    post.save(function(err, saved){
             if(err) _utils.prismResponse(res,null,false,PrismError.serverError);
             var comment_creator = {
               name: user.name,
@@ -287,6 +287,24 @@ exports.createPostComment = function(req, res){
               creator: comment_creator,
               _id: comment._id
             };
+            var user_tag = [];
+            if (comment.text) {
+              user_tag =  comment.text.match(/(@(\S+))/g);
+              for(var i = 0; i < user_tag.length; i++){
+                user_tag[i] =  user_tag[i].match(/([a-zA-Z0-9]+)/)[0];
+                var user_id = user_tag[i].replace(/@/, "");
+                if (user_id) {
+                  _utils.registerActivityEvent(user_id,
+                                         req.body.creator,
+                                         'tag',
+                                         post._id,
+                                         comment._id);
+  
+                }
+
+              }
+
+            } 
 
             //create activity
             _utils.registerActivityEvent(post.creator,
