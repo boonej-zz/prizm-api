@@ -82,7 +82,7 @@ ActivityListener.prototype.activityHandler = function(activity){
         from: activity.from,
         action: activity.action,
       });
-
+      _logger.log('info', 'Current activity: ' + JSON.stringify(activity);
       if(_.has(activity, 'post_id'))
         new_activity.post_id = activity.post_id;
 
