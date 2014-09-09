@@ -787,10 +787,10 @@ exports.likeComment = function(req,res){
 
           //create activity
           _utils.registerActivityEvent(comment.creator,
-                                       creator,
+                                       req.body.creator,
                                        'like',
                                        post_id,
-                                       comment_id);
+                                       req.params.comment_id);
 
           _utils.prismResponse(res, response, true);
         });
