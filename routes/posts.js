@@ -786,7 +786,7 @@ exports.likeComment = function(req,res){
                            likes: saved.comments[comment_index].likes[like_index] };
 
           //create activity
-          _utils.registerActivityEvent(comment.creator._id,
+          _utils.registerActivityEvent(comment.creator,
                                        req.body.creator,
                                        'like',
                                        post_id,
