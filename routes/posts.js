@@ -730,6 +730,9 @@ exports.fetchCommentLikes = function(req, res){
  * @return {[type]}     [description]
  */
 exports.likeComment = function(req,res){
+  var post_id = req.params.id;
+  var comment_id = req.params.comment_id;
+  var creator = req.body.creator;
   if(req.params.id && req.params.comment_id && req.body.creator){
     Post.findOne({
       _id: req.params.id,
@@ -784,10 +787,10 @@ exports.likeComment = function(req,res){
 
           //create activity
           _utils.registerActivityEvent(comment.creator,
-                                       req.body.creator,
+                                       creator,
                                        'like',
-                                       req.params.id,
-                                       req.params.comment_id);
+                                       post_id,
+                                       comment_id);
 
           _utils.prismResponse(res, response, true);
         });
