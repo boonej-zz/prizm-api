@@ -290,6 +290,7 @@ exports.createPostComment = function(req, res){
             var user_tag = [];
             if (comment.text) {
               user_tag =  comment.text.match(/(@(\S+))/g);
+              if (user_tag) {
               for(var i = 0; i < user_tag.length; i++){
                 user_tag[i] =  user_tag[i].match(/([a-zA-Z0-9]+)/)[0];
                 var user_id = user_tag[i].replace(/@/, "");
@@ -302,7 +303,7 @@ exports.createPostComment = function(req, res){
   
                 }
 
-              }
+              }}
 
             } 
 
