@@ -10,7 +10,7 @@
 module.exports = {
   mongo: {
     host: 'localhost',
-    name: 'prism'
+    name: 'prizm'
   },
 
   env: {

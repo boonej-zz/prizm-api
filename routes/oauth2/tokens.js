@@ -114,6 +114,8 @@ var createAuthorizationToken = function(req, res){
 var handleAuthorizationCode = function(req, res){
   var code          = req.body.code,
       redirect_uri  = req.body.redirect_uri;
+  console.log(code);
+  console.log(redirect_uri);
   if(code && redirect_uri){
     Code.findOne({code: code}, function(error, authCode){
       if(authCode){

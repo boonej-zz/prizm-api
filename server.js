@@ -174,6 +174,8 @@ _app.post('/posts/:id/comments/:comment_id/unlike', _gateway, _post.unlikeCommen
 /* Fetch A Comment */
 _app.get('/posts/:id/comments/:comment_id', _gateway, _post.fetchComment);
 
+/* Post User Interests */
+_app.post('/users/:id/interests', _gateway, _user.addInterests);
 /* Fetch Users followers */
 _app.get('/users/:id/followers', _gateway, _follow.fetchFollowers);
 

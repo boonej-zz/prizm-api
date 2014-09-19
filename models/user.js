@@ -48,6 +48,7 @@ var userSchema = new _mongoose.Schema({
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
   trust_count           : {type: Number, default: 0},
+  interests             : {type: Array, default: []},
   type                  : {type: String, default: 'user'},
   date_founded          : {type: Date, default: null},
   mascot                : {type: String, default: null},

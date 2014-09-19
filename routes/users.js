@@ -341,6 +341,19 @@ exports.login = function(req, res){
  * @param  {HTTPResponse} res The response object
  * @return {User} Returns the newly created User object
  */
+
+exports.addInterests = function (req, res) {
+  var user = User.findOne({_id: req.params.id}, function (err, obj) {
+    if (!err) {
+      obj.interests = req.body.interests;
+      obj.save();
+      _utils.prismResponse(res, obj.format('basic'), true); 
+    } else {
+      res.status(400).send({ error: 'there was a problem' })
+    }
+  });
+}
+
 exports.register = function(req, res){
   if(isValidRegisterRequest(req)){
     //Handle traidtional registration --
