@@ -506,7 +506,6 @@ exports.fetchUser = function(req, res){
         _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
 
       }else{
-        console.log(result);
         _utils.prismResponse(res, result, true);
       }
     });
