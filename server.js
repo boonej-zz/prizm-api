@@ -256,6 +256,13 @@ _app.post('/users/:id/devices', _gateway, _user.registerDevice);
 /* Unregister devices from push notifications */
 _app.post('/devices/:id', _user.unregisterDevice);
 
+_app.get('/files/:name', function(req, res){
+  var fileName = req.params.name;
+  res.sendfile(__dirname + '/public/' + fileName, function(err){
+    res.send(404);
+  });
+});
+
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
