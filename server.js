@@ -7,15 +7,17 @@ require('newrelic');
 
 process.env.PRISM_HOME = process.cwd() + '/';
 
+var _prism_home     = process.env.PRISM_HOME;
+require(_prism_home + 'models/insight');
 var _express        = require('express'),
     _mongoose       = require('mongoose'),
     _http           = require('http'),
     _fs             = require('fs'),
     _https          = require('https'),
-    _prism_home     = process.env.PRISM_HOME,
     _auth           = require(_prism_home + 'routes/oauth2/auths'),
     _token          = require(_prism_home + 'routes/oauth2/tokens'),
     _user           = require(_prism_home + 'routes/users'),
+    _insight        = require(_prism_home + 'routes/insights'),
     _explore        = require(_prism_home + 'routes/explore'),
     _follow         = require(_prism_home + 'routes/follow'),
     _post           = require(_prism_home + 'routes/posts'),
@@ -263,6 +265,12 @@ _app.get('/files/:name', function(req, res){
   });
 });
 
+_app.post('/insights', _insight.createInsight);
+_app.get('/insights', _insight.fetchInsights);
+_app.post('/insights/:id', _insight.sendInsight);
+_app.get('/users/:id/insights', _insight.fetchUserInsights);
+_app.post('/insights/:id/like', _insight.likeInsight);
+_app.post('/insights/:id/dislike', _insight.dislikeInsight);
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){

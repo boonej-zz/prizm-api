@@ -48,7 +48,6 @@ var userSchema = new _mongoose.Schema({
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
   trust_count           : {type: Number, default: 0},
-  interests             : {type: Array, default: []},
   type                  : {type: String, default: 'user'},
   date_founded          : {type: Date, default: null},
   mascot                : {type: String, default: null},
@@ -151,8 +150,7 @@ userSchema.methods.format = function(type, add_fields, callback){
       last_name: this.last_name,
       profile_photo_url: this.profile_photo_url,
       type: this.type,
-      active: this.active,
-      interests: this.interests
+      active: this.active
     };
   }
 
@@ -169,7 +167,6 @@ userSchema.methods.format = function(type, add_fields, callback){
       website:              this.website,
       city:                 this.city,
       state:                this.state,
-      interests:            this.interests,
       cover_photo_url:      this.cover_photo_url,
       profile_photo_url:    this.profile_photo_url,
       create_date:          this.create_date,

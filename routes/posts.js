@@ -240,7 +240,7 @@ exports.fetchUserPosts = function(req, res){
       }
     });
   }else{
-    _utils.prismResponse(res, null, false, PrismError.invalidRequst);
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
 };
 
