@@ -85,7 +85,6 @@ exports.fetchUserInsights = function(req, res) {
           logger.log('error', 'Fetching user insights returned error', {err: error});
           ServerError(res);
         } else {
-          console.log('found ' + result.data.length + ' results');
           utils.prismResponse($res, result, true);
         }
       }); 
