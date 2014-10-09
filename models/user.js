@@ -67,6 +67,7 @@ var userSchema = new _mongoose.Schema({
   subtype               : {type: String, default: null},
   badge_count           : {type: Number, default: 0},
   active                : {type: Boolean, default: true},
+  program_code          : {type: String, default: null}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -96,7 +97,7 @@ userSchema.statics.selectFields = function(type){
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
-            'tumblr_token_secret'];
+            'tumblr_token_secret', 'program_code'];
   }
 };
 
@@ -184,7 +185,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       tumblr_token_secret:  this.tumblr_token_secret,
       device_token:         this.device_token,
       subtype:              this.subtype,
-      active:               this.active
+      active:               this.active,
+      program_code:         this.program_code
     };
   }
 

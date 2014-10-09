@@ -376,6 +376,9 @@ exports.register = function(req, res){
 
     if(typeof(req.body.profile_photo_url) != 'undefined')
       newUser.profile_photo_url = req.body.profile_photo_url;
+    if (typeof(req.body.program_code) != 'undefined') {
+      newUser.program_code = req.body.program_code;
+    }
 
     if(typeof(req.body.type) !== 'undefined') newUser.type = req.body.type;
     if(typeof(req.body.subtype) !== 'undefined') newUser.subtype = req.body.subtype;
@@ -544,6 +547,9 @@ exports.updateUser = function(req, res){
         if(typeof(body.website) !== 'undefined') user.website = body.website;
         if(typeof(body.ethnicity) !== 'undefined') user.ethnicity = body.ethnicity;
         if(typeof(body.affiliations) !== 'undefined') user.affliations = body.affliations;
+        if(typeof(body.program_code) !== 'undefined'){
+          user.program_code = body.program_code;
+        }
         if(typeof(body.religion) !== 'undefined') user.religion = body.religion;
         if(typeof(body.gender) !== 'undefined') user.gender = body.gender;
         if(typeof(body.zip_postal) !== 'undefined') user.zip_postal = body.zip_postal;
