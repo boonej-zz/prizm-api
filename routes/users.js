@@ -357,6 +357,7 @@ exports.addInterests = function (req, res) {
 exports.register = function(req, res){
   if(isValidRegisterRequest(req)){
     //Handle traidtional registration --
+    console.log(req.body);
     var newUser = new User({
       first_name: req.body.first_name,
       last_name: req.body.last_name,
