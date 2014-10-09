@@ -21,12 +21,34 @@ var commentSchema = new _mongoose.Schema({
   create_date         : { type: Date, default: Date.now() },
   likes               : [],
   likes_count         : {type: Number, default: 0},
+  tags                : {type: Array, default: []},
+  hash_tags           : {type: Array, default: []},
+  tags_count          : {type: Number, default: 0},
+  hash_tags_count     : {type: Number, default: 0},
   status              : {type: String, default: 'active'}
 });
 
+commentSchema.methods.sendTagActivityEvent = function(user_id){
+  var from_user, to_user, post_id;
+
+  to_user   = user_id.toString();
+
+  if(_.isUndefined(this.creator._id)){
+    from_user = this.creator.toString();
+  }else{
+    from_user = this.creator._id.toString();
+  }
+
+  comment_id = this._id.toString();
+
+  //register tagged activity event
+  _utils.registerActivityEvent(to_user, from_user, 'tag', null, comment_id);
+};
+
+
 commentSchema.statics.selectFields = function(type){
   var select = ['comments._id', 'comments.text',
-    'comments.creator','comments.create_date','comments.likes_count'];
+    'comments.creator','comments.create_date','comments.likes_count', 'tags', 'hash_tags', 'tags_count', 'hash_tags_count'];
   if(type === 'basic')
     select.push('comments.likes');
   return select;
@@ -35,9 +57,83 @@ commentSchema.statics.selectFields = function(type){
 commentSchema.statics.canResolve = function(){
   return [
     {creator: {identifier: '_id', model: 'User'}},
-    {likes: {identifier: '_id', model: 'User'}}
+    {likes: {identifier: '_id', model: 'User'}},
+    {tags: {identifier: '_id', model: 'User'}}
   ];
 };
+
+commentSchema.methods.parseAndUpdateTags = function(){
+  var user_tage = [], hash_tag = [];
+
+  if(this.text){
+    user_tag = this.text.match(/(@(\S+))/g);
+    hash_tag = this.text.match(/(#(\S+))/g);
+    this.tagHandler(ParseTagType.UserTag, user_tag);
+    this.tagHandler(ParseTagType.HashTag, hash_tag);
+  }
+};
+
+commentSchema.methods.tagHandler = function(type, parsed_array){
+  if(_.isArray(parsed_array)){
+    if(parsed_array.length > 0){
+      if(type === ParseTagType.HashTag){
+        for(var idx in parsed_array){
+          //strip # character from tag
+          parsed_array[idx] = parsed_array[idx].replace(/#/, "");
+        }
+        this.hash_tags = parsed_array;
+        this.hash_tags_count = this.hash_tags.length;
+      }
+      if(type === ParseTagType.UserTag){
+        for(var i = 0; i < parsed_array.length; i++){
+          //strip the @ character from tag
+          parsed_array[i] = parsed_array[i].match(/([a-zA-Z0-9]+)/)[0];
+          var user_id = parsed_array[i].replace(/@/, "");
+          var tag_added = false;
+
+          //ensure parsed identifier has the structure of a hex string
+          var checkForHexObjectId = new RegExp("^[0-9a-fA-F]{24}$");
+          if(checkForHexObjectId.test(user_id)){
+            if(this.tags.length === 0){
+              this.tags.push({_id: user_id});
+              tag_added = true;
+
+            }else{
+              var item = function(i){
+                return i._id === user_id;
+              };
+
+              if(_.filter(this.tags, item).length === 0){
+                this.tags.push({_id: user_id});
+                tag_added = true;
+              }
+            }
+          }
+
+          if(tag_added) this.sendTagActivityEvent(user_id);
+        }
+      }
+    }
+  }
+};
+
+commentSchema.pre('save', function(next){
+  //set create & modify dates
+
+  //check that counts are accurate to arrays, if not increment there values
+  if(typeof(this.likes) !== 'undefined'){
+    if(this.likes.length !== this.likes_count) this.likes_count = this.likes.length;
+  }
+
+  this.parseAndUpdateTags();
+  if(this.tags > 0){
+    this.tags_count = this.tags.length;
+  }
+
+  next();
+});
+
+
 
 /**
  * Description of Post Status types
