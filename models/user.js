@@ -67,14 +67,16 @@ var userSchema = new _mongoose.Schema({
   subtype               : {type: String, default: null},
   badge_count           : {type: Number, default: 0},
   active                : {type: Boolean, default: true},
-  program_code          : {type: String, default: null}
+  program_code          : {type: String, default: null},
+  interests             : {type: Array, default: []}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
   return [
     {following: {identifier: '_id' , model: 'User'}},
     {followers: {identifier: '_id' , model: 'User'}},
-    {trusts: {identifier: 'user_id', model: 'User'}}
+    {trusts: {identifier: 'user_id', model: 'User'}},
+    {interests: {identifier: '_id', model: 'Interest'}}
   ];
 };
 
@@ -87,7 +89,7 @@ userSchema.statics.selectFields = function(type){
             'create_date','posts_count', 'active' ,'following_count','followers_count',
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
-            'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret'];
+            'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -97,7 +99,7 @@ userSchema.statics.selectFields = function(type){
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
-            'tumblr_token_secret', 'program_code'];
+            'tumblr_token_secret', 'program_code', 'interests'];
   }
 };
 
@@ -186,7 +188,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       device_token:         this.device_token,
       subtype:              this.subtype,
       active:               this.active,
-      program_code:         this.program_code
+      program_code:         this.program_code,
+      interests:            this.interests
     };
   }
 

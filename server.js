@@ -9,6 +9,7 @@ process.env.PRISM_HOME = process.cwd() + '/';
 
 var _prism_home     = process.env.PRISM_HOME;
 require(_prism_home + 'models/insight');
+require(_prism_home + 'models/interest');
 var _express        = require('express'),
     _mongoose       = require('mongoose'),
     _http           = require('http'),
@@ -31,6 +32,7 @@ var _express        = require('express'),
     _winston        = require('winston'),
     ActivityListener = require(_prism_home + 'classes/ActivityListener'),
     _activity       = require(_prism_home + 'routes/activities');
+    _interest       = require(_prism_home + 'routes/interests');
     new ActivityListener();
 
 var _app            = _express();
@@ -271,6 +273,9 @@ _app.post('/insights/:id', _insight.sendInsight);
 _app.get('/users/:id/insights', _insight.fetchUserInsights);
 _app.post('/insights/:id/like', _insight.likeInsight);
 _app.post('/insights/:id/dislike', _insight.dislikeInsight);
+
+_app.post('/interests', _interest.createInterest);
+_app.get('/interests', _interest.fetchInterests);
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){

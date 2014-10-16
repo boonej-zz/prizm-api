@@ -18,8 +18,9 @@ var _mongoose     = require('mongoose'),
     Trust         = require(_prism_home + 'models/trust').Trust,
     Activity      = require(_prism_home + 'models/activity'),
     Post          = require(_prism_home + 'models/post').Post,
-    Mail          = require(_prism_home + 'classes/Mail');
-
+    Mail          = require(_prism_home + 'classes/Mail'),
+ ObjectId    = _mongoose.Schema.Types.ObjectId;
+var Interest = _mongoose.model('Interest');
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
  */
@@ -343,11 +344,33 @@ exports.login = function(req, res){
  */
 
 exports.addInterests = function (req, res) {
-  var user = User.findOne({_id: req.params.id}, function (err, obj) {
+  var user = User.findOne({_id: req.params.id}, function (err, user) {
     if (!err) {
-      obj.interests = req.body.interests;
-      obj.save();
-      _utils.prismResponse(res, obj.format('basic'), true); 
+      var interests = req.body.interests;
+      console.log(interests);
+      user.interests = [];
+      for (var i = 0; i != interests.length; ++i){
+        var id = interests[i];
+        var action = interests[i].action;
+        Interest.findOne({_id: id}, function(err, interest){
+          if (!err){
+            if (!interest) {
+              Interest.find({}, function(err, objects){
+                var interests = objects.filter(function(interest){
+                    interest._id === ObjectId(id);
+                });
+                interest = interests.pop();
+                user.interests.push(interest);
+                user.save();
+              });
+            } else {
+              user.interests.push(interest);
+              user.save();
+            }
+          }
+        });
+      }
+      _utils.prismResponse(res, user.format('basic'), true); 
     } else {
       res.status(400).send({ error: 'there was a problem' })
     }
