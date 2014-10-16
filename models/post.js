@@ -28,6 +28,24 @@ var commentSchema = new _mongoose.Schema({
   status              : {type: String, default: 'active'}
 });
 
+commentSchema.methods.format = function(type, add_fields){
+  var format;
+  if(!type) type = 'basic';
+
+  format = {
+    _id             : this._id,
+    creator         : this.creator,
+    create_date     : this.create_date,
+    likes           : this.likes,
+    likes_count     : this.likes_count,
+    tags            : this.tags,
+    hash_tags       : this.hash_tags,
+    tags_count      : this.tags_count,
+    hash_tags_count : this.hash_tags_count,
+    status          : this.status
+  };
+
+}
 commentSchema.methods.sendTagActivityEvent = function(user_id){
   var from_user, to_user, post_id;
 
@@ -48,7 +66,7 @@ commentSchema.methods.sendTagActivityEvent = function(user_id){
 
 commentSchema.statics.selectFields = function(type){
   var select = ['comments._id', 'comments.text',
-    'comments.creator','comments.create_date','comments.likes_count', 'tags', 'hash_tags', 'tags_count', 'hash_tags_count'];
+    'comments.creator','comments.create_date','comments.likes_count', 'comments.tags', 'comments.hash_tags', 'comments.tags_count', 'comments.hash_tags_count'];
   if(type === 'basic')
     select.push('comments.likes');
   return select;
