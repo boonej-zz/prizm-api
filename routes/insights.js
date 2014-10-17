@@ -117,6 +117,8 @@ exports.sendInsight = function(req, res) {
               insight: insight._id,
               creator: insight.creator
             });
+            user.insight_count += 1;
+            user.save();
             it.save(function(err, result){
               if (err) {
                 console.log('there was a problem');
@@ -147,18 +149,28 @@ exports.likeInsight = function(req, res){
         console.log(it);
         if (! it.liked) {
           it.liked = true;
-          it.insight.likes_count = it.insight.likes_count + 1;
-          if (it.disliked){
-            it.disliked = false;
-            it.insight.dislikes_count -= 1;
-          }
-          console.log(it);
-          it.save(function(err, result){
-            console.log('saved');
-            it.insight.save(); 
-            res.send('success');
+          User.findOne({_id: it.target}, function(err, user){
+            if (user.insight_count > 0) {
+              user.insight_count -= 1;
+              user.save();
+              Insight.findOne({_id: it.insight}, function(err, insight){
+                insight.likes_count += 1;
+                if (it.disliked) {
+                  it.disliked = false;
+                  insight.dislikes_count -= 1;
+                }
+                insight.save();
+                it.save(function(err, result){
+                  console.log('saved');
+                  it.insight.save(); 
+                  res.send('success');
+                });
+
+              });
+            }
           });
-        } else {
+          
+                  } else {
           res.send('already like');
         }
       }
@@ -178,6 +190,11 @@ exports.dislikeInsight = function(req, res){
         if (! it.disliked) {
           it.disliked = true;
           it.insight.dislikes_count = it.insight.dislikes_count + 1;
+          if (it.target.insight_count > 0) {
+            it.target.insight_count -=1;
+            it.target.save();
+          }
+
           if (it.liked){
             it.liked = false;
             it.insight.likes_count -= 1;

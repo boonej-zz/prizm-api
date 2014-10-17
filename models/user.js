@@ -68,7 +68,8 @@ var userSchema = new _mongoose.Schema({
   badge_count           : {type: Number, default: 0},
   active                : {type: Boolean, default: true},
   program_code          : {type: String, default: null},
-  interests             : {type: Array, default: []}
+  interests             : {type: Array, default: []},
+  insight_count         : {type: Number, default: 0}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -82,14 +83,16 @@ userSchema.statics.canResolve = function(){
 
 userSchema.statics.selectFields = function(type){
   if(type === 'short'){
-    return ['_id','name','first_name','last_name','profile_photo_url','type', 'active'];
+    return ['_id','name','first_name','last_name','profile_photo_url','type', 
+      'active', 'insight_count'];
   }else if(type === 'basic'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
             'create_date','posts_count', 'active' ,'following_count','followers_count',
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
-            'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests'];
+            'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
+            'insight_count'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -99,7 +102,7 @@ userSchema.statics.selectFields = function(type){
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
-            'tumblr_token_secret', 'program_code', 'interests'];
+            'tumblr_token_secret', 'program_code', 'interests', 'insight_count'];
   }
 };
 
@@ -153,7 +156,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       last_name: this.last_name,
       profile_photo_url: this.profile_photo_url,
       type: this.type,
-      active: this.active
+      active: this.active,
+      insight_count: this.insight_count
     };
   }
 
@@ -189,7 +193,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       subtype:              this.subtype,
       active:               this.active,
       program_code:         this.program_code,
-      interests:            this.interests
+      interests:            this.interests,
+      insight_count:        this.insight_count
     };
   }
 
