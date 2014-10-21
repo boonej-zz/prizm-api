@@ -574,6 +574,9 @@ exports.updateUser = function(req, res){
         if(typeof(body.program_code) !== 'undefined'){
           user.program_code = body.program_code;
         }
+        if(typeof(body.email) !== 'undefined'){
+          user.email = body.email;
+        }
         if(typeof(body.religion) !== 'undefined') user.religion = body.religion;
         if(typeof(body.gender) !== 'undefined') user.gender = body.gender;
         if(typeof(body.zip_postal) !== 'undefined') user.zip_postal = body.zip_postal;
