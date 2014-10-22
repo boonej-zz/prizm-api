@@ -240,3 +240,17 @@ exports.registerActivityEvent = function(to, from, action, post_id, comment_id, 
     });
   }
 };
+
+exports.registerInsightEvent = function(to, from, action, insight_id, has_trust){
+  if(!to && !from && !action){
+      throw new Error('to, from, and action are required to call registerActivityEvent');
+  }
+  process.emit('activity', {
+    to: to.toString(),
+    from: from.toString(),
+    action: action,
+    insight_id: insight_id,
+    has_trust: has_trust
+  });
+  console.log('sent activity request');
+};

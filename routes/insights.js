@@ -115,7 +115,8 @@ exports.sendInsight = function(req, res) {
             var it = new InsightTarget({
               target: user._id,
               insight: insight._id,
-              creator: insight.creator
+              creator: insight.creator,
+              file_path: insight.file_path
             });
             user.insight_count += 1;
             user.save();
@@ -123,6 +124,8 @@ exports.sendInsight = function(req, res) {
               if (err) {
                 console.log('there was a problem');
               } else {
+                utils.registerInsightEvent(it.target, it.creator, 'insight',
+                  it._id);
                 console.log('target saved');
               }
             });

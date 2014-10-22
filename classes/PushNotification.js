@@ -63,7 +63,8 @@ PushNotification.prototype.activity = function activity(){
       this.object.action === 'tag' ||
       this.object.action === 'trust_accepted' ||
       this.object.action === 'accolade' ||
-      this.object.action === 'trust_request'){
+      this.object.action === 'trust_request'|| 
+      this.object.action === 'insight'){
 
     var self = this;
 
@@ -93,6 +94,9 @@ PushNotification.prototype.activity = function activity(){
         }
         if(self.object.action === 'trust_accepted') action = 'accepted your trust request';
         if(self.object.action === 'trust_request') action = 'has sent you a trust invite';
+        if(self.object.insight_id) {
+          action = 'sent you an insight';
+        }
         if(self.object.action === 'accolade') action = 'has sent you an accolade';
         findUserById(self.object.from, function(from_user){
           console.log('logger user returned from from_user object:'+JSON.stringify(from_user));

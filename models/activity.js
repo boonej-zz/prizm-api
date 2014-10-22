@@ -17,7 +17,7 @@ var _mongoose     = require('mongoose'),
 var activitySchema = new _mongoose.Schema({
   from:             {type: _object_id, ref: 'User', required: true},
   to:               {type: _object_id, ref: 'User', required: true},
-  create_date:      {type: Date, default: null, required: false},
+  create_date:      {type: Date, default: Date.now(), required: false},
   action:           {type: String, default: null, required: false},
   post_id:          {type: String, default: null, required: false},
   comment_id:       {type: String, default: null, required: false},
@@ -65,9 +65,6 @@ activitySchema.methods.format = function(type){
  * @param {Function} next Calls the next() iterator function block
  */
 activitySchema.pre('save', function(next){
-  if(!this.create_date){
-    this.create_date = new Date();
-  }
   next();
 });
 

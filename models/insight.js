@@ -69,7 +69,8 @@ var insightTargetSchema = new mongoose.Schema({
   creator         : {type: ObjectId, ref: 'User', required: true},
   target          : {type: ObjectId, ref: 'User', required: true},
   liked           : {type: Boolean, default: false},
-  disliked        : {type: Boolean, default: false}
+  disliked        : {type: Boolean, default: false},
+  file_path       : {type: String, default: null}
 });
 
 insightSchema.pre('save', function(next){
@@ -84,7 +85,7 @@ insightTargetSchema.pre('save', function(next){
 
 insightTargetSchema.statics.selectFields = function(type){
   var select = ['_id', 'create_date', 'insight','target','liked',
-      'disliked', 'creator'];
+      'disliked', 'creator', 'file_path'];
   return select;
 };
 
@@ -108,7 +109,8 @@ insightSchema.methods.format = function(type, add_fields){
     insight:              this.insight,
     liked:                this.liked,
     disliked:             this.disliked,
-    creator:              this.creator
+    creator:              this.creator,
+    file_path:            this.file_path
   };
 
   if(add_fields){
