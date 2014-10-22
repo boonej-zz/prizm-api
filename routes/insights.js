@@ -125,7 +125,7 @@ exports.sendInsight = function(req, res) {
                 console.log('there was a problem');
               } else {
                 utils.registerInsightEvent(it.target, it.creator, 'insight',
-                  it._id);
+                  it.insight, it._id);
                 console.log('target saved');
               }
             });

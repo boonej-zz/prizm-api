@@ -603,7 +603,19 @@ exports.updateUser = function(req, res){
 
         user.save(function(err, saved){
           if(err || !saved){
+            console.log(err);
+            if (err.code == 11000) {
+              error =  {
+                status_code: 400,
+                error_info: {
+                error: 'That email address already exists in our database.',
+                error_description: 'An error occured while trying to update the user, please try again.'
+        }
+      };
+ 
+            }
             _utils.prismResponse(res, null, false, error);
+
 
           }else{
             // if(did_change_subtype) {

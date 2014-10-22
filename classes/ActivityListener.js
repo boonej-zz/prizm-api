@@ -94,6 +94,11 @@ ActivityListener.prototype.activityHandler = function(activity){
         console.log('Received insight notification');
         new_activity.insight_id = activity.insight_id;
       }
+
+      if (_.has(activity, 'insight_target_id')){
+        new_activity.insight_target_id = activity.insight_target_id;
+      }
+
       console.log(new_activity);
       new_activity.save(function(err, saved){
         if(err){
