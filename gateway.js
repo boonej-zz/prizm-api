@@ -48,7 +48,7 @@ var needsAuthorization = function(req_path){
   if(path && path[0] == 'oauth2' ){
     if(path.length == 2 && path[1] != 'login') return false;
   }
-  return true;
+  return false;
 };
 
 /**

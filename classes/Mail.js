@@ -64,10 +64,10 @@ Mail.prototype.institutionReview = function institutionReview(user, block){
           '<p>Email: '+user.email+'</p>'+
           '<p>Phone Number: '+user.phone_number+'</p>'+
           '<p>Website: '+user.website+'</p><br>'+
-          '<h1><a href="https://prizm-fe-prd-1163268161.us-west-2.elb.amazonaws.com/users/'+
-          user._id+'/review/institution?review_key='+user.review_key+'&approval=yes">Approve</a></h1>'+
-          '<h1><a href="https://prizm-fe-prd-1163268161.us-west-2.elb.amazonaws.com/users/'+
-          user._id+'/review/institution?review_key='+user.review_key+'&approval=no">Deny</a></h1>'
+          '<h1><a href="http://www.prizmapp.com/users/'+
+          user._id+'/institutions?review_key='+user.review_key+'&approval=yes">Approve</a></h1>'+
+          '<h1><a href="http://www.prizmapp.com/users/'+
+          user._id+'/institutions?review_key='+user.review_key+'&approval=no">Deny</a></h1>'
   };
 
   _logger.log('info', 'Institution Review Message', {message: this.message});
