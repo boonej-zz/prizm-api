@@ -13,7 +13,9 @@ var _util       = require('util'),
     _request    = require('request'),
     _logger     = require(process.env.PRISM_HOME + 'logs.js'),
     _           = require('underscore'),
-    User        = require('../models/user').User;
+    User        = require('../models/user').User,
+    Theme       = require('../models/organization').Theme,
+    Organization = require('../models/organization').Organization;
 
 /**
  * Twine Constants

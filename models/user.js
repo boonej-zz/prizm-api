@@ -9,6 +9,7 @@ var _mongoose   = require('mongoose'),
     _prism_home = process.env.PRISM_HOME,
     _           = require('underscore'),
     Trust       = require(_prism_home + 'models/trust').Trust,
+    ObjectId    = _mongoose.Schema.Types.ObjectId,
     _utils      = require(_prism_home + 'utils');
 
 var userSchema = new _mongoose.Schema({
@@ -69,7 +70,8 @@ var userSchema = new _mongoose.Schema({
   active                : {type: Boolean, default: true},
   program_code          : {type: String, default: null},
   interests             : {type: Array, default: []},
-  insight_count         : {type: Number, default: 0}
+  insight_count         : {type: Number, default: 0},
+  theme                 : {type: ObjectId, ref: 'Theme', required: false}, 
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -77,7 +79,8 @@ userSchema.statics.canResolve = function(){
     {following: {identifier: '_id' , model: 'User'}},
     {followers: {identifier: '_id' , model: 'User'}},
     {trusts: {identifier: 'user_id', model: 'User'}},
-    {interests: {identifier: '_id', model: 'Interest'}}
+    {interests: {identifier: '_id', model: 'Interest'}},
+    {theme: {identifier: '_id', model: 'Theme'}}
   ];
 };
 
@@ -92,7 +95,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
-            'insight_count'];
+            'insight_count', 'theme'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -102,7 +105,7 @@ userSchema.statics.selectFields = function(type){
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
-            'tumblr_token_secret', 'program_code', 'interests', 'insight_count'];
+            'tumblr_token_secret', 'program_code', 'interests', 'insight_count', 'theme'];
   }
 };
 
@@ -194,7 +197,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       active:               this.active,
       program_code:         this.program_code,
       interests:            this.interests,
-      insight_count:        this.insight_count
+      insight_count:        this.insight_count,
+      theme:                this.theme
     };
   }
 

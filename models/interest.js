@@ -36,4 +36,4 @@ interestSchema.statics.canResolve = function(){
   ];
 };
 
-mongoose.model('Interest', interestSchema);
+exports.Interest = mongoose.model('Interest', interestSchema);

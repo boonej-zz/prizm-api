@@ -19,6 +19,8 @@ var _mongoose     = require('mongoose'),
     Activity      = require(_prism_home + 'models/activity'),
     Post          = require(_prism_home + 'models/post').Post,
     Mail          = require(_prism_home + 'classes/Mail'),
+    Organization  = _mongoose.model('Organization'),
+    Theme         = _mongoose.model('Theme'),
  ObjectId    = _mongoose.Schema.Types.ObjectId;
 var Interest = _mongoose.model('Interest');
 /**
@@ -600,44 +602,55 @@ exports.updateUser = function(req, res){
           user.subtype = body.subtype;
           did_change_subtype = true;
         }
-
-        user.save(function(err, saved){
-          if(err || !saved){
-            console.log(err);
+        var handleUserSave = function(err, saved){
+         if(err || !saved){
             if (err.code == 11000) {
               error =  {
                 status_code: 400,
                 error_info: {
-                error: 'That email address already exists in our database.',
-                error_description: 'An error occured while trying to update the user, please try again.'
+                  error: 'That email address already exists in our database.',
+                  error_description: 'An error occured while trying to update'
+                   + 'the user, please try again.'
+                }
+              };
+            }
+            _utils.prismResponse(res, null, false, error);
+          } else {
+          _utils.prismResponse(res, saved.format('basic'), true);
         }
       };
  
+      if (user.program_code) {
+        console.log('finding program');
+        Organization.findOne({code: user.program_code}, 
+            function(err, organization){
+              console.log('found organization');
+              console.log(organization);
+              if (err) {
+                console.log(err);
+              } 
+              if (organization){
+                console.log('found theme');
+                user.theme = organization.theme;
+              } else {
+                user.organization = null;
+                user.theme = null;
+              }
+              user.save(function(err, saved){
+                handleUserSave(err, saved);  
+              });
             }
-            _utils.prismResponse(res, null, false, error);
-
-
-          }else{
-            // if(did_change_subtype) {
-            //   Post.updateSubtypeToLuminary(user._id.toString(), function(err, posts_updated) {
-            //     if(err) {
-            //       _logger.log('error',
-            //                   'Unable to update user '+user._id.toString()+' posts to luminary',
-            //                   {error:err, user:saved});
-            //     } else {
-            //       _logger.log('info',
-            //                   'Updated user '+user._id.toString()+' posts to luminary. #updated: '+posts_updated);
-            //     }
-
-            //     _utils.prismResponse(res, saved.format('basic'), true);
-            //   });
-            // } else {
-              _utils.prismResponse(res, saved.format('basic'), true);
-            }
-          // }
+        );  
+      } else {
+        user.theme = null;
+        user.organization = null;
+        user.save(function(err, saved){
+          handleUserSave(err, saved);
         });
       }
+    }
     });
+
   }else{
     _utils.prismResponse(res, null, false, PrismError.invalidRequest);
   }
