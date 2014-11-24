@@ -244,6 +244,9 @@ _app.get('/users/:id/stats/hashtags', _gateway, _post.fetchHashTagsForCategory);
 /* Reset User Password */
 _app.post('/users/:email/passwordreset', _gateway, _user.resetPassword);
 
+/* Reset User Password */
+_app.post('/users/:email/passwordchange', _gateway, _user.changePassword);
+
 /* Explore Route */
 _app.get('/explore', _gateway, _explore.explore);
 

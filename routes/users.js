@@ -117,6 +117,37 @@ exports.resetPassword = function(req, res){
   }
 };
 
+exports.changePassword = function(req, res){
+  if(req.params.email && req.body.currentPassword && req.body.newPassword){
+    User.findOne({email: req.params.email}, function(err, result){
+      if(err || !result) _utils.prismResponse(res, null, false, PrismError.serverError);
+      if(result){
+        if(hashAndValidatePassword(result, req.body.currentPassword)){
+          result.password = req.body.newPassword;
+          if(!result.hashPassword()){
+            _logger.log('error', 'There was an issue salting the password')
+          } 
+          else {
+            result.save(function(err, saved) {
+              if(err){
+                _logger.log('error', 'Error returned trying to reset & save password', {err:err});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+              }else{
+                _utils.prismResponse(res, {message: 'Password has been updated'}, true);
+              }
+            })
+          } 
+        }else{
+          _logger.log('error', 'User entered the wrong password');
+          _utils.prismResponse(res, null, false, PrismError.invalidUserCredentials);
+        }
+      }
+    });
+  }else{
+    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
+  }
+};
+
 /**
  * Updates the user to inactive 
  *
