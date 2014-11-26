@@ -866,6 +866,15 @@ exports.createUserPost = function(req, res){
                                                     user_post._id);
                           }
 
+                          if (c_user.subtype == 'luminary'){
+                            _.each(c_user.followers, function(follower, index, list){
+                              _utils.registerActivityEvent(follower._id, 
+                                c_user._id, 
+                                'post', 
+                                user_post._id); 
+                            });      
+                          }
+
                           _utils.prismResponse(res, usr, true);
                         }
                       }

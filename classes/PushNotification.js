@@ -97,6 +97,7 @@ PushNotification.prototype.activity = function activity(){
         if(self.object.insight_id) {
           action = 'sent you an insight';
         }
+        if (self.object.action === 'post') action = 'created a new post.';
         if(self.object.action === 'accolade') action = 'has sent you an accolade';
         findUserById(self.object.from, function(from_user){
           console.log('logger user returned from from_user object:'+JSON.stringify(from_user));
