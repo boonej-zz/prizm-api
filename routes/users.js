@@ -450,6 +450,58 @@ exports.register = function(req, res){
       newUser.review_key = _uuid.v1();
     }
 
+    var handleUserSave = function(error, result){
+      if(error || !result){
+        _utils.prismResponse( 
+          res,
+          null,
+          false,
+          PrismError.invalidRegisterUserExists,
+          PrismError.invalidRegisterUserExists.status_code);
+        } else{
+          if(result.review_key && result.type === 'institution'){
+            var mail = new Mail();
+            mail.institutionReview(result.toObject());
+          }
+          _utils.prismResponse(res, result.format('basic'), true);
+        }
+    };
+
+    var testForOrg = function(user){
+      if (user.program_code) {
+        console.log('finding program');
+        Organization.findOne({code: user.program_code}, 
+            function(err, organization){
+              console.log('found organization');
+              console.log(organization);
+              if (err) {
+                console.log(err);
+              } 
+              if (organization){
+                console.log('found theme');
+                user.organization = organization._id;
+                organization.members.push(user._id);
+                organization.save();
+                user.theme = organization.theme;
+              } else {
+                user.organization = null;
+                user.theme = null;
+              }
+              user.save(function(err, saved){
+                handleUserSave(err, saved);  
+              });
+            }
+        );  
+      } else {
+        user.theme = null;
+        user.organization = null;
+        user.save(function(err, saved){
+          handleUserSave(err, saved);
+        });
+      }
+
+    };
+
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
       handleSocialProviderRegistration(req.body, function(error, social){
@@ -462,46 +514,13 @@ exports.register = function(req, res){
           if(newUser.provider == 'twitter'){
             newUser.provider_token_secret = req.body.provider_token_secret;
           }
-          newUser.save(function(error, result){
-
-            if(error || !result){
-               _utils.prismResponse( res,
-                                null,
-                                false,
-                                PrismError.invalidRegisterUserExists,
-                                PrismError.invalidRegisterUserExists.status_code);
-            }else{
-              if(result.review_key && result.type === 'institution'){
-                var mail = new Mail();
-                mail.institutionReview(result.toObject());
-              }
-
-              _utils.prismResponse(res, result.format('basic'), true);
-            }
-
-          });
+          testForOrg(newUser);          
         }else{
           _utils.prismResponse( res, null, false, PrismError.serverError);
         }
       });
     }else{
-
-      newUser.save(function(error, result){
-        if(error || !result){
-          _utils.prismResponse( res,
-                                null,
-                                false,
-                                PrismError.invalidRegisterUserExists,
-                                PrismError.invalidRegisterUserExists.status_code);
-        }else{
-          if(result.review_key && result.type === 'institution'){
-            var mail = new Mail();
-            mail.institutionReview(result.toObject());
-          }
-
-          _utils.prismResponse(res, result.format('basic'), true);
-        }
-      });
+      testForOrg(newUser);
     }
 
   }else{
