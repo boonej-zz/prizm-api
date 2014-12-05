@@ -6,6 +6,7 @@ var Twine         = require(home + 'classes/Twine');
 var Organization  = mongoose.model('Organization');
 var Theme         = mongoose.model('Theme');
 var User          = mongoose.model('User');
+var _ = require('underscore');
 
 exports.searchOrganizations = function(req, res){
   var code = req.params.code;

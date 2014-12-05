@@ -10,7 +10,9 @@ var organizationSchema = new mongoose.Schema({
   name                : {type: String, default: null, required: true},
   create_date         : {type: Date, default: null, required: false},
   modify_date         : {type: Date, default: null, required: false},
-  members             : {type: Array, default: []}
+  members             : {type: Array, default: []},
+  welcome_image_url   : {type: String, default: null},
+  logo_url            : {type: String, default: null}
 
 });
 
@@ -24,7 +26,7 @@ organizationSchema.pre('save', function(next){
 
 organizationSchema.statics.selectFields = function(type){
   var select = ['id', 'code', 'theme', 'name', 'create_date', 'modify_date',
-      'members'];
+      'members', 'logo_url', 'welcome_image_url'];
   return select;
 };
 
@@ -36,7 +38,9 @@ organizationSchema.methods.format = function(type, add_fields){
     modify_date:  this.modify_date,
     members:      this.members,
     name:         this.name,
-    theme:        this.theme
+    theme:        this.theme,
+    welcome_image_url: this.welcome_image_url,
+    logo_url        : this.logo_url
   };
   return format;
 }

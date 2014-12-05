@@ -71,6 +71,7 @@ var userSchema = new _mongoose.Schema({
   program_code          : {type: String, default: null},
   interests             : {type: Array, default: []},
   insight_count         : {type: Number, default: 0},
+  organization          : {type: ObjectId, ref: 'Organization', required: false},
   theme                 : {type: ObjectId, ref: 'Theme', required: false}, 
 },{ versionKey          : false });
 
@@ -80,7 +81,8 @@ userSchema.statics.canResolve = function(){
     {followers: {identifier: '_id' , model: 'User'}},
     {trusts: {identifier: 'user_id', model: 'User'}},
     {interests: {identifier: '_id', model: 'Interest'}},
-    {theme: {identifier: '_id', model: 'Theme'}}
+    {theme: {identifier: '_id', model: 'Theme'}},
+    {organization: {identifier: '_id', model: 'Organization'}}
   ];
 };
 
@@ -95,7 +97,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
-            'insight_count', 'theme'];
+            'insight_count', 'theme', 'organization'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -105,7 +107,7 @@ userSchema.statics.selectFields = function(type){
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
-            'tumblr_token_secret', 'program_code', 'interests', 'insight_count', 'theme'];
+            'tumblr_token_secret', 'program_code', 'interests', 'insight_count', 'theme', 'organization'];
   }
 };
 

@@ -662,6 +662,9 @@ exports.updateUser = function(req, res){
               } 
               if (organization){
                 console.log('found theme');
+                user.organization = organization._id;
+                organization.members.push(user._id);
+                organization.save();
                 user.theme = organization.theme;
               } else {
                 user.organization = null;
