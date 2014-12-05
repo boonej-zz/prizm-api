@@ -72,6 +72,7 @@ var userSchema = new _mongoose.Schema({
   interests             : {type: Array, default: []},
   insight_count         : {type: Number, default: 0},
   theme                 : {type: ObjectId, ref: 'Theme', required: false}, 
+  unsubscribed          : {type: Boolean, default: false}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
