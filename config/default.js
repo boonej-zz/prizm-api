@@ -23,9 +23,9 @@ module.exports = {
       client_secret: '772f449b10c95a10a2a9a866339e5f90',
       client_token: '01e689dd2090d202b540c937515e1913',
       app_token: '1408826952716972|772f449b10c95a10a2a9a866339e5f90',
-      base_uri: 'https://graph.facebook.com',
-      code_uri: 'https://graph.facebook.com/oauth/code?',
-      token_uri: 'https://graph.facebook.com/oauth/access_token?',
+      base_uri: 'https://graph.facebook.com/v2.0',
+      code_uri: 'https://graph.facebook.com/v2.0/oauth/code?',
+      token_uri: 'https://graph.facebook.com/v2.0/oauth/access_token?',
       callback_uri: 'https://https://ec2-54-200-41-62.us-west-2.compute.amazonaws.com/callback'
     },
     twitter: {
