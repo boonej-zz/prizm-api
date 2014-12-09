@@ -201,10 +201,11 @@ exports.fetchUserPosts = function(req, res){
     };
 
     var criteria = {
-      $or: [
-        {creator: req.params.id},
-        {"tags._id" : req.params.id},
-      ],
+      creator: req.params.id,
+      // $or: [
+      //  {creator: req.params.id},
+      //  {"tags._id" : req.params.id},
+      // ],
       status: 'active',
       category: {$ne: 'accolade'}
     };
