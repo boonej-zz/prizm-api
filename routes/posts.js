@@ -356,8 +356,11 @@ exports.removePostComment = function(req, res){
       if(error || !comment) _utils.prismResponse(res, null, false, PrismError.invalidRequest);
       before_count = comment.comments_count;
       var deleted = false;
+      var comment_creator = '';
       for(var i = 0; i < comment.comments.length; i++){
         if(comment.comments[i]._id.toString() === req.params.comment_id){
+          var c = comment.comments[i];
+          comment_creator = c.creator;
           comment.comments.splice(i, 1);
           comment.comments_count--;
           deleted = true;
@@ -365,6 +368,18 @@ exports.removePostComment = function(req, res){
       }
 
       if(deleted){
+        var criteria = {from: comment_creator, 
+            to: comment.creator, 
+            post_id: comment._id, 
+            action: 'comment'};
+      console.log(criteria);
+          Activity.remove(criteria, function(err, result){
+              if(err) {
+                console.log(err);
+              }
+              console.log(result);
+            });
+
         comment.save(function(error, saved){
           if(error || saved.comments_count > before_count)
             _utils.prismResponse(res, null, false, PrismError.serverError);
@@ -596,6 +611,7 @@ exports.likePost = function(req, res){
 
           post.likes.push({_id: req.body.creator});
           post.likes_count = post.likes_count + 1;
+          
           post.save(function(err, result){
             if(err){
               _utils.prismResponse( res,
@@ -830,6 +846,10 @@ exports.likeComment = function(req,res){
  */
 exports.unlikeComment = function(req, res){
   if(req.params.id && req.params.comment_id && req.body.creator){
+    var creator = '';
+    var liker = req.body.creator;
+    var comment_id = req.params.comment_id;
+    var liker = '';
     Post.findOne({
       _id: req.params.id,
       "comments._id": req.params.comment_id,
@@ -838,6 +858,7 @@ exports.unlikeComment = function(req, res){
     })
     .select('comments')
     .exec(function(error, comment){
+      creator = comment.creator;
       var unlike_error = {
           status_code: 400,
           error_info: {
@@ -869,6 +890,17 @@ exports.unlikeComment = function(req, res){
           _utils.prismResponse(res, null, false, unlike_error);
 
         }else{
+          var criteria = {from: liker, 
+            to: creator, 
+            comment_id: comment_id, 
+            action: 'like'};
+          Activity.remove(criteria, function(err, result){
+              if(err) {
+                console.log(err);
+              }
+              console.log(result);
+            });
+
           comment.save(function(error, saved){
             if(error) _utils.prismResponse(res, null, false, PrismResponse.serverError);
             var response = {
@@ -934,8 +966,10 @@ exports.unlikePost = function(req, res){
                               PrismError.invalidRequest);
       }else{
         var removed = false;
+        var liker = '';
         for(var i=0; i < post.likes.length; i++){
           if(post.likes[i]._id == req.body.creator){
+            liker = post.likes[i];
             post.likes.splice(i, 1);
             removed = true;
           }
@@ -948,6 +982,17 @@ exports.unlikePost = function(req, res){
                           false,
                           PrismError.invalidRequest);
         }else{
+          var criteria = {
+            from: liker._id, 
+            to: post.creator, 
+            post_id: post._id, 
+            action: 'like'};
+          Activity.remove(criteria, function(err, result){
+              if(err) {
+                console.log(err);
+              }
+              console.log(result);
+            });
           post.likes_count = post.likes_count - 1;
           post.save(function(err, result){
             if(err){

@@ -26,7 +26,7 @@ organizationSchema.pre('save', function(next){
 
 organizationSchema.statics.selectFields = function(type){
   var select = ['id', 'code', 'theme', 'name', 'create_date', 'modify_date',
-      'members', 'logo_url', 'welcome_image_url'];
+      'logo_url', 'welcome_image_url'];
   return select;
 };
 
@@ -36,7 +36,6 @@ organizationSchema.methods.format = function(type, add_fields){
     code:         this.code,
     create_date:  this.create_date,
     modify_date:  this.modify_date,
-    members:      this.members,
     name:         this.name,
     theme:        this.theme,
     welcome_image_url: this.welcome_image_url,
