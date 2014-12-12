@@ -152,28 +152,24 @@ exports.likeInsight = function(req, res){
         console.log(it);
         if (! it.liked) {
           it.liked = true;
-          User.findOne({_id: it.target}, function(err, user){
-            if (user.insight_count > 0) {
-              user.insight_count -= 1;
-              user.save();
-              Insight.findOne({_id: it.insight}, function(err, insight){
-                insight.likes_count += 1;
-                if (it.disliked) {
-                  it.disliked = false;
-                  insight.dislikes_count -= 1;
-                }
-                insight.save();
-                it.save(function(err, result){
-                  console.log('saved');
-                  it.insight.save(); 
-                  res.send('success');
-                });
+          if (it.disliked) {
+            it.disliked= false;
+            it.insight.dislikes_count -= 1;
+          } 
+          it.save(function(err, result){
+            res.send('success');
+            it.insight.save();
+            User.findOne({_id: it.target}, function(err, user){
+              if (user.insight_count > 0) {
+                user.insight_count -= 1;
+                user.save();
+              }
+            });
 
-              });
-            }
           });
+
           
-                  } else {
+          } else {
           res.send('already like');
         }
       }
