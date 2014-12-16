@@ -132,6 +132,9 @@ _app.put('/users/:id', _gateway, _user.updateUser);
 _app.get('/users/:id/posts', _gateway, _post.fetchUserPosts);
 // _app.get('/users/:id/posts', _gateway, _user.fetchUserPosts);
 
+/* Fetch Liked Posts */
+_app.get('/users/:id/likes', _gateway, _post.fetchLikedPosts);
+
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _user.createUserPost);
 
