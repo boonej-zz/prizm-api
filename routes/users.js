@@ -26,9 +26,10 @@ var jade = require('jade');
 var Interest = _mongoose.model('Interest');
 var path = require('path');
 var fs = require('fs');
+var config = require('config');
 var welcomeMail = fs.readFileSync(path.join(__dirname + 
       '/../views/welcome.jade'), 'utf8');
-var mandrill = require('node-mandrill')(process.env.MANDRILL_SECRET);
+var mandrill = require('node-mandrill')(config.mandrill.client_secret);
 var mandrillEndpointSend = '/messages/send';
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
