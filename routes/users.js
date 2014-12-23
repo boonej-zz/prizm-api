@@ -22,7 +22,14 @@ var _mongoose     = require('mongoose'),
     Organization  = _mongoose.model('Organization'),
     Theme         = _mongoose.model('Theme'),
  ObjectId    = _mongoose.Schema.Types.ObjectId;
+var jade = require('jade');
 var Interest = _mongoose.model('Interest');
+var path = require('path');
+var fs = require('fs');
+var welcomeMail = fs.readFileSync(path.join(__dirname + 
+      '/../views/welcome.jade'), 'utf8');
+var mandrill = require('node-mandrill')(process.env.MANDRILL_SECRET);
+var mandrillEndpointSend = '/messages/send';
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
  */
@@ -463,6 +470,19 @@ exports.register = function(req, res){
             var mail = new Mail();
             mail.institutionReview(result.toObject());
           }
+          var html = jade.render(welcomeMail, {user: result});
+          mandrill(mandrillEndpointSend,{message: {
+            to: [{email: result.email}],
+            from_email: 'info@prizmapp.com',
+            subject: 'Welcome to Prizm!',
+            html: html
+          }}, function(err, res){
+            if (err) {
+              console.log(err);
+            } else {
+              console.log('email sent');
+            }
+          });
           _utils.prismResponse(res, result.format('basic'), true);
         }
     };

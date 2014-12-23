@@ -12,7 +12,7 @@
     "express": "3.4.8",
     "connect": "*",
     "mongoose": "3.8.x",
-    "jade": "*",
+    "jade": "~1.8.2",
     "request": "*",
     "config": "*",
     "serializer": "*",
