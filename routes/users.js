@@ -475,6 +475,7 @@ exports.register = function(req, res){
           mandrill(mandrillEndpointSend,{message: {
             to: [{email: result.email}],
             from_email: 'info@prizmapp.com',
+            from_name: 'Prizm',
             subject: 'Welcome to Prizm!',
             html: html
           }}, function(err, res){
