@@ -250,17 +250,17 @@ postSchema.statics.selectFields = function(type){
  */
 postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week, year, offset, cb){
   var start_week, end_week, all_time = false;
-
   if(!week && !year && !offset) all_time = true;
-
   if(!all_time){
     start_week = new _moment();
-    start_week.year(year);
-    start_week.week(week +1);
+    start_week.weekYear(year);
+    start_week.week(week + 1);
     start_week.startOf('week');
+    var lastWeek = week + offset;
+    var lastYear = year;
     end_week = new _moment();
-    end_week.year(year);
-    end_week.week(week + offset);
+    end_week.weekYear(year);
+    end_week.week(lastWeek);
     end_week.endOf('week');
   }
 
@@ -301,6 +301,7 @@ postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week,
   ]);
 
   aggregate.exec(function(err, result){
+    console.log(err);
     cb(err, result);
   });
 });
