@@ -12,6 +12,8 @@ var _mongoose   = require('mongoose'),
     ObjectId    = _mongoose.Schema.Types.ObjectId,
     _utils      = require(_prism_home + 'utils');
 
+var moment = require('moment');
+
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
   first_name            : {type: String, required: true},
@@ -73,7 +75,8 @@ var userSchema = new _mongoose.Schema({
   insight_count         : {type: Number, default: 0},
   organization          : {type: ObjectId, ref: 'Organization', required: false},
   theme                 : {type: ObjectId, ref: 'Theme', required: false}, 
-  unsubscribed          : {type: Boolean, default: false}
+  unsubscribed          : {type: Boolean, default: false},
+  age                   : {type: Number, default: 0}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -90,7 +93,7 @@ userSchema.statics.canResolve = function(){
 userSchema.statics.selectFields = function(type){
   if(type === 'short'){
     return ['_id','name','first_name','last_name','profile_photo_url','type', 
-      'active', 'insight_count'];
+      'active', 'insight_count', 'birthday'];
   }else if(type === 'basic'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -98,7 +101,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
-            'insight_count', 'theme', 'organization'];
+            'insight_count', 'theme', 'organization', 'birthday'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -365,6 +368,20 @@ userSchema.pre('save', function(next){
     }
     next();
   }
+});
+
+userSchema.post('init', function(user){
+  var birthday = user.birthday?user.birthday.split('-'):false;
+  if (birthday && birthday.length == 3) {
+    birthday = [birthday[2], birthday[0] - 1, birthday[1]];
+    birthday = moment(birthday);
+    var age = moment().diff(birthday, 'years');
+    if (!this.age || age != this.age) {
+      this.age = age;
+      this.save();
+    }
+  }
+
 });
 
 exports.User = _mongoose.model('User', userSchema);
