@@ -93,7 +93,7 @@ userSchema.statics.canResolve = function(){
 userSchema.statics.selectFields = function(type){
   if(type === 'short'){
     return ['_id','name','first_name','last_name','profile_photo_url','type', 
-      'active', 'insight_count', 'birthday'];
+      'active', 'insight_count', 'birthday', 'subtype'];
   }else if(type === 'basic'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -166,7 +166,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       profile_photo_url: this.profile_photo_url,
       type: this.type,
       active: this.active,
-      insight_count: this.insight_count
+      insight_count: this.insight_count,
+      subtype: this.subtype
     };
   }
 
@@ -370,21 +371,19 @@ userSchema.pre('save', function(next){
   }
 });
 
-/** 
- * userSchema.post('init', function(user){
-  var birthday = user.birthday?user.birthday.split('-'):false;
+ 
+userSchema.pre('save', function(next){
+  var birthday = this.birthday?this.birthday.split('-'):false;
   if (birthday && birthday.length == 3) {
     birthday = [birthday[2], birthday[0] - 1, birthday[1]];
     birthday = moment(birthday);
     var age = moment().diff(birthday, 'years');
     if (!this.age || age != this.age) {
       this.age = age;
-      this.save();
     }
   }
-
+  next();
 });
-*/
 
 exports.User = _mongoose.model('User', userSchema);
 // exports.Trust = _mongoose.model('Trust', trustSchema);
