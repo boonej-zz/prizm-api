@@ -370,7 +370,8 @@ userSchema.pre('save', function(next){
   }
 });
 
-userSchema.post('init', function(user){
+/** 
+ * userSchema.post('init', function(user){
   var birthday = user.birthday?user.birthday.split('-'):false;
   if (birthday && birthday.length == 3) {
     birthday = [birthday[2], birthday[0] - 1, birthday[1]];
@@ -383,6 +384,7 @@ userSchema.post('init', function(user){
   }
 
 });
+*/
 
 exports.User = _mongoose.model('User', userSchema);
 // exports.Trust = _mongoose.model('Trust', trustSchema);
