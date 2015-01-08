@@ -1060,9 +1060,23 @@ var isValidSocialRegisterRequest = function(req){
 var hashAndValidatePassword = function(user, password_to_validate){
   //create user hash
   if(user){
-    var hash_salt        = user.createUserSalt();
+    //var hash_salt        =  user.createUserSalt();
+    var hash_salt = process.env.PRIZM_SALT;
     var hashed_password  = _utils.prismEncrypt(password_to_validate, hash_salt);
-    if(hashed_password == user.password) return true;
+    if(hashed_password == user.password) {
+      return true;
+    } else {
+      var old_salt = user.createUserSalt();
+      var hashed_password = _utils.prismEncrypt(password_to_validate, old_salt);
+      if (hashed_password == user.password) {
+        user.password = password_to_validate;
+        user.pwd_updated = true;
+        if (user.hashPassword()) {
+          user.save();
+          return true;
+        }
+      }
+    }
   }
   return false;
 };

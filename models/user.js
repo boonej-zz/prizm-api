@@ -76,7 +76,8 @@ var userSchema = new _mongoose.Schema({
   organization          : {type: ObjectId, ref: 'Organization', required: false},
   theme                 : {type: ObjectId, ref: 'Theme', required: false}, 
   unsubscribed          : {type: Boolean, default: false},
-  age                   : {type: Number, default: 0}
+  age                   : {type: Number, default: 0},
+  pwd_updated           : {type: Boolean, default: false},
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -111,7 +112,8 @@ userSchema.statics.selectFields = function(type){
             'provider_token_secret','gender','birthday','address','country',
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
-            'tumblr_token_secret', 'program_code', 'interests', 'insight_count', 'theme', 'organization'];
+            'tumblr_token_secret', 'program_code', 'interests', 'insight_count', 
+            'theme', 'organization','pwd_updated'];
   }
 };
 
@@ -205,7 +207,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       program_code:         this.program_code,
       interests:            this.interests,
       insight_count:        this.insight_count,
-      theme:                this.theme
+      theme:                this.theme,
+      pwd_updated:          this.pwd_updated
     };
   }
 
@@ -249,6 +252,19 @@ userSchema.methods.createUserSalt = function(){
 };
 
 userSchema.methods.hashPassword = function(){
+  if(this.password) {
+    var salt = process.env.PRIZM_SALT;
+    var pass = this.password;
+    this.password = _utils.prismEncrypt(this.password, salt);
+    this.pwd_updated = true;
+    if (this.password != pass){
+      return true;
+    }
+  }
+  return false;
+}
+
+userSchema.methods.hashPasswordOld = function(){
   if(this.password && this.create_date && this.email){
     var user_salt = this.createUserSalt();
     var old_pass = this.password;
@@ -355,6 +371,16 @@ userSchema.methods.shortUser = function(){
 
 userSchema.pre('save', function(next){
   //set create & modify dates
+  var birthday = this.birthday?this.birthday.split('-'):false;
+  if (birthday && birthday.length == 3) {
+    birthday = [birthday[2], birthday[0] - 1, birthday[1]];
+    birthday = moment(birthday);
+    var age = moment().diff(birthday, 'years');
+    if (!this.age || age != this.age) {
+      this.age = age;
+    }
+  }
+
   if(!this.create_date){
     this.create_date = Date.now();
     this.name = this.first_name + ' ' + this.last_name;
@@ -369,20 +395,6 @@ userSchema.pre('save', function(next){
     }
     next();
   }
-});
-
- 
-userSchema.pre('save', function(next){
-  var birthday = this.birthday?this.birthday.split('-'):false;
-  if (birthday && birthday.length == 3) {
-    birthday = [birthday[2], birthday[0] - 1, birthday[1]];
-    birthday = moment(birthday);
-    var age = moment().diff(birthday, 'years');
-    if (!this.age || age != this.age) {
-      this.age = age;
-    }
-  }
-  next();
 });
 
 exports.User = _mongoose.model('User', userSchema);
