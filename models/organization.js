@@ -12,7 +12,9 @@ var organizationSchema = new mongoose.Schema({
   modify_date         : {type: Date, default: null, required: false},
   members             : {type: Array, default: []},
   welcome_image_url   : {type: String, default: null},
-  logo_url            : {type: String, default: null}
+  logo_url            : {type: String, default: null},
+  owner               : {type: ObjectId, ref: 'User', required: false},
+  namespace           : {type: String, required: false}
 
 });
 

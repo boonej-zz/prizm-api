@@ -35,6 +35,78 @@ var mandrillEndpointSend = '/messages/send';
  * TODO: pull logging for errors out into error class (which needs refactoring)
  */
 
+var checkAndUpdateOrg = function(user, next){
+ var empty_set = {
+  organization: null,
+  theme: null
+ };
+ if (user.program_code) {
+  Organization.findOne({code: user.program_code}, function(err, organization){
+    if (!err) {
+      var in_org = false;
+      _.each(organization.members, function(item, idx, list){
+        if (item.toString() == user._id.toString()){
+          in_org = true;
+        }
+      });
+      if (! in_org){
+        organization.members.push(user._id);
+        organization.save();
+      }
+      var date = new Date().toString();
+      var user_update = {
+        organization: organization._id,
+        theme: organization.theme,
+        subtype: 'member_pending'
+      };
+      console.log(organization.owner);
+      var owner_update = {};
+      User.findOne({_id: user._id}, function(err, result){
+        if (result) {
+          console.log('found user');
+          var exists = false;
+          console.log(result.following);
+          _.each(result.following, function(item, idx, list){
+            if (item._id == organization.owner.toString()){
+              exists = true;
+            }
+          });
+          if (!exists) {
+            console.log('adding following');
+            user_update.$inc = {following_count: 1};
+            user_update.$push = {following: 
+              {_id: organization.owner.toString(), date: date}
+            };
+            owner_update.$inc = {follower_count: 1};
+            owner_update.$push = {followers: 
+              {_id: user._id, date: date}
+            };
+          }
+          User.findOneAndUpdate({_id: user._id}, user_update, function(err, saved){
+            console.log('updated user');
+            var savedUser = saved;
+            User.findOneAndUpdate({_id: organization.owner}, owner_update, 
+              function(err, result){
+                console.log('updated owner');
+              });
+            next(err, saved);
+          });
+        } else {
+          console.log('Could not find user');
+          next(err, user);
+        } 
+      });
+    } else {
+      console.log('Org did not exist');
+      User.findOneAndUpdate({_id: user._id}, empty_set, next);
+    }
+  });
+ } else {
+   console.log('No org present');
+  User.findOneAndUpdate({_id: user._id}, empty_set, next);
+ } 
+};
+
 /*jshint -W087*/
 
 /**
@@ -489,38 +561,7 @@ exports.register = function(req, res){
         }
     };
 
-    var testForOrg = function(user){
-      if (user.program_code) {
-        console.log('finding program');
-        Organization.findOne({code: user.program_code}, 
-            function(err, organization){
-              console.log('found organization');
-              console.log(organization);
-              if (err) {
-                console.log(err);
-              } 
-              if (organization){
-                console.log('found theme');
-                user.organization = organization._id;
-                user.theme = organization.theme;
-              } else {
-                user.organization = null;
-                user.theme = null;
-              }
-              user.save(function(err, saved){
-                handleUserSave(err, saved);  
-              });
-            }
-        );  
-      } else {
-        user.theme = null;
-        user.organization = null;
-        user.save(function(err, saved){
-          handleUserSave(err, saved);
-        });
-      }
-
-    };
+    
 
     //check, validate, & handle social registration
     if(isSocialProvider(req.body)){
@@ -534,13 +575,23 @@ exports.register = function(req, res){
           if(newUser.provider == 'twitter'){
             newUser.provider_token_secret = req.body.provider_token_secret;
           }
-          testForOrg(newUser);          
+          newUser.save(function(err, result){
+            checkAndUpdateOrg(result, function(err, saved){
+              handleUserSave(err, saved);
+            });
+          });
+          //testForOrg(newUser, handleUserSave);          
         }else{
           _utils.prismResponse( res, null, false, PrismError.serverError);
         }
       });
     }else{
-      testForOrg(newUser);
+      newUser.save(function(err, result){
+        checkAndUpdateOrg(result, function(err, saved){
+          handleUserSave(err, saved);
+        });
+      });
+     // testForOrg(newUser, handleUserSave);
     }
 
   }else{
@@ -689,9 +740,17 @@ exports.updateUser = function(req, res){
           _utils.prismResponse(res, saved.format('basic'), true);
         }
       };
- 
-      if (user.program_code) {
-        console.log('finding program');
+      user.save(function(err, result){
+        checkAndUpdateOrg(result, function(err, saved){
+          handleUserSave(err, saved);
+        });
+      });
+      //if (user.program_code) {
+
+      // testForOrg(user, handleUserSave);
+    };
+  });
+        /** console.log('finding program');
         Organization.findOne({code: user.program_code}, 
             function(err, organization){
               console.log('found organization');
@@ -719,14 +778,11 @@ exports.updateUser = function(req, res){
           handleUserSave(err, saved);
         });
       }
-    }
-    });
+    } 
+    }); **/
 
-  }else{
-    _utils.prismResponse(res, null, false, PrismError.invalidRequest);
-  }
+ };
 };
-
 /**
  * [fetchUserNewsFeed description]
  * @param  {HTTPRequest} req The request object
