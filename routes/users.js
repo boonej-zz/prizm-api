@@ -57,7 +57,7 @@ var checkAndUpdateOrg = function(user, next){
       var user_update = {
         organization: organization._id,
         theme: organization.theme,
-        subtype: 'member_pending'
+        org_status: 'member_pending'
       };
       console.log(organization.owner);
       var owner_update = {};

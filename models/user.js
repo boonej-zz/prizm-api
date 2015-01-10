@@ -78,6 +78,7 @@ var userSchema = new _mongoose.Schema({
   unsubscribed          : {type: Boolean, default: false},
   age                   : {type: Number, default: 0},
   pwd_updated           : {type: Boolean, default: false},
+  org_status            : {type: String, default: null}
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -102,7 +103,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
-            'insight_count', 'theme', 'organization', 'birthday'];
+            'insight_count', 'theme', 'organization', 'birthday', 'org_status'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -113,7 +114,7 @@ userSchema.statics.selectFields = function(type){
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
             'tumblr_token_secret', 'program_code', 'interests', 'insight_count', 
-            'theme', 'organization','pwd_updated'];
+            'theme', 'organization','pwd_updated','org_status'];
   }
 };
 
@@ -208,7 +209,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       interests:            this.interests,
       insight_count:        this.insight_count,
       theme:                this.theme,
-      pwd_updated:          this.pwd_updated
+      pwd_updated:          this.pwd_updated,
+      org_status:           this.org_status
     };
   }
 
