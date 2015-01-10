@@ -45,7 +45,7 @@ var checkAndUpdateOrg = function(user, next){
     if (!err && organization) {
       var in_org = false;
       _.each(organization.members, function(item, idx, list){
-        if (item.toString() == user._id.toString()){
+        if (item && item.toString() == user._id.toString()){
           in_org = true;
         }
       });
@@ -66,11 +66,15 @@ var checkAndUpdateOrg = function(user, next){
           console.log('found user');
           var exists = false;
           console.log(result.following);
-          _.each(result.following, function(item, idx, list){
-            if (item._id == organization.owner.toString()){
-              exists = true;
-            }
-          });
+          if (organization.owner){
+            _.each(result.following, function(item, idx, list){
+              if (item._id == organization.owner.toString()){
+                exists = true;
+              }
+            });
+          } else {
+            exists = true;
+          }
           if (!exists) {
             console.log('adding following');
             user_update.$inc = {following_count: 1};
@@ -85,10 +89,12 @@ var checkAndUpdateOrg = function(user, next){
           User.findOneAndUpdate({_id: user._id}, user_update, function(err, saved){
             console.log('updated user');
             var savedUser = saved;
-            User.findOneAndUpdate({_id: organization.owner}, owner_update, 
-              function(err, result){
-                console.log('updated owner');
-              });
+            if (organization.owner) {
+             User.findOneAndUpdate({_id: organization.owner}, owner_update, 
+                function(err, result){
+                  console.log('updated owner');
+                });
+            }
             next(err, saved);
           });
         } else {
