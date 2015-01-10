@@ -42,7 +42,7 @@ var checkAndUpdateOrg = function(user, next){
  };
  if (user.program_code) {
   Organization.findOne({code: user.program_code}, function(err, organization){
-    if (!err) {
+    if (!err && organization) {
       var in_org = false;
       _.each(organization.members, function(item, idx, list){
         if (item.toString() == user._id.toString()){
