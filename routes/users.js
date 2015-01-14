@@ -81,11 +81,12 @@ var checkAndUpdateOrg = function(user, next){
             user_update.$push = {following: 
               {_id: organization.owner.toString(), date: date}
             };
-            owner_update.$inc = {follower_count: 1};
+            owner_update.$inc = {followers_count: 1};
             owner_update.$push = {followers: 
-              {_id: user._id, date: date}
+              {_id: result._id.toString(), date: date}
             };
           }
+          console.log(owner_update);
           User.findOneAndUpdate({_id: user._id}, user_update, function(err, saved){
             console.log('updated user');
             var savedUser = saved;
@@ -93,6 +94,13 @@ var checkAndUpdateOrg = function(user, next){
              User.findOneAndUpdate({_id: organization.owner}, owner_update, 
                 function(err, result){
                   console.log('updated owner');
+                  if (!err) {
+                    console.log(organization.owner + ':' + user._id);
+                    _utils.registerActivityEvent(organization.owner,
+                                                         user._id,
+                                                         'follow'
+                                                         );
+                                        }
                 });
             }
             next(err, saved);
