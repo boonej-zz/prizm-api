@@ -55,11 +55,10 @@ var checkAndUpdateOrg = function(user, next){
       }
       var date = new Date().toString();
       var user_update = {
-        organization: organization._id,
         theme: organization.theme,
-        org_status: 'member_pending'
+        $push: {org_status: {status: 'pending', 
+          organization: organization._id}}
       };
-      console.log(organization.owner);
       var owner_update = {};
       User.findOne({_id: user._id}, function(err, result){
         if (result) {
@@ -78,9 +77,9 @@ var checkAndUpdateOrg = function(user, next){
           if (!exists) {
             console.log('adding following');
             user_update.$inc = {following_count: 1};
-            user_update.$push = {following: 
+            user_update.$push.following = 
               {_id: organization.owner.toString(), date: date}
-            };
+            ;
             owner_update.$inc = {followers_count: 1};
             owner_update.$push = {followers: 
               {_id: result._id.toString(), date: date}
