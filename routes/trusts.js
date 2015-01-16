@@ -325,7 +325,9 @@ var updateTrust = function(req, res){
                       //reset trust to pending?
 
                     }
-
+                    trust.to.follow(trust.from._id, function(err, result){
+                      if (err) console.log(err);
+                    });
                     trust_updated.updateUsersTrustCount(function(err){
                       if(err) {
                         _logger.log('error', 'Update users trust count Error from within update luminary', {error:err});

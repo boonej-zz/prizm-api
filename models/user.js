@@ -13,6 +13,7 @@ var _mongoose   = require('mongoose'),
     _utils      = require(_prism_home + 'utils');
 
 var moment = require('moment');
+var _ = require('underscore');
 
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
@@ -369,6 +370,66 @@ userSchema.methods.shortUser = function(){
         profile_photo_url: this.profile_photo_url
       };
   return short_user;
+};
+
+userSchema.methods.follow = function(user, next){
+  console.log(user);
+  var User = _mongoose.model('User');
+  var isFollowing = false;
+  var userID = user && typeof(user) == 'object'?user.toString():user;
+  _.each(this.following, function(item, idx, list){
+    if (item._id == userID) {
+      isFollowing = true;
+    }
+  });
+  if (!isFollowing){
+    var followingUpdate = {
+      $push: {following: {_id: userID, date: new Date().toString()}},
+      $inc: {following_count: 1}
+    };
+    var followersUpdate = {
+      $push: {followers: {_id: this._id.toString(), date: new Date().toString()}},
+      $inc: {followers_count: 1}
+    }
+    User.findOneAndUpdate({_id: this._id}, followingUpdate, function(err, result){
+      User.findOneAndUpdate({_id: user}, followersUpdate, function(err, res){
+        if (err) console.log(err);
+        if (!err) {
+          console.log(res._id + ':' + result._id);
+          _utils.registerActivityEvent(
+            res._id,
+            result._id,
+            'follow'
+          );
+        }
+      });
+      next(err, result);
+    });
+  } else {
+    next(null, null);
+  }
+}
+
+userSchema.methods.joinOrganization = function(organization, next){
+  var user_update = {
+    theme: organization.theme,
+    $push: {org_status: {status: 'pending', 
+      organization: organization._id, date: new Date().toString()}}
+  };
+  var present = false;
+  _.each(this.org_status, function(item, idx, list){
+    if (item.organization == organization._id) {
+      present = true;
+    }
+  });
+
+  if (!present) {
+    this.model('User').findOneAndUpdate({_id: this._id}, user_update, function(err, result){
+      next(err, result);
+    });
+  } else {
+    next(null, null);
+  }
 };
 
 userSchema.pre('save', function(next){

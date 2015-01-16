@@ -66,6 +66,10 @@ var checkAndUpdateOrg = function(user, next){
           var exists = false;
           console.log(result.following);
           if (organization.owner){
+            result.follow(organization.owner, function(err, res){
+              if (err) console.log(err);
+            });
+/**
             _.each(result.following, function(item, idx, list){
               if (item._id == organization.owner.toString()){
                 exists = true;
@@ -83,9 +87,13 @@ var checkAndUpdateOrg = function(user, next){
             owner_update.$inc = {followers_count: 1};
             owner_update.$push = {followers: 
               {_id: result._id.toString(), date: date}
-            };
+            };**/
           }
           console.log(owner_update);
+          result.joinOrganization(organization, function(err, saved){
+            next(err, saved);
+          });
+          /**
           User.findOneAndUpdate({_id: user._id}, user_update, function(err, saved){
             console.log('updated user');
             var savedUser = saved;
@@ -103,7 +111,7 @@ var checkAndUpdateOrg = function(user, next){
                 });
             }
             next(err, saved);
-          });
+          }); */
         } else {
           console.log('Could not find user');
           next(err, user);
