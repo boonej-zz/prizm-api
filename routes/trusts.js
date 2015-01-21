@@ -488,6 +488,7 @@ var searchForUsersInTrust = function(req, res){
  * @param {HTTPResponse} res The response object
  */
 var searchForUsersNotInTrust = function(req, res){
+  var uid = req.params.id;
   Trust.find(
     {$or: [{to: req.params.id}, {from: req.params.id}], status: 'accepted'},
     {to:1, from:1},
@@ -513,17 +514,37 @@ var searchForUsersNotInTrust = function(req, res){
 
         //regex name search characters globally & case incensitive
         var regex_name = new RegExp(req.params.name, 'gi');
-
-        User.find({_id: {$nin: users}, name: regex_name})
-        .select(User.selectFields('short').join(" "))
-        .exec(function(error, users_result){
-          if(error){
-            _logger.log('error',
-                        'An error returned while searching names in users',
-                        {error:error});
+        User.findOne({_id: uid}, function(err, user){
+          if (err) {
+            _logger.log('error', 'could not find requested user', {error: err});
             _utils.prismResponse(res, null, false, PrismError.serverError);
-          }else{
-            _utils.prismResponse(res, users_result, true);
+          } else {
+            var criteria = {
+              _id: {$nin: users},
+              name: regex_name,
+              type: 'user'
+            };
+            if (user.type == 'institution_verified'){
+              criteria.type == 'user';
+            } else {
+              criteria.$and = [
+                {type: 'user'},
+                {subtype: {$ne: 'luminary'}}
+              ];
+            }
+            User.find(criteria)
+            .select(User.selectFields('short').join(" "))
+            .exec(function(error, users_result){
+              if(error){
+                _logger.log('error',
+                'An error returned while searching names in users',
+                {error:error});
+                _utils.prismResponse(res, null, false, PrismError.serverError);
+              }else{
+                _utils.prismResponse(res, users_result, true);
+              }
+
+            });
           }
         });
       }
