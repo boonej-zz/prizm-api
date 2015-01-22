@@ -285,6 +285,7 @@ _app.post('/insights/:id/dislike', _insight.dislikeInsight);
 _app.post('/interests', _interest.createInterest);
 _app.get('/interests', _interest.fetchInterests);
 _app.get('/organizations/:code', _organization.searchOrganizations);
+_app.get('/users/:id/suggestions', _follow.fetchSuggestions);
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){

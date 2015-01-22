@@ -15,6 +15,8 @@ var _mongoose     = require('mongoose'),
     Activity      = require(_prism_home + 'models/activity').Activity,
     Post          = require(_prism_home + 'models/post').Post;
 
+var _ = require('underscore');
+
 /**
  * [follow description]
  * @param  {[type]} req [description]
@@ -318,4 +320,46 @@ exports.fetchFollowers = function(req, res){
   }
 };
 
-
+exports.fetchSuggestions = function(req, res){
+  var uid = req.params.id;
+  User.findOne({_id: uid}, function(err, user){
+    if (err) {
+      _utils.prismResponse(res, null, false, PrismError.ServerError);
+    } else {
+      var criteria = {};
+      criteria._id = {$ne: user._id};
+      criteria.active = true;
+      if (user.org_status && user.org_status.length > 0) {
+        var orgArray = [];
+        _.each(user.org_status, function(item, idx, list){
+          if (item.status != 'pending' && item.status != 'denied') {
+            orgArray.push(item.organization);
+          }
+        }); 
+      }
+      if (orgArray.length > 0){
+        criteria.$or = [
+          {org_status : {
+            $elemMatch: {
+              organization: {$in: orgArray}, 
+              $or: [{status: {$ne: 'pending'}}, {status: {$ne: 'denied'}}]
+            }
+          }},
+          {subtype : 'luminary'}
+        ];
+        console.log(criteria);
+      } else {
+        criteria.subtype = 'luminary';
+      }
+      criteria.posts_count = {$gt: 4};
+      new Twine('User', criteria, req, null, function(error, result){
+        if (error) {
+          _utils.prismResponse(res, null, false, PrismError.ServerError);
+        } else {
+          console.log(result);
+          _utils.prismResponse(res, result, true);
+        }
+      });
+    }
+  });
+};
