@@ -425,6 +425,13 @@ userSchema.methods.joinOrganization = function(organization, next){
 
   if (!present) {
     this.model('User').findOneAndUpdate({_id: this._id}, user_update, function(err, result){
+      if (!err) {
+        _utils.registerActivityEvent(
+          result._id,
+          organization.owner,
+          'group_joined'
+          );
+      }
       next(err, result);
     });
   } else {

@@ -64,7 +64,8 @@ PushNotification.prototype.activity = function activity(){
       this.object.action === 'trust_accepted' ||
       this.object.action === 'accolade' ||
       this.object.action === 'trust_request'|| 
-      this.object.action === 'insight'){
+      this.object.action === 'insight' || 
+      this.object.action === 'group_joined'){
 
     var self = this;
 
@@ -80,6 +81,8 @@ PushNotification.prototype.activity = function activity(){
           if(error) _logger.log('error', 'unable to update new badge count', {error:error});
         });
         var action = "";
+        if (self.object.action === 'group_joined') action = 'is reviewing your '
+        + 'request for membership.';
         if(self.object.action === 'comment') action = 'commented on your post';
         if(self.object.action === 'tag') {
           if (! self.object.comment_id) {
