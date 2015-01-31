@@ -36,6 +36,10 @@ var mandrillEndpointSend = '/messages/send';
  */
 
 var checkAndUpdateOrg = function(user, next){
+ if (!user) {
+    next(null, null);
+    return;
+ }
  var empty_set = {
   organization: null,
   theme: null

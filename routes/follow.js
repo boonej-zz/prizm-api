@@ -337,7 +337,7 @@ exports.fetchSuggestions = function(req, res){
           }
         }); 
       }
-      if (orgArray.length > 0){
+      if (orgArray && orgArray.length > 0){
         criteria.$or = [
           {org_status : {
             $elemMatch: {
