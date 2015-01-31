@@ -40,7 +40,7 @@ var checkAndUpdateOrg = function(user, next){
   organization: null,
   theme: null
  };
- if (_.has(user, 'program_code') && user.program_code) {
+ if (user && _.has(user, 'program_code') && user.program_code) {
   Organization.findOne({code: user.program_code}, function(err, organization){
     if (!err && organization) {
       var in_org = false;
