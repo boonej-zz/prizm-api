@@ -418,7 +418,7 @@ userSchema.methods.joinOrganization = function(organization, next){
   };
   var present = false;
   _.each(this.org_status, function(item, idx, list){
-    if (item.organization == organization._id) {
+    if (String(item.organization) == String(organization._id)) {
       present = true;
     }
   });
@@ -435,7 +435,7 @@ userSchema.methods.joinOrganization = function(organization, next){
       next(err, result);
     });
   } else {
-    next(null, null);
+    next(null, this);
   }
 };
 

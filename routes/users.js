@@ -48,15 +48,6 @@ var checkAndUpdateOrg = function(user, next){
   Organization.findOne({code: user.program_code}, function(err, organization){
     if (!err && organization) {
       var in_org = false;
-      _.each(organization.members, function(item, idx, list){
-        if (item && item.toString() == user._id.toString()){
-          in_org = true;
-        }
-      });
-      if (! in_org){
-        organization.members.push(user._id);
-        organization.save();
-      }
       var date = new Date().toString();
       var user_update = {
         theme: organization.theme,
@@ -750,7 +741,7 @@ exports.updateUser = function(req, res){
         }
         var handleUserSave = function(err, saved){
          if(err || !saved){
-            if (err.code == 11000) {
+            if (err && err.code == 11000) {
               error =  {
                 status_code: 400,
                 error_info: {
