@@ -91,6 +91,13 @@ var explore = function(req, res){
     randomize_result = false;
   }
 
+  //check for new school explore
+  if (_.has(xargs, 'feed') && xargs.feed === 'infinite'){
+    console.log('infinite feed');
+    options = null;
+    randomize_result = false;
+  }
+
   var twine = new Twine('Post', criteria, req, options, function(error, explore){
     if(error){
       _utils.prismResponse(res, null, false, PrismError.serverError);
