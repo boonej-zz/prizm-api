@@ -423,6 +423,7 @@ exports.login = function(req, res){
                                   false,
                                   error);
           }else{
+            console.log(result);
             _utils.prismResponse( res, null, false, PrismError.invalidLoginUserDoesNotExist);
           }
         }else{
@@ -441,6 +442,8 @@ exports.login = function(req, res){
                                 PrismError.invalidLoginUserDoesNotExist);
         }else if(result){
           if(hashAndValidatePassword(result, req.body.password)){
+            result.last_login_date = new Date(); 
+            result.save();
             _utils.prismResponse(res, result.format('basic'), true, null, null);
           }else{
            _utils.prismResponse(res,
@@ -535,11 +538,12 @@ exports.register = function(req, res){
 
     if(typeof(req.body.type) !== 'undefined') newUser.type = req.body.type;
     if(typeof(req.body.subtype) !== 'undefined') newUser.subtype = req.body.subtype;
-
-    if(newUser.type === 'institution'){
-      if(typeof(req.body.phone_number) !== 'undefined')
+   
+    if(typeof(req.body.phone_number) !== 'undefined')
         newUser.phone_number = req.body.phone_number;
 
+    if(newUser.type === 'institution'){
+     
       if(typeof(req.body.website) !== 'undefined')
         newUser.website = req.body.website;
 
@@ -726,6 +730,7 @@ exports.updateUser = function(req, res){
         if(typeof(body.instagram_min_id) !== 'undefined') user.instagram_min_id = body.instagram_min_id;
         if(typeof(body.twitter_token) !== 'undefined') user.twitter_token = body.twitter_token;
         if(typeof(body.twitter_min_id) !== 'undefined') user.twitter_min_id = body.twitter_min_id;
+        if(typeof(body.phone_number) !== 'undefined') user.phone_number = body.phone_number;
         if(typeof(body.tumblr_token) !== 'undefined') user.tumblr_token = body.tumblr_token;
         if(typeof(body.tumblr_min_id) !== 'undefined') user.tumblr_min_id = body.tumblr_min_id;
         if(typeof(body.tumblr_token_secret) !== 'undefined') user.tumblr_token_secret = body.tumblr_token_secret;
@@ -977,9 +982,10 @@ exports.createUserPost = function(req, res){
                                                     'accolade',
                                                     user_post._id);
                           }
-                          
                           /**
-                          if (c_user.subtype == 'luminary'){
+                          
+                          if (c_user.subtype == 'institution_verified'){
+                            User.find({org_status: {$elemMatch: {
                             _.each(c_user.followers, function(follower, index, list){
                               _utils.registerActivityEvent(follower._id, 
                                 c_user._id, 
@@ -987,8 +993,8 @@ exports.createUserPost = function(req, res){
                                 user_post._id); 
                             });      
                           }
-                          */
-
+                          
+                          **/
                           _utils.prismResponse(res, usr, true);
                         }
                       }
@@ -1175,6 +1181,8 @@ var handleSocialProviderLogin = function(body, callback){
             if(error){
               callback(PrismError.serverError, false);
             }else if(response && response._id){
+              response.last_login_date = new Date();
+              response.save();
               callback(false, response);
             }else{
               callback(PrismError.invalidSocialUser, false);
@@ -1206,6 +1214,8 @@ var handleSocialProviderLogin = function(body, callback){
               callback(PrismError.invalidSocialUser, false);
 
             }else if(response && response._id){
+              response.last_login_date = new Date();
+              response.save();
               _logger.info('Found twitter user to validate login', {user: response});
               callback(false, response);
 
