@@ -412,7 +412,6 @@ userSchema.methods.follow = function(user, next){
 
 userSchema.methods.joinOrganization = function(organization, next){
   var user_update = {
-    theme: organization.theme,
     $push: {org_status: {status: 'pending', 
       organization: organization._id, date: new Date().toString()}}
   };
