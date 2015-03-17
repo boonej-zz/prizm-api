@@ -994,6 +994,7 @@ exports.createUserPost = function(req, res){
                                     _utils.registerActivityEvent(
                                       member._id,
                                       c_user._id,
+                                      'post',
                                       user_post._id
                                       );
                                   });
