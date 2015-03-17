@@ -982,19 +982,35 @@ exports.createUserPost = function(req, res){
                                                     'accolade',
                                                     user_post._id);
                           }
-                          /**
+                          
                           
                           if (c_user.subtype == 'institution_verified'){
-                            User.find({org_status: {$elemMatch: {
+                            Organization.findOne({owner: c_user._id}, function(err, org){
+                              if (org){
+                                User.find({org_status: {$elemMatch: 
+                                  {organization: org._id}
+                                }}, function(err, users) {
+                                  _.each(users, function(member, index, list){
+                                    _utils.registerActivityEvent(
+                                      member._id,
+                                      c_user._id,
+                                      user_post._id
+                                      );
+                                  });
+                                });
+                              }
+                            });/**
+                            User.find({org_status: {$elemMatch: {ow
                             _.each(c_user.followers, function(follower, index, list){
                               _utils.registerActivityEvent(follower._id, 
                                 c_user._id, 
                                 'post', 
                                 user_post._id); 
-                            });      
+                            });   
+                            */   
                           }
                           
-                          **/
+                          
                           _utils.prismResponse(res, usr, true);
                         }
                       }
