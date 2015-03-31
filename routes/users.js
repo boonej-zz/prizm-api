@@ -987,19 +987,35 @@ exports.createUserPost = function(req, res){
                           if (c_user.subtype == 'institution_verified'){
                             Organization.findOne({owner: c_user._id}, function(err, org){
                               if (org){
-                                User.find({org_status: {$elemMatch: 
-                                  {organization: org._id}
-                                }}, function(err, users) {
-                                  _.each(users, function(member, index, list){
-                                    _utils.registerActivityEvent(
-                                      member._id,
-                                      c_user._id,
-                                      'post',
-                                      user_post._id
+                                Trust.find({from: c_user._id, status: 'accepted'}, function(err, trusts){
+                                  var luminaries = [];
+                                  if (trusts.length > 0) {
+                                    luminaries = _.pluck(trusts, 'to');
+                                  }
+                                  User.find({
+                                    //$or: [
+                                        //org_status: {$elemMatch: {organization: org._id, status: 'active'}}
+                                     // ,
+                                    $or : [
+                                      {_id: {$in: luminaries}},
+                                      {org_status: {$elemMatch: {organization: org._id, status: 'active'}}}
+                                    ]
+                                     //   {_id: {$in: luminaries}}
+                                      
+                                   // ]
+                                  }, function(err, users){
+                                    _.each(users, function(member, index, list){
+                                      _utils.registerActivityEvent(
+                                        member._id,
+                                        c_user._id,
+                                        'post',
+                                        user_post._id
                                       );
                                   });
+
+                                  });
                                 });
-                              }
+                                                             }
                             });/**
                             User.find({org_status: {$elemMatch: {ow
                             _.each(c_user.followers, function(follower, index, list){

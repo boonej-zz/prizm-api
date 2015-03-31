@@ -37,7 +37,6 @@ function ActivityListener(options){
   process.on('activity', function(object){
     if(typeof object.action !== 'undefined'){
       _logger.log('info', 'activity event emitted', object);
-      console.log('heard activity');
       self.activityHandler(object);
 
     }else{
@@ -71,7 +70,6 @@ var isInTestMode = function(){
  * @return {[type]}        [description]
  */
 ActivityListener.prototype.activityHandler = function(activity){
-  console.log(activity);
   var self = this;
   if(activity.action && activity.to && activity.from){
     if(activity.to === activity.from) {
@@ -99,7 +97,6 @@ ActivityListener.prototype.activityHandler = function(activity){
         new_activity.insight_target_id = activity.insight_target_id;
       }
 
-      console.log(new_activity);
       new_activity.save(function(err, saved){
         if(err){
           _logger.log('error', 'Error occured saving new activity',
@@ -108,7 +105,6 @@ ActivityListener.prototype.activityHandler = function(activity){
           console.log(err);
           return;
         }
-        console.log(saved);
         if(!saved){
           _logger.log('error', 'There was no saved record returned - server error?',
                       {error:err, saved:saved, activity:activity});
@@ -120,7 +116,6 @@ ActivityListener.prototype.activityHandler = function(activity){
                     {saved_activity:saved});
 
         new Push('activity', saved, function(result){
-          console.log("logging result of push"+JSON.stringify(result));
           _logger.log('info', 'Push notification result', result);
         });
 

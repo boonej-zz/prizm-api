@@ -254,5 +254,4 @@ exports.registerInsightEvent = function(to, from, action, insight_id,
     insight_target_id: insight_target_id,
     has_trust: has_trust
   });
-  console.log('sent activity request');
 };
