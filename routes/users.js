@@ -930,6 +930,9 @@ exports.createUserPost = function(req, res){
         }else{
           post.type = user.type;
           post.subtype = user.subtype;
+          if (user.visibility && user.visibility == 'restricted') {
+            post.is_flagged = true;
+          }
           if(!_.isUndefined(req.body.accolade_target)){
             post.accolade_target = req.body.accolade_target;
             post.tags.push({_id: req.body.accolade_target});

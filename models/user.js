@@ -79,7 +79,8 @@ var userSchema = new _mongoose.Schema({
   unsubscribed          : {type: Boolean, default: false},
   age                   : {type: Number, default: 0},
   pwd_updated           : {type: Boolean, default: false},
-  org_status            : {type: Array, default: []}
+  org_status            : {type: Array, default: []},
+  visibility            : {type: String, default: null} 
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){
@@ -96,7 +97,7 @@ userSchema.statics.canResolve = function(){
 userSchema.statics.selectFields = function(type){
   if(type === 'short'){
     return ['_id','name','first_name','last_name','profile_photo_url','type', 
-      'active', 'insight_count', 'birthday', 'subtype'];
+      'active', 'insight_count', 'birthday', 'subtype', 'visibility'];
   }else if(type === 'basic'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -104,7 +105,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
-            'insight_count', 'theme', 'organization', 'birthday', 'org_status'];
+            'insight_count', 'theme', 'organization', 'birthday', 'org_status', 'visibility'];
   }else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -115,7 +116,7 @@ userSchema.statics.selectFields = function(type){
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
             'tumblr_token_secret', 'program_code', 'interests', 'insight_count', 
-            'theme', 'organization','pwd_updated','org_status'];
+            'theme', 'organization','pwd_updated','org_status','visibility'];
   }
 };
 
@@ -211,7 +212,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       insight_count:        this.insight_count,
       theme:                this.theme,
       pwd_updated:          this.pwd_updated,
-      org_status:           this.org_status
+      org_status:           this.org_status,
+      visibility:           this.visibility
     };
   }
 
