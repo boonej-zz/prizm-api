@@ -561,8 +561,14 @@ postSchema.methods.fetchRepostShortUser = function(post_id, cb){
  *
  * @param  {Function} next Calls the next() iterator to continue process
  */
+
 postSchema.pre('save', function(next){
   //set create & modify dates
+  if (this.isModified('scope')){
+    if (this.scope == 'public') {
+      this.create_date = Date.now();
+    }
+  }
   this.modify_date = Date.now();
   if(!this.create_date){
     if(this.create_date === null) this.create_date = Date.now();

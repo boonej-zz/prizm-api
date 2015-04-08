@@ -67,7 +67,7 @@ var shuffleExploreResults = function(results) {
 var explore = function(req, res){
   var criteria = {status: 'active', scope: 'public', is_flagged: false};
   var randomize_result = true;
-  var options = {limit:60};
+  var options = {limit:60, sort_by: 'modify_date: -1'};
 
   //decode xargs and check if hash_tags filter is set
   //if hash_tags filter is set, pull the value out of xargs and
