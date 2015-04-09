@@ -987,9 +987,11 @@ exports.createUserPost = function(req, res){
                           }
                           
                           
-                          if (c_user.subtype == 'institution_verified'){
+                          if (c_user.type == 'institution_verified'){
+                            console.log('finding members');
                             Organization.findOne({owner: c_user._id}, function(err, org){
                               if (org){
+                                console.log('found organization');
                                 Trust.find({from: c_user._id, status: 'accepted'}, function(err, trusts){
                                   var luminaries = [];
                                   if (trusts.length > 0) {
@@ -1007,6 +1009,7 @@ exports.createUserPost = function(req, res){
                                       
                                    // ]
                                   }, function(err, users){
+                                    if (users) console.log(users.length + ' users found.');
                                     _.each(users, function(member, index, list){
                                       _utils.registerActivityEvent(
                                         member._id,
