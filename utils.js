@@ -195,7 +195,7 @@ exports.authorizeClientRequest = function(req, callback){
     if(bearerAuth.length == 2 && bearerAuth[0] == 'Bearer'){
       Token.findOne({access_token: bearerAuth[1]}, function(error, result){
         if(error) callback(error, false, result);
-        if(result.date_expires.valueOf() > Date.now().valueOf()){
+        if(result && result.date_expires.valueOf() > Date.now().valueOf()){
           callback(false, true, result);
         }else{
           callback(Error.accessDeniedExpiredToken, false, result);
