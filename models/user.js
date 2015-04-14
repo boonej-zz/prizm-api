@@ -15,6 +15,14 @@ var _mongoose   = require('mongoose'),
 var moment = require('moment');
 var _ = require('underscore');
 
+
+var orgStatusSchema = new _mongoose.Schema({
+  organization          : {type: ObjectId, ref: 'Organization', required: true},
+  status                : {type: String, default: 'pending', required: true},
+  create_date           : {type: Date, default: Date.now()},
+  groups                : {type: Array} 
+});
+
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
   first_name            : {type: String, required: true},
@@ -90,14 +98,14 @@ userSchema.statics.canResolve = function(){
     {trusts: {identifier: 'user_id', model: 'User'}},
     {interests: {identifier: '_id', model: 'Interest'}},
     {theme: {identifier: '_id', model: 'Theme'}},
-    {organization: {identifier: '_id', model: 'Organization'}}
+    {organization: {identifier: '_id', model: 'Organization'}},
   ];
 };
 
 userSchema.statics.selectFields = function(type){
   if(type === 'short'){
     return ['_id','name','first_name','last_name','profile_photo_url','type', 
-      'active', 'insight_count', 'birthday', 'subtype', 'visibility'];
+      'active', 'insight_count', 'birthday', 'subtype', 'visibility', 'org_status'];
   }else if(type === 'basic'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -469,4 +477,5 @@ userSchema.pre('save', function(next){
 });
 
 exports.User = _mongoose.model('User', userSchema);
+_mongoose.model('OrgStatus', orgStatusSchema);
 // exports.Trust = _mongoose.model('Trust', trustSchema);

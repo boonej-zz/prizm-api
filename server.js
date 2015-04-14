@@ -11,6 +11,8 @@ var _prism_home     = process.env.PRISM_HOME;
 require(_prism_home + 'models/insight');
 require(_prism_home + 'models/interest');
 require(_prism_home + 'models/organization');
+require(_prism_home + 'models/group');
+
 var _express        = require('express'),
     _mongoose       = require('mongoose'),
     _http           = require('http'),
