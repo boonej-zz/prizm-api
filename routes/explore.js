@@ -67,7 +67,7 @@ var shuffleExploreResults = function(results) {
 var explore = function(req, res){
   var criteria = {status: 'active', scope: 'public', is_flagged: false};
   var randomize_result = true;
-  var options = {limit:60, sort_by: 'modify_date: -1'};
+  var options = {limit:60, sort_by: 'create_date'};
 
   //decode xargs and check if hash_tags filter is set
   //if hash_tags filter is set, pull the value out of xargs and
@@ -76,6 +76,7 @@ var explore = function(req, res){
   var xargs = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
   xargs = JSON.parse(xargs);
   if(_.has(xargs, 'hash_tags')) {
+    console.log('has hashtags');
     var regex_hash = new RegExp('^'+xargs.hash_tags+'$', 'i');
     criteria = {status: 'active', scope: 'public', is_flagged: false, hash_tags: regex_hash};
     xargs = _.omit(xargs, 'hash_tags');
@@ -97,14 +98,17 @@ var explore = function(req, res){
     options = null;
     randomize_result = false;
   }
-
+  console.log(criteria);
+  console.log('options: ' + options);
   var twine = new Twine('Post', criteria, req, options, function(error, explore){
     if(error){
+      console.log(error);
       _utils.prismResponse(res, null, false, PrismError.serverError);
     }else{
       if(randomize_result) {
         explore.data = shuffleExploreResults(explore.data);
       }
+      console.log('success');
       _utils.prismResponse(res, explore, true);
     }
   });

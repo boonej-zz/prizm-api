@@ -33,6 +33,7 @@ var X_ARGUMENTS_HEADER = 'x-arguments';
 module.exports = Twine;
 
 function Twine(model, criteria, Request, options, callback){
+  console.log('Options: ' + _util.inspect(options, false, null) + ' End Options');
   this.start_time = new Date();
 
   var self = this;
@@ -245,7 +246,7 @@ Twine.prototype.$__setSort = function $__setSort(){
     } else {
       sort[this.sort_by] = this.sort;
     }
-   _logger.log('info', 'setting sort', {sort: sort});
+   console.log('setting sort' +  String(sort));
    this.fetch.sort(sort);
   }
 };
