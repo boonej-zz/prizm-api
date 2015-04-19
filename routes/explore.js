@@ -76,7 +76,6 @@ var explore = function(req, res){
   var xargs = new Buffer(req.headers['x-arguments'], 'base64').toString('utf8');
   xargs = JSON.parse(xargs);
   if(_.has(xargs, 'hash_tags')) {
-    console.log('has hashtags');
     var regex_hash = new RegExp('^'+xargs.hash_tags+'$', 'i');
     criteria = {status: 'active', scope: 'public', is_flagged: false, hash_tags: regex_hash};
     xargs = _.omit(xargs, 'hash_tags');
@@ -86,7 +85,6 @@ var explore = function(req, res){
 
   //check to ensure the fetch is not for "featured", if it is, set options to null &
   //randomize_result to false
-  console.log("xargs for explore" + JSON.stringify(xargs));
   if(_.has(xargs, 'type') && xargs.type === 'institution_verified') {
     options = null;
     randomize_result = false;
@@ -98,8 +96,6 @@ var explore = function(req, res){
     options = null;
     randomize_result = false;
   }
-  console.log(criteria);
-  console.log('options: ' + options);
   var twine = new Twine('Post', criteria, req, options, function(error, explore){
     if(error){
       console.log(error);

@@ -33,7 +33,6 @@ var X_ARGUMENTS_HEADER = 'x-arguments';
 module.exports = Twine;
 
 function Twine(model, criteria, Request, options, callback){
-  console.log('Options: ' + _util.inspect(options, false, null) + ' End Options');
   this.start_time = new Date();
 
   var self = this;
