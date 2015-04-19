@@ -104,7 +104,6 @@ var explore = function(req, res){
       if(randomize_result) {
         explore.data = shuffleExploreResults(explore.data);
       }
-      console.log('success');
       _utils.prismResponse(res, explore, true);
     }
   });
