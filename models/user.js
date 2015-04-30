@@ -20,8 +20,33 @@ var orgStatusSchema = new _mongoose.Schema({
   organization          : {type: ObjectId, ref: 'Organization', required: true},
   status                : {type: String, default: 'pending', required: true},
   create_date           : {type: Date, default: Date.now()},
-  groups                : {type: Array} 
+  groups                : {type: Array},
+  role                  : {type: String},
+  member_id             : {type: String} 
 });
+
+orgStatusSchema.statics.selectFields = function(type){
+  return ['_id', 'organization', 'status', 'create_date', 'groups', 'role'];
+};
+
+orgStatusSchema.statics.canResolve = function(){
+  return [
+    {organization: {identifier: '_id', model: 'Organization'}},
+    {groups: {identifier: '_id' , model: 'Group'}}
+  ];
+};
+
+
+orgStatusSchema.methods.format = function(type, add_fields, callback){
+  return {
+
+    organization: this.organization,
+    status      : this.status,
+    create_date : this.create_date
+  }
+
+};
+
 
 var userSchema = new _mongoose.Schema({
   name                  : {type: String, default: ''},
@@ -99,6 +124,8 @@ userSchema.statics.canResolve = function(){
     {interests: {identifier: '_id', model: 'Interest'}},
     {theme: {identifier: '_id', model: 'Theme'}},
     {organization: {identifier: '_id', model: 'Organization'}},
+    {'org_status.organization': {identifier: '_id', model: 'Organization'}},
+    {'org_status.groups': {identifier: '_id', model: 'Group'}}
   ];
 };
 
@@ -164,6 +191,15 @@ userSchema.statics.updateBadgeCount = function(user_id, number, callback){
 
 userSchema.path('type').validate(function(value){
   return /user|institution|luminary/i.test(value);
+});
+
+userSchema.post('init', function(){
+  var $this = this;
+  if (this.org_status && this.org_status.length > 0) {
+    _.each(this.org_status, function(o, i, l){
+      o.member_id = String($this._id);
+    });
+  }
 });
 
 userSchema.methods.format = function(type, add_fields, callback){

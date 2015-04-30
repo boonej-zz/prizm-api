@@ -23,7 +23,8 @@ var activitySchema = new _mongoose.Schema({
   comment_id:       {type: String, default: null, required: false},
   insight_id:       {type: String, default: null, required: false},
   insight_target_id: {type: String, default: null, required: false},
-  has_been_viewed:  {type: Boolean, default: false, required: false}
+  has_been_viewed:  {type: Boolean, default: false, required: false},
+  group_id:         {type: _object_id, ref: 'Group', required: false}
 }, { versionKey: false });
 
 activitySchema.statics.selectFields = function(type){

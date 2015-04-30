@@ -12,6 +12,7 @@ require(_prism_home + 'models/insight');
 require(_prism_home + 'models/interest');
 require(_prism_home + 'models/organization');
 require(_prism_home + 'models/group');
+require(_prism_home + 'models/message');
 
 var _express        = require('express'),
     _mongoose       = require('mongoose'),
@@ -37,6 +38,7 @@ var _express        = require('express'),
     _activity       = require(_prism_home + 'routes/activities');
     _interest       = require(_prism_home + 'routes/interests');
     _organization   = require(_prism_home + 'routes/organizations');
+    _message        = require(_prism_home + 'routes/messages');
     new ActivityListener();
 
 var _app            = _express();
@@ -287,8 +289,13 @@ _app.post('/insights/:id/dislike', _insight.dislikeInsight);
 _app.post('/interests', _interest.createInterest);
 _app.get('/interests', _interest.fetchInterests);
 _app.get('/organizations/:code', _organization.searchOrganizations);
+_app.get('/users/:id/organizations', _message.fetchOrgs);
+_app.get('/users/:user_id/organizations/:org_id/groups', _message.fetchGroups);
 _app.get('/users/:id/suggestions', _follow.fetchSuggestions);
-
+_app.get('/organizations/:org_id/groups/:group_name/messages', _message.fetchMessages);
+_app.put('/organizations/:org_id/groups/:group_name/messages/:message_id', _message.updateMessage);
+_app.post('/organizations/:org_id/groups/:group/messages', _message.createMessage);
+_app.get('/organizations/:org_id/members', _message.fetchGroupMembers);
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
   if(req.params.id){
