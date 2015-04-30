@@ -103,6 +103,7 @@ exports.fetchGroupMembers = function(req, res){
   };
   User.find(criteria)
   .populate({path: 'org_status.groups', model: 'Group'})
+  .select({_id: 1, name: 1, profile_photo_url: 1, org_status: 1, type: 1, subtype: 1})
   .exec(function(err, users){
     if (err){
       console.log(err);
@@ -118,7 +119,6 @@ exports.fetchMessages = function(req, res){
   var org_id = req.params.org_id;
   group = group == 'all'?null:group;
   var criteria = {organization: org_id, group: group};
-  console.log('Since date: ' + req.query.since);
   if (req.query.since) {
     criteria.create_date = {$gt: req.query.since};
   }
