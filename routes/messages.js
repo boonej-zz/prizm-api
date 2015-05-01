@@ -176,6 +176,23 @@ exports.updateMessage = function(req, res){
     } else {
       res.status(400).send();
     }
+  } else {
+   var id = req.params.message_id;
+    var text = req.body.text;
+    Message.findOne({_id: id})
+    .exec(function(err, message){
+      if (err) console.log(err);
+      if (message) {
+      message.text = text;
+      message.save(function(err, result){
+        if (err) console.log(err);
+        else utils.prismResponse(res, result, true);
+      });
+      } else {
+        res.status(400).send();
+      }
+    });
+
   } 
 
 }
@@ -200,4 +217,16 @@ exports.createMessage = function(req, res){
 
     }
   });
+}
+
+exports.deleteMessage = function(req, res){
+  var id = req.params.message_id;
+  Message.findOne({_id: id})
+    .remove(function(err){
+      if (err){
+        res.status(500).send(err);
+      } else {
+        res.status(200).send();
+      }
+    });
 }
