@@ -27,13 +27,10 @@ return {
 
 exports.fetchOrgs = function(req, res){
   var id = req.params.id;
-  console.log(id);
-  console.log('making request');
   User.findOne({_id: id})
   .populate({path: 'org_status.organization', model: 'Organization'})
   .populate({path: 'org_status.groups', model: 'Group'})
   .exec(function(err, user){
-    console.log('received request');
     if (user){
       if (user.type == 'institution_verified') {
         Organization.findOne({owner: user._id})
@@ -43,19 +40,16 @@ exports.fetchOrgs = function(req, res){
           utils.prismResponse(res, [result], true);
         });
       } else {
-        console.log('is regular user');
         var orgs = [];
         _.each(user.org_status, function(o, i, l){
            if (o.status == 'active' && o.organization){
              orgs.push(o.organization);
            } 
         });
-        console.log(orgs);
 
         utils.prismResponse(res, orgs, true);
       }
     } else {
-      console.log('no user');
       res.status(400).send();
     }
   });
@@ -77,15 +71,12 @@ exports.fetchGroups = function(req, res){
           utils.prismResponse(res, result.groups, true);
         });
       } else {
-        console.log('fetching groups');
         var groups;
         _.each(user.org_status, function(s, i, l){
           if (String(s.organization._id) == String(org_id) && s.status == 'active'){
-            console.log(s.organization._id + '=' + org_id);
             groups = s.groups;
           }
         });
-        console.log(groups);
         utils.prismResponse(res, groups, true);
       }
     } else {
@@ -103,7 +94,7 @@ exports.fetchGroupMembers = function(req, res){
   };
   User.find(criteria)
   .populate({path: 'org_status.groups', model: 'Group'})
-  .select({_id: 1, name: 1, profile_photo_url: 1, org_status: 1, type: 1, subtype: 1})
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1,profile_photo_url: 1, org_status: 1, type: 1, subtype: 1})
   .exec(function(err, users){
     if (err){
       console.log(err);
@@ -144,9 +135,7 @@ exports.updateMessage = function(req, res){
     if (messageID && uid) {
       Message.findOne({_id: messageID}, function(err, message){
         if (message) {
-          console.log('found message');
           if (action == 'like') {
-            console.log('liking message');
             message.likes.push(uid);
             message.likes_count += 1;
             message.save(function(err, res){
@@ -219,6 +208,7 @@ exports.createMessage = function(req, res){
   });
 }
 
+
 exports.deleteMessage = function(req, res){
   var id = req.params.message_id;
   Message.findOne({_id: id})
@@ -229,4 +219,68 @@ exports.deleteMessage = function(req, res){
         res.status(200).send();
       }
     });
+}
+
+exports.createGroup = function(req, res){
+  var org_id = req.params.org_id;
+  var leader = req.body.leader;
+  var description = req.body.description;
+  var members = req.body.members;
+  var name = req.body.name;
+  Organization.findOne({_id: org_id}, function(err, org){
+    if (org){
+      if (!members) {
+        members = [];
+      } if (!_.isArray(members)){
+        members = [members];
+      }
+      if (leader) { 
+        members.push(leader);
+        leader = ObjectId(leader);
+      }
+      User.find({_id: {$in: members}})
+      .exec(function(err, users){
+        var group = new Group({
+          name: name,
+          description: description,
+          organization: org._id
+        });
+        if (users){
+          var ids = _.pluck(users, '_id');
+          group.members = ids;
+        }
+        group.leader = leader;
+        group.save(function(err, group){
+          if (err) {
+            res.status(500).send(err);
+          } else { 
+            org.groups.push(group._id);
+            org.save(function(err, r){
+              if (err) console.log(err);
+            });
+            _.each(users, function(u, i, l){
+              var idx = -1;
+              _.each(u.org_status, function(o, iu, l){
+               
+                if (String(o.organization) == String(org._id) && o.status == 'active'){
+                  idx = iu;                
+                }
+              });
+              if (idx != -1) {
+                u.org_status[idx].groups.push(group._id); 
+              }
+              u.markModified('org_status');
+              u.save(function(err, result){
+                if (err) console.log(err);
+              });
+            });
+
+            utils.prismResponse(res, group, true);
+          }
+        }); 
+             });
+    } else {
+      res.status(400).send(err);
+    }
+  });
 }
