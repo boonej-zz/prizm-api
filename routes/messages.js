@@ -33,11 +33,12 @@ exports.fetchOrgs = function(req, res){
   .exec(function(err, user){
     if (user){
       if (user.type == 'institution_verified') {
-        Organization.findOne({owner: user._id})
+        Organization.find({owner: user._id})
         .populate({path: 'groups', model: 'Group'})
         .populate({path: 'theme', model: 'Theme'})
+        .populate({path: 'owner', model: 'User', select: '_id name first_name last_name profile_photo_url type subtype'}) 
         .exec(function(err, result) {
-          utils.prismResponse(res, [result], true);
+          utils.prismResponse(res, result, true);
         });
       } else {
         var orgs = [];
@@ -64,17 +65,17 @@ exports.fetchGroups = function(req, res){
   .exec(function(err, user){
     if (user) {
       if (user.type == 'institution_verified'){
-        Organization.findOne({owner: user._id})
-        .populate({path: 'groups', model: 'Group'})
-        .populate({path: 'theme', model: 'Theme'})
+        Group.find({organization: org_id, status: {$ne: 'inactive'}})
         .exec(function(err, result) {
-          utils.prismResponse(res, result.groups, true);
+          utils.prismResponse(res, result, true);
         });
       } else {
         var groups;
         _.each(user.org_status, function(s, i, l){
           if (String(s.organization._id) == String(org_id) && s.status == 'active'){
-            groups = s.groups;
+            groups = _.filter(s.groups, function(group){
+              return group.status != 'inactive';
+            });
           }
         });
         utils.prismResponse(res, groups, true);
@@ -114,7 +115,7 @@ exports.fetchMessages = function(req, res){
     criteria.create_date = {$gt: req.query.since};
   }
     Message.find(criteria)
-    .sort({create_date: -1})
+    .sort({create_date: 1})
     .exec(function(err, messages){
       if (err) {
         console.log(err);
@@ -284,3 +285,52 @@ exports.createGroup = function(req, res){
     }
   });
 }
+
+exports.deleteGroup = function(req, res) {
+  var org_id = req.params.org_id;
+  var group_id = req.params.group_id;
+  var requestor = req.body.requestor;
+  User.findOne({_id: requestor}, function(err, user){
+    if (!user) {
+      res.status(400).send();
+      return;
+    }
+    if (user.type != 'institution_verified') {
+      var os = _.find(user.org_status, function(o){
+        return String(o.organization) == String(org_id) && o.role == 'leader';
+      });
+      console.log(os);
+      if (!os) {
+        res.status(401).send();
+        return;
+      }
+    }
+    Organization.findOne({_id: org_id}, function(err, org){
+      if (! org) {
+        res.status(400).send();
+        return;
+      }
+      if (user.type == 'institution_verified') {
+        if (String(org.owner) != String(user._id)) {
+          res.status(401).send();
+          return;
+        }
+      }
+      Group.findOne({_id: group_id}, function(err, group){
+        if (!group || String(group.organization) != String(org_id)) {
+          res.status(401).send();
+          return;
+        }
+        group.status = 'inactive';
+        group.markModified('status');
+        group.save(function (err) {
+          if (err) {
+            res.status(500).send(err);
+          } else {
+            res.status(200).send();
+          }
+        });
+      });
+    });
+  });
+};

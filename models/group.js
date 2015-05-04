@@ -6,11 +6,12 @@ var groupSchema = new mongoose.Schema({
   description   : {type: String, default: ''},
   organization  : {type: ObjectId, ref: 'Organization', required: true},
   leader        : {type: ObjectId, ref: 'User', required: false},
-  create_date   : {type: Date} 
+  create_date   : {type: Date},
+  status        : {type: String, default: 'active', required: true} 
 });
 
 groupSchema.statics.selectFields = function(type){
-  return ['_id', 'name', 'description', 'organization', 'leader', 'create_date'];
+  return ['_id', 'name', 'description', 'organization', 'leader', 'create_date', 'status'];
 };
 
 groupSchema.statics.canResolve = function(){
@@ -27,7 +28,8 @@ groupSchema.methods.format = function(type, add_fields, callback){
     description : this.description,
     organization: this.organization,
     leader      : this.leader,
-    create_date : this.create_date
+    create_date : this.create_date,
+    status      : this.status
   }
 
 };
@@ -37,6 +39,12 @@ groupSchema.pre('save', function(next){
     this.create_date = Date.now();
   }
   next();
+});
+
+groupSchema.post('init', function(group){
+  if (!group.status) {
+    group.status = 'active';
+  }
 });
 
 groupSchema.statics.newGroup = function(obj, next){
