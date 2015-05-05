@@ -286,6 +286,36 @@ exports.createGroup = function(req, res){
   });
 }
 
+exports.updateGroup = function(req, res){
+  var org_id = req.params.org_id;
+  var group_id = req.params.group_id;
+  var name = req.body.name;
+  var description = req.body.description;
+  var leader = req.body.leader;
+  Group.findOne({_id: group_id}, function(err, group){
+    if (group) {
+      var fields = {
+        name: name,
+        description: description
+      };
+      if (leader) {
+        fields.leader = ObjectId(leader);
+      }
+      group.update(fields, function(err, result){
+        if (err) {
+          console.log(err);
+          res.status(500).send(err);
+        } else {
+          utils.prismResponse(res, group, true);
+        }
+      });
+
+    } else {
+      res.status(400).send();
+    }
+  });
+};
+
 exports.deleteGroup = function(req, res) {
   var org_id = req.params.org_id;
   var group_id = req.params.group_id;
@@ -334,3 +364,56 @@ exports.deleteGroup = function(req, res) {
     });
   });
 };
+
+exports.updateGroupMembers = function(req, res){
+  var org_id = req.params.org_id;
+  var group_id = req.params.group_id;
+  var requestor = req.body.requestor;
+  var members = req.body.members;
+  console.log(members);
+  User.find({org_status: {$elemMatch: {groups: {$elemMatch: {$eq: ObjectId(group_id)}}}}})
+  .exec(function(err, users){
+    _.each(users, function(u, i, l){
+      if (_.indexOf(members, String(u._id)) == -1){
+        _.each(u.org_status, function(o, c, d){
+          var idx = -1;
+          if (String(o.organization) == String(org_id)){
+            _.each(o.groups, function(g, m, a){
+              if (String(g) == String(group_id)){
+                idx = m;
+              }
+            });
+            console.log(u.name + idx);
+            if (idx != -1) {
+              o.groups.splice(idx, 1);
+            }
+          }
+        });
+     }
+     var idx = _.indexOf(members, String(u._id));
+     console.log('idx: ', idx);
+     if (idx != -1) {
+      members.splice(idx, 1);
+     }
+     u.markModified('org_status');
+      u.save(function(err, res){
+        if (err) console.log(err);
+      });
+    }); 
+    User.find({_id: {$in: members}}, function(err, newusers){
+      _.each(newusers, function(u, i, l) {
+        _.each(u.org_status, function(o, c, d){
+          if (String(o.organization) == String(org_id)) {
+            o.groups.push(ObjectId(group_id));
+          }
+        });
+        u.markModified('org_status');
+        u.save(function(err, user){
+          if (err) console.log(err);
+        });
+        users.push(u);
+      });  
+      utils.prismResponse(res, users, true);
+    }); 
+  });
+}

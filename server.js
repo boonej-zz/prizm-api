@@ -299,6 +299,8 @@ _app.delete('/organizations/:org_id/groups/:group/messages/:message_id', _messag
 _app.get('/organizations/:org_id/members', _message.fetchGroupMembers);
 _app.post('/organizations/:org_id/groups', _message.createGroup);
 _app.delete('/organizations/:org_id/groups/:group_id', _message.deleteGroup);
+_app.put('/organizations/:org_id/groups/:group_id', _message.updateGroup);
+_app.put('/organizations/:org_id/groups/:group_id/members', _message.updateGroupMembers);
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
   if(req.params.id){
