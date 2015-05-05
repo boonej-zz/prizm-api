@@ -373,7 +373,8 @@ exports.updateGroupMembers = function(req, res){
   console.log(members);
   User.find({org_status: {$elemMatch: {groups: {$elemMatch: {$eq: ObjectId(group_id)}}}}})
   .exec(function(err, users){
-    _.each(users, function(u, i, l){
+    var $users = users?users:[];
+    _.each($users, function(u, i, l){
       if (_.indexOf(members, String(u._id)) == -1){
         _.each(u.org_status, function(o, c, d){
           var idx = -1;
@@ -404,6 +405,7 @@ exports.updateGroupMembers = function(req, res){
       _.each(newusers, function(u, i, l) {
         _.each(u.org_status, function(o, c, d){
           if (String(o.organization) == String(org_id)) {
+            if (!o.groups) o.groups = [];
             o.groups.push(ObjectId(group_id));
           }
         });
