@@ -98,7 +98,7 @@ exports.fetchGroupMembers = function(req, res){
   };
   User.find(criteria)
   .populate({path: 'org_status.groups', model: 'Group'})
-  .select({_id: 1, name: 1, first_name: 1, last_name: 1,profile_photo_url: 1, org_status: 1, type: 1, subtype: 1, active: 1})
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1,profile_photo_url: 1, org_status: 1, type: 1, subtype: 1, active: 1, followers: 1})
   .exec(function(err, users){
     if (err){
       console.log(err);

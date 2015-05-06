@@ -347,7 +347,6 @@ exports.fetchSuggestions = function(req, res){
           }},
           {subtype : 'luminary'}
         ];
-        console.log(criteria);
       } else {
         criteria.subtype = 'luminary';
       }
@@ -356,7 +355,6 @@ exports.fetchSuggestions = function(req, res){
         if (error) {
           _utils.prismResponse(res, null, false, PrismError.ServerError);
         } else {
-          console.log(result);
           _utils.prismResponse(res, result, true);
         }
       });
