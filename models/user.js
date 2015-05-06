@@ -141,7 +141,17 @@ userSchema.statics.selectFields = function(type){
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
             'insight_count', 'theme', 'organization', 'birthday', 'org_status', 'visibility'];
-  }else{
+  }else if(type == 'advanced'){
+    return ['_id','name','first_name','last_name','profile_photo_url',
+            'cover_photo_url','email','info','website','city','state',
+            'create_date','posts_count', 'active' ,'following_count','followers_count',
+            'instagram_min_id', 'instagram_token', 'twitter_token',
+            'twitter_min_id','type', 'device_token', 'followers', 'following', 'subtype', 'trust_count',
+            'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
+            'insight_count', 'theme', 'organization', 'birthday', 'org_status', 'visibility'];
+
+  }
+  else{
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
             'create_date','posts_count','following_count','followers_count',

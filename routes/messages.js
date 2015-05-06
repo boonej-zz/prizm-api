@@ -73,10 +73,12 @@ exports.fetchGroups = function(req, res){
       } else {
         var groups;
         _.each(user.org_status, function(s, i, l){
+          if(s.organization){
           if (String(s.organization._id) == String(org_id) && s.status == 'active'){
             groups = _.filter(s.groups, function(group){
               return group.status != 'inactive';
             });
+          }
           }
         });
         groups = _.sortBy(groups, 'name');
