@@ -13,6 +13,7 @@ require(_prism_home + 'models/interest');
 require(_prism_home + 'models/organization');
 require(_prism_home + 'models/group');
 require(_prism_home + 'models/message');
+require(_prism_home + 'models/mute');
 
 var _express        = require('express'),
     _mongoose       = require('mongoose'),
@@ -301,6 +302,7 @@ _app.post('/organizations/:org_id/groups', _message.createGroup);
 _app.delete('/organizations/:org_id/groups/:group_id', _message.deleteGroup);
 _app.put('/organizations/:org_id/groups/:group_id', _message.updateGroup);
 _app.put('/organizations/:org_id/groups/:group_id/members', _message.updateGroupMembers);
+_app.delete('/organizations/:org_id/groups/:group_id/members/:user_id', _message.deleteUserFromGroup);
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
   if(req.params.id){

@@ -66,6 +66,7 @@ exports.fetchGroups = function(req, res){
     if (user) {
       if (user.type == 'institution_verified'){
         Group.find({organization: org_id, status: {$ne: 'inactive'}})
+        .sort({name: 1})
         .exec(function(err, result) {
           utils.prismResponse(res, result, true);
         });
@@ -78,6 +79,7 @@ exports.fetchGroups = function(req, res){
             });
           }
         });
+        groups = _.sortBy(groups, 'name');
         utils.prismResponse(res, groups, true);
       }
     } else {
@@ -111,17 +113,26 @@ exports.fetchMessages = function(req, res){
   var org_id = req.params.org_id;
   group = group == 'all'?null:group;
   var criteria = {organization: org_id, group: group};
+  var sort = {create_date: -1};
   if (req.query.since) {
     criteria.create_date = {$gt: req.query.since};
   }
+  if (req.query.before) {
+    console.log('before');
+    criteria.create_date = {$lt: req.query.before};
+    sort = {create_date: 1}
+  }
     Message.find(criteria)
-    .sort({create_date: 1})
+    .sort(sort)
+    .limit(20)
     .exec(function(err, messages){
       if (err) {
         console.log(err);
         res.status(500).send(err);
       } else {
-        console.log('done');
+        if (!req.query.before) {
+          messages = messages.reverse();
+        }
         utils.prismResponse(res, messages, true);
       }
     });
@@ -419,3 +430,32 @@ exports.updateGroupMembers = function(req, res){
     }); 
   });
 }
+
+exports.deleteUserFromGroup = function(req, res){
+  var org_id = req.params.org_id;
+  var group_id = req.params.group_id;
+  var user_id = req.params.user_id;
+  User.findOne({_id: user_id}, function(err, user){
+    if (user) {
+      _.each(user.org_status, function(o, i, l) {
+        if (String(o.organization) == String(org_id)) {
+          var idx = -1;
+          _.each(o.groups, function(g, p, d){
+            if (String(g) == String(group_id)){
+              idx = p;
+            }
+          });
+          if (idx != -1) {
+            o.groups.splice(idx, 1);
+          }
+        }
+      });
+      user.markModified('org_status');
+      user.save(function(err, result){
+        utils.prismResponse(res, result, true);
+      });
+    } else {
+      res.status(400).send();
+    }
+  });
+};

@@ -16,7 +16,8 @@ var organizationSchema = new mongoose.Schema({
   owner               : {type: ObjectId, ref: 'User', required: false},
   namespace           : {type: String, required: false},
   stripe_id           : {type: String, default: null},
-  groups              : {type: Array, default: []}
+  groups              : {type: Array, default: []},
+  mutes               : {type: Array, default: []}
 });
 
 organizationSchema.pre('save', function(next){
@@ -29,7 +30,7 @@ organizationSchema.pre('save', function(next){
 
 organizationSchema.statics.selectFields = function(type){
   var select = ['id', 'code', 'theme', 'name', 'create_date', 'modify_date',
-      'logo_url', 'welcome_image_url', 'groups'];
+      'logo_url', 'welcome_image_url', 'groups', 'mutes'];
   return select;
 };
 
@@ -43,7 +44,8 @@ organizationSchema.methods.format = function(type, add_fields){
     theme:        this.theme,
     welcome_image_url: this.welcome_image_url,
     logo_url        : this.logo_url,
-    groups          : this.groups
+    groups          : this.groups,
+    mutes           : this.mutes
   };
   return format;
 }
@@ -52,7 +54,8 @@ organizationSchema.statics.canResolve = function(){
   return [
     {members: {identifier: '_id', model: 'User'}},
     {theme: {identifier: 'code', model: 'Theme'}},
-    {groups: {identifier: '_id', model: 'Group'}}
+    {groups: {identifier: '_id', model: 'Group'}},
+    {mutes: {identifier: '_id', model: 'Mute'}}
   ];
 }
 

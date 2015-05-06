@@ -7,17 +7,19 @@ var groupSchema = new mongoose.Schema({
   organization  : {type: ObjectId, ref: 'Organization', required: true},
   leader        : {type: ObjectId, ref: 'User', required: false},
   create_date   : {type: Date},
-  status        : {type: String, default: 'active', required: true} 
+  status        : {type: String, default: 'active', required: true},
+  mutes         : {type: Array, default: []} 
 });
 
 groupSchema.statics.selectFields = function(type){
-  return ['_id', 'name', 'description', 'organization', 'leader', 'create_date', 'status'];
+  return ['_id', 'name', 'description', 'organization', 'leader', 'create_date', 'status', 'mutes'];
 };
 
 groupSchema.statics.canResolve = function(){
   return [
     {organization: {identifier: '_id', model: 'Organization'}},
-    {leader: {identifier: '_id' , model: 'User'}}
+    {leader: {identifier: '_id' , model: 'User'}},
+    {mutes: {identifier: '_id', model: 'Mute'}}
   ];
 };
 
@@ -29,7 +31,8 @@ groupSchema.methods.format = function(type, add_fields, callback){
     organization: this.organization,
     leader      : this.leader,
     create_date : this.create_date,
-    status      : this.status
+    status      : this.status,
+    mutes       : this.mutes
   }
 
 };
