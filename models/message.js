@@ -7,6 +7,7 @@ var _ = require('underscore');
 var messageSchema = new mongoose.Schema({
   creator: {type: ObjectId, ref: 'User', required: true},
   create_date: {type: Date, default: null, required: false, index: true},
+  modify_date: {type: Date, default: null, required: false, index: true},
   text: {type: String, default: ''},
   group: {type: ObjectId, index: true},
   organization: {type: ObjectId, ref: 'Organization', required: true, index: true},
@@ -20,18 +21,23 @@ var messageSchema = new mongoose.Schema({
       width:  {type: Number},
       height: {type: Number}
     }
-  }
+  },
+  read: {type: Array}
 });
 
 messageSchema.pre('save', function(next){
   if (!this.create_date){
     this.create_date = Date.now();
   }
+  this.modify_date = Date.now();
   next();
 });
 
 messageSchema.post('init', function(){
   this.timeSince = time.timeSinceFormatter(this.create_date);
+  if (!this.read) {
+    this.read = [];
+  }
 });
 
 messageSchema.statics.fetchMessages = function(criteria, next){

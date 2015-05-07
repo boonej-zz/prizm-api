@@ -303,6 +303,7 @@ _app.delete('/organizations/:org_id/groups/:group_id', _message.deleteGroup);
 _app.put('/organizations/:org_id/groups/:group_id', _message.updateGroup);
 _app.put('/organizations/:org_id/groups/:group_id/members', _message.updateGroupMembers);
 _app.delete('/organizations/:org_id/groups/:group_id/members/:user_id', _message.deleteUserFromGroup);
+_app.put('/organizations/:org_id', _message.updateOrganization);
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
   if(req.params.id){

@@ -56,6 +56,49 @@ exports.fetchOrgs = function(req, res){
   });
 };
 
+exports.updateOrganization = function(req, res){
+  var org_id = req.params.org_id;
+  var action = req.body.action;
+  var requestor = req.body.requestor;
+  Organization.findOne({_id: org_id}, function(err, org){
+    if (org){
+      if (action) {
+        if (action == 'mute'){
+          var exists = false;
+          _.each(org.mutes, function(id, i, l){
+            console.log(id + '==' + requestor);
+            if (String(id) == String(requestor)){
+              exists = true;
+            }
+          });
+          console.log(exists);
+          if (!exists){
+            console.log('muting');
+            org.mutes.push(ObjectId(requestor));
+            org.markModified('mutes');
+            org.save(function(err, obj){});
+          }
+        } else if (action == 'unmute'){
+          var idx = -1;
+          _.each(org.mutes, function(id, i, l){
+            if (String(id) == String(requestor)){
+              idx = i;
+            }
+          });
+          if (idx != -1) {
+            org.mutes.splice(idx, 1);
+            org.markModified('mutes');
+            org.save(function(err, obj){});
+          }
+        }
+        utils.prismResponse(res, org, true); 
+      }
+    } else {
+      res.status(400).send();
+    }
+  });
+}
+
 exports.fetchGroups = function(req, res){
   var uid = req.params.user_id;
   var org_id = req.params.org_id;
@@ -114,6 +157,8 @@ exports.fetchGroupMembers = function(req, res){
 exports.fetchMessages = function(req, res){
   var group = req.params.group_name;
   var org_id = req.params.org_id;
+  var user_id = req.query.requestor;
+  console.log(user_id);
   group = group == 'all'?null:group;
   var criteria = {organization: org_id, group: group};
   var sort = {create_date: -1};
@@ -125,6 +170,9 @@ exports.fetchMessages = function(req, res){
     criteria.create_date = {$lt: req.query.before};
     sort = {create_date: 1}
   }
+  if (req.query.updated) {
+    criteria.modify_date = {$gt: req.query.updated};
+  }
     Message.find(criteria)
     .sort(sort)
     .limit(20)
@@ -135,6 +183,18 @@ exports.fetchMessages = function(req, res){
       } else {
         if (!req.query.before) {
           messages = messages.reverse();
+        }
+        if (user_id){
+          _.each(messages, function(m, i, l){
+            console.log(m);
+            if (_.reject(m.read, function(id){
+              return String(id) != String(user_id);  
+            }).count == 0){
+              m.read.push(ObjectId(user_id));
+              m.markModified('read');
+              m.save(function(err, obj){});
+            }
+          });
         }
         utils.prismResponse(res, messages, true);
       }
@@ -306,27 +366,61 @@ exports.updateGroup = function(req, res){
   var name = req.body.name;
   var description = req.body.description;
   var leader = req.body.leader;
+  var action = req.body.action;
+  var requestor = req.body.requestor;
+  console.log(requestor);
   Group.findOne({_id: group_id}, function(err, group){
     if (group) {
-      var fields = {
-        name: name,
-        description: description
-      };
-      if (leader) {
-        fields.leader = ObjectId(leader);
-      }
-      group.update(fields, function(err, result){
-        if (err) {
-          console.log(err);
-          res.status(500).send(err);
-        } else {
-          utils.prismResponse(res, group, true);
+      if (action) {
+        console.log(action);
+        if (action == 'mute'){
+          var exists = false;
+          _.each(group.mutes, function(id, i, l){
+            if (String(id) == String(requestor)){
+              exists = true;
+            }
+          });
+          if (!exists){
+            console.log('muting');
+            group.mutes.push(ObjectId(requestor));
+            group.markModified('mutes');
+            group.save(function(err, obj){});
+          }
+        } else if (action == 'unmute'){
+          var idx = -1;
+          _.each(group.mutes, function(id, i, l){
+            if (String(id) == String(requestor)){
+              idx = i;
+            }
+          });
+          if (idx != -1) {
+            console.log('found');
+            group.mutes.splice(idx, 1);
+            group.markModified('mutes');
+            group.save(function(err, obj){});
+          }
         }
-      });
-
-    } else {
-      res.status(400).send();
-    }
+        utils.prismResponse(res, group, true); 
+      } else {
+        var fields = {
+          name: name,
+          description: description
+        };
+        if (leader) {
+          fields.leader = ObjectId(leader);
+        }
+        group.update(fields, function(err, result){
+          if (err) {
+            console.log(err);
+            res.status(500).send(err);
+          } else {
+            utils.prismResponse(res, group, true);
+          }
+        });
+      }
+      } else {
+        res.status(400).send();
+      }
   });
 };
 
