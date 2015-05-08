@@ -12,6 +12,9 @@ var Group           = mongoose.model('Group');
 var Activity        = mongoose.model('Activity');
 var ObjectId        = require('mongoose').Types.ObjectId;
 var ObjectIdRef     = mongoose.Schema.Types.ObjectId;
+var request         = require('request');
+var htmlparser      = require('htmlparser');
+
 var shortFields = function(org) {
 return {
     _id: 1, 
@@ -294,6 +297,7 @@ exports.updateMessage = function(req, res){
 exports.createMessage = function(req, res){
   var creator = req.body.creator;
   var text = req.body.text;
+  var urls = utils.urls(text);
   var group = req.body.group=='all'?null:req.body.group;
   var organization = req.body.organization;
 
@@ -302,14 +306,82 @@ exports.createMessage = function(req, res){
     text: text, 
     group: group, 
     organization: organization});
-  message.save(function(err, result){
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      utils.prismResponse(res, result, true);
+  var save = function(){
+    message.save(function(err, result){
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        utils.prismResponse(res, result, true);
 
+      }
+    });
+  }
+  if (urls) {
+      console.log(urls);
+      request({
+        uri: urls[0],
+        method: 'GET',
+        timeout: 10000,
+        followRedirect: true,
+        maxRedirects: 10
+      }, function(error, response, body) {
+        console.log(error);
+        var handler = new htmlparser.DefaultHandler(function(err, dom){
+          if (err) console.log(err);
+          var meta = [];
+          var traverse = function(doc) {
+            _.each(doc, function(node, i, l){
+              if (node.name == 'meta') {
+                console.log('meta found');
+                console.log(node);
+                if (node.attribs.property && node.attribs.property.match('og:')) {
+                  meta.push(node.attribs);
+                } 
+                if (node.attribs.name && node.attribs.name.match('og:')) {
+                  meta.push(node.attribs);
+                } 
+              } 
+              if (node.children && node.children.length > 0){
+                traverse(node.children);
+              }
+            });
+          };
+          traverse(dom);
+          console.log(meta);
+          if (meta.length > 0){
+            var metaData = {image:{}};
+            _.each(meta, function(m, i, l){
+              console.log(m);
+              var accessor = '';
+              if (m.property) accessor = 'property';
+              if (m.name) accessor = 'name';
+              if (m[accessor] == 'og:image'){
+                metaData.image.url = m.content;
+              } 
+              if (m[accessor] == 'og:image:width') {
+                metaData.image.width = m.content;
+              }
+              if (m[accessor] == 'og:image:height') {
+                metaData.image.height = m.content;
+              }
+              if (m[accessor] == 'og:description'){
+                metaData.description = m.content;
+              }
+              if (m[accessor] == 'og:title'){
+                metaData.title = m.content;
+              }
+            });
+            message.meta = metaData;
+          }
+          console.log(message);
+          save(message);
+        });
+        var parser = new htmlparser.Parser(handler);
+        parser.parseComplete(body);
+      });
+    } else {
+      save(message);
     }
-  });
 }
 
 

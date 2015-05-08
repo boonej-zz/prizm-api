@@ -13,6 +13,7 @@
     "connect": "*",
     "express": "3.4.8",
     "express-winston": "*",
+    "htmlparser": "^1.7.7",
     "jade": "~1.8.2",
     "moment": "^2.10.2",
     "mongoose": "3.8.x",
@@ -21,7 +22,7 @@
     "node-uuid": "*",
     "nodemailer": "0.6.0",
     "ntwitter": "0.5.0",
-    "request": "*",
+    "request": "^2.55.0",
     "serializer": "*",
     "underscore": "1.6.0",
     "winston": "*"

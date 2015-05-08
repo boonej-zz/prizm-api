@@ -14,9 +14,11 @@ var messageSchema = new mongoose.Schema({
   likes: {type: Array},
   likes_count: {type: Number, default: 0},
   meta: {
+    message_id: {type: ObjectId, ref:'Message'},
     description: {type: String},
     title: {type: String},
     image: {
+      message_id: {type: ObjectId, ref: 'Message'},
       url:  {type: String},
       width:  {type: Number},
       height: {type: Number}
@@ -35,6 +37,10 @@ messageSchema.pre('save', function(next){
 
 messageSchema.post('init', function(){
   this.timeSince = time.timeSinceFormatter(this.create_date);
+  if (this.meta) {
+    this.meta.message_id = this._id;
+    this.meta.image.message_id = this._id;
+  }
   if (!this.read) {
     this.read = [];
   }
