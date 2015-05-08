@@ -11,6 +11,7 @@ var Trust           = mongoose.model('Trust');
 var Group           = mongoose.model('Group');
 var Activity        = mongoose.model('Activity');
 var ObjectId        = require('mongoose').Types.ObjectId;
+var ObjectIdRef     = mongoose.Schema.Types.ObjectId;
 var shortFields = function(org) {
 return {
     _id: 1, 
@@ -158,21 +159,45 @@ exports.fetchMessages = function(req, res){
   var group = req.params.group_name;
   var org_id = req.params.org_id;
   var user_id = req.query.requestor;
-  console.log(user_id);
+  var action = req.query.action;
   group = group == 'all'?null:group;
   var criteria = {organization: org_id, group: group};
   var sort = {create_date: -1};
-  if (req.query.since) {
-    criteria.create_date = {$gt: req.query.since};
-  }
-  if (req.query.before) {
-    console.log('before');
-    criteria.create_date = {$lt: req.query.before};
-    sort = {create_date: 1}
-  }
-  if (req.query.updated) {
-    criteria.modify_date = {$gt: req.query.updated};
-  }
+  if (action) {
+    if (action == 'unread') {
+      var response = {};
+      response._id = group?group:org_id;
+      Message.find(criteria)
+      .select({_id: 1, read: 1})
+      .exec(function(err, c){
+        if (err) {
+          res.status(500).send(err);
+        }
+        var unread = _.reject(c, function(obj){
+          var read = false;
+          _.each(obj.read, function(r, i, l){
+            if (String(r) == String(user_id)) {
+              read = true;
+            }
+          });
+          return read;
+        });
+        response.unread_count = unread.length;
+        utils.prismResponse(res, response, true);
+      });
+    }
+  } else {
+    if (req.query.since) {
+      criteria.create_date = {$gt: req.query.since};
+      sort = {create_date: 1}
+    }
+    if (req.query.before) {
+      criteria.create_date = {$lt: req.query.before};
+      sort = {create_date: -1}
+    }
+    if (req.query.updated) {
+      criteria.modify_date = {$gt: req.query.updated};
+    }
     Message.find(criteria)
     .sort(sort)
     .limit(20)
@@ -181,15 +206,19 @@ exports.fetchMessages = function(req, res){
         console.log(err);
         res.status(500).send(err);
       } else {
-        if (!req.query.before) {
+        if (!req.query.since) {
           messages = messages.reverse();
         }
+        console.log('user id for request ' + user_id);
         if (user_id){
           _.each(messages, function(m, i, l){
-            console.log(m);
-            if (_.reject(m.read, function(id){
-              return String(id) != String(user_id);  
-            }).count == 0){
+            var hasRead = false;
+            _.each(m.read, function(r, id, l){
+              if (String(r) == String(user_id)){
+                hasRead = true;
+              }
+            });
+            if (!hasRead){
               m.read.push(ObjectId(user_id));
               m.markModified('read');
               m.save(function(err, obj){});
@@ -199,7 +228,7 @@ exports.fetchMessages = function(req, res){
         utils.prismResponse(res, messages, true);
       }
     });
-
+  }
 };
 
 exports.updateMessage = function(req, res){
@@ -372,7 +401,6 @@ exports.updateGroup = function(req, res){
   Group.findOne({_id: group_id}, function(err, group){
     if (group) {
       if (action) {
-        console.log(action);
         if (action == 'mute'){
           var exists = false;
           _.each(group.mutes, function(id, i, l){
@@ -381,7 +409,6 @@ exports.updateGroup = function(req, res){
             }
           });
           if (!exists){
-            console.log('muting');
             group.mutes.push(ObjectId(requestor));
             group.markModified('mutes');
             group.save(function(err, obj){});
@@ -556,3 +583,4 @@ exports.deleteUserFromGroup = function(req, res){
     }
   });
 };
+
