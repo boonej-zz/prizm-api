@@ -370,6 +370,9 @@ exports.createMessage = function(req, res){
               if (m[accessor] == 'og:title'){
                 metaData.title = m.content;
               }
+              if (m[accessor] == 'og:url'){
+                metaData.url = m.content;
+              }
             });
             message.meta = metaData;
           }
