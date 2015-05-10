@@ -14,6 +14,7 @@ var ObjectId        = require('mongoose').Types.ObjectId;
 var ObjectIdRef     = mongoose.Schema.Types.ObjectId;
 var request         = require('request');
 var htmlparser      = require('htmlparser');
+var Push            = require('../classes/PushNotification');
 
 var shortFields = function(org) {
 return {
@@ -158,6 +159,8 @@ exports.fetchGroupMembers = function(req, res){
   });
 }
 
+
+
 exports.fetchMessages = function(req, res){
   var group = req.params.group_name;
   var org_id = req.params.org_id;
@@ -293,6 +296,115 @@ exports.updateMessage = function(req, res){
 
 }
 
+var fetchTotalMessageCount = function(user_id, org_id, next){
+  var countMessages = function(criteria, next){
+    Message.find(criteria)
+      .select({_id: 1, read: 1})
+      .exec(function(err, messages){
+        if (messages) {
+        var unread = _.reject(messages, function(obj){
+          var read = false;
+          _.each(obj.read, function(r, i, l){
+            if (String(r) == String(user_id)) {
+              read = true;
+            }
+          });
+          return read;
+        });
+        next(unread.length);
+        } else {
+          next(0);
+        }
+      });
+  };
+  User.findOne({_id: user_id})
+  .populate({path: 'org_status.groups', model: 'Group'})
+  .exec(function(err, user){
+    if (user) {
+      if (user.type = 'institution_verified') {
+        Group.find({organization: org_id, status: {$ne: 'inactive'}}, function(err, groups){
+          var groupList = _.pluck(groups, '_id');
+          var criteria = {organization: org_id, group: {$in: groupList}};
+          countMessages(criteria, next);
+        });
+      } else {
+        var groups = [];
+        _.each(user.org_status, function(o,i,l){
+          if (String(o.organization) == String(org_id) && o.status == 'active') {
+            groups = o.groups;
+          }
+        });
+        groups = _.filter(groups, function(g){
+          return g.status != 'inactive';
+        });
+        groups = _.pluck(groups, '_id');
+        var criteria1 = {organization: org_id, group: null};
+        var criteria2 = {organization: org_id, group: {$in: groups}};
+        var criteria = {$or: [criteria1, criteria2]};
+        countMessages(criteria, next);
+      }
+    } else {
+      next(0);
+    } 
+  });
+};
+
+var sendMessageWithMutes = function(user, message, mutes){
+  var send = String(user.id) != String(message.creator);
+  if (send) {
+    _.each(mutes, function(m, i, l){
+      if (String(m) == String(user._id)){
+        send = false;
+      }
+    });
+  }
+  if (send){
+    fetchTotalMessageCount(user._id, message.organization, function(c){
+      console.log('sending');
+      Push.sendMessageToUser(message, user, c);
+    }); 
+  } else {
+    console.log('not sending to ' + user.name);
+  }
+}
+
+var notifyUsers = function(m){
+  Message.findOne({_id: m._id})
+  .populate({path: 'creator'})
+  .populate({path: 'organization', select: '_id name owner'})
+  .populate({path: 'organization.owner', select: '_id name'})
+  .exec(function(err, message){
+    var organization = message.organization;
+    if (organization) {
+      var criteriaa = {_id: organization.owner._id};
+      var criteriab = {};  
+      if (message.group){
+        criteriab.org_status = {$elemMatch: {status: 'active', organization: organization._id,  groups: {$elemMatch: {$eq: message.group}}}};
+      } else {
+        criteriab.org_status = {$elemMatch: {organization: organization._id, status: 'active'}};
+      }
+      var criteria = {$or: [criteriaa, criteriab]};
+      User.find(criteria)
+        .populate({path: 'org_status.organization', model: 'Organization'})
+        .populate({path: 'org_status.organization.groups', model: 'Group'})
+        .exec(function(err, users){
+          _.each(users, function(user, i, l){
+              var send = true;
+              if (message.group) {
+                Group.findOne({_id: message.group}, function(err, group){
+                  if (group){
+                    sendMessageWithMutes(user, message, group.mutes);
+                  }
+                });
+              } else {
+                sendMessageWithMutes(user, message, organization.mutes);
+              }
+          });
+      });
+  }
+  });
+}
+
 
 exports.createMessage = function(req, res){
   var creator = req.body.creator;
@@ -311,13 +423,13 @@ exports.createMessage = function(req, res){
       if (err) {
         res.status(500).send(err);
       } else {
+        notifyUsers(result);
         utils.prismResponse(res, result, true);
 
       }
     });
   }
   if (urls) {
-      console.log(urls);
       request({
         uri: urls[0],
         method: 'GET',
@@ -332,8 +444,6 @@ exports.createMessage = function(req, res){
           var traverse = function(doc) {
             _.each(doc, function(node, i, l){
               if (node.name == 'meta') {
-                console.log('meta found');
-                console.log(node);
                 if (node.attribs.property && node.attribs.property.match('og:')) {
                   meta.push(node.attribs);
                 } 
@@ -347,11 +457,9 @@ exports.createMessage = function(req, res){
             });
           };
           traverse(dom);
-          console.log(meta);
           if (meta.length > 0){
             var metaData = {image:{}};
             _.each(meta, function(m, i, l){
-              console.log(m);
               var accessor = '';
               if (m.property) accessor = 'property';
               if (m.name) accessor = 'name';
@@ -376,7 +484,6 @@ exports.createMessage = function(req, res){
             });
             message.meta = metaData;
           }
-          console.log(message);
           save(message);
         });
         var parser = new htmlparser.Parser(handler);

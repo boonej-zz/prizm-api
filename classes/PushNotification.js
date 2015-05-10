@@ -114,6 +114,31 @@ PushNotification.prototype.activity = function activity(){
   }
 };
 
+module.exports.sendMessageToUser = function(message, user, badge){
+  if (user.device_token) {
+    var message =  message.creator.name + ':  ' + message.text;
+    console.log(message);
+    _request({
+      url: _config.push_server,
+      method: "POST",
+      json: true,
+      body: {
+        device: user.device_token,
+        alert: message,
+        payload: {_id: message._id},
+        badge: badge
+      }
+    }, function(err, result){
+      if (err) console.log(JSON.stringify(err));
+      else {
+        console.log('sent push notification');
+      }
+    })
+  } else {
+    return false;
+  }
+}
+
 PushNotification.prototype.send = function send(){
   console.log(this.message);
   console.log(this.device);
