@@ -116,15 +116,20 @@ PushNotification.prototype.activity = function activity(){
 
 module.exports.sendMessageToUser = function(message, user, badge){
   if (user.device_token) {
-    var message =  message.creator.name + ':  ' + message.text;
-    console.log(message);
+    var messageString = '#';
+    if (message.group){
+      messageString = messageString + message.group.name + ':';
+    } else {
+      messageString = messageString + 'all:';
+    }
+    messageString =  messageString + message.creator.name + '\n' + message.text;
     _request({
       url: _config.push_server,
       method: "POST",
       json: true,
       body: {
         device: user.device_token,
-        alert: message,
+        alert: messageString,
         payload: {_id: message._id},
         badge: badge
       }

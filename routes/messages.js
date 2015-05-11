@@ -349,8 +349,9 @@ var fetchTotalMessageCount = function(user_id, org_id, next){
   });
 };
 
-var sendMessageWithMutes = function(user, message, mutes){
-  var send = String(user.id) != String(message.creator);
+var sendMessageWithMutes = function(user, message, mutes ){
+  var send = String(user.id) != String(message.creator._id);
+  
   if (send) {
     _.each(mutes, function(m, i, l){
       if (String(m) == String(user._id)){
@@ -373,6 +374,7 @@ var notifyUsers = function(m){
   .populate({path: 'creator'})
   .populate({path: 'organization', select: '_id name owner'})
   .populate({path: 'organization.owner', select: '_id name'})
+  .populate({path: 'group'})
   .exec(function(err, message){
     var organization = message.organization;
     if (organization) {
@@ -390,15 +392,7 @@ var notifyUsers = function(m){
         .exec(function(err, users){
           _.each(users, function(user, i, l){
               var send = true;
-              if (message.group) {
-                Group.findOne({_id: message.group}, function(err, group){
-                  if (group){
-                    sendMessageWithMutes(user, message, group.mutes);
-                  }
-                });
-              } else {
-                sendMessageWithMutes(user, message, organization.mutes);
-              }
+              sendMessageWithMutes(user, message, organization.mutes);
           });
       });
   }

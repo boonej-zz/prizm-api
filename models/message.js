@@ -13,6 +13,7 @@ var messageSchema = new mongoose.Schema({
   organization: {type: ObjectId, ref: 'Organization', required: true, index: true},
   likes: {type: Array},
   likes_count: {type: Number, default: 0},
+  pretty_text: {type: String},
   meta: {
     message_id: {type: ObjectId, ref:'Message'},
     description: {type: String},
