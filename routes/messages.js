@@ -110,6 +110,7 @@ exports.fetchGroups = function(req, res){
   User.findOne({_id: uid})
   .populate({path: 'org_status.groups', model: 'Group'})
   .populate({path: 'org_status.organization', model: 'Organization'})
+  .populate({path: 'org_status.organization.owner', model: 'User', select: '_id, first_name, last_name, profile_photo_url, name'})
   .exec(function(err, user){
     if (user) {
       if (user.type == 'institution_verified'){
@@ -474,6 +475,11 @@ exports.createMessage = function(req, res){
               }
               if (m[accessor] == 'og:url'){
                 metaData.url = m.content;
+              }
+              if (m[accessor] == 'og:video:url'){
+                if (!metaData.video_url) {
+                  metaData.video_url = m.content;
+                }
               }
             });
             message.meta = metaData;

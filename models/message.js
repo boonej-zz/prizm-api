@@ -19,6 +19,7 @@ var messageSchema = new mongoose.Schema({
     description: {type: String},
     title: {type: String},
     url: {type: String},
+    video_url: {type: String},
     image: {
       message_id: {type: ObjectId, ref: 'Message'},
       url:  {type: String},
