@@ -42,7 +42,7 @@ activitySchema.statics.canResolve = function(){
     {post_id: {identifier: '_id', model: 'Post'}},
     {comment_id: {identifier: 'comments._id', model: 'Post'}},
     {insight_id: {identifier: '_id', model: 'Insight'}},
-    {insight_target_id: {identifier: '_id', model: 'InsightTarget'}}
+    {insight_target_id: {identifier: '_id', model: 'InsightTarget'}},
     {message_id: {identifier: '_id', model: 'Message'}}
   ];
 };
