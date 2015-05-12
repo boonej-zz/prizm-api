@@ -30,7 +30,7 @@ organizationSchema.pre('save', function(next){
 
 organizationSchema.statics.selectFields = function(type){
   var select = ['id', 'code', 'theme', 'name', 'create_date', 'modify_date',
-      'logo_url', 'welcome_image_url', 'groups', 'mutes'];
+      'logo_url', 'welcome_image_url', 'groups', 'mutes', 'owner'];
   return select;
 };
 
@@ -45,7 +45,8 @@ organizationSchema.methods.format = function(type, add_fields){
     welcome_image_url: this.welcome_image_url,
     logo_url        : this.logo_url,
     groups          : this.groups,
-    mutes           : this.mutes
+    mutes           : this.mutes,
+    owner           : this.owner
   };
   return format;
 }
@@ -55,7 +56,8 @@ organizationSchema.statics.canResolve = function(){
     {members: {identifier: '_id', model: 'User'}},
     {theme: {identifier: 'code', model: 'Theme'}},
     {groups: {identifier: '_id', model: 'Group'}},
-    {mutes: {identifier: '_id', model: 'Mute'}}
+    {mutes: {identifier: '_id', model: 'Mute'}},
+    {owner: {identifier: '_id', model: 'User'}}
   ];
 }
 

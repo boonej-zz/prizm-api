@@ -34,6 +34,7 @@ exports.fetchOrgs = function(req, res){
   var id = req.params.id;
   User.findOne({_id: id})
   .populate({path: 'org_status.organization', model: 'Organization'})
+  .populate({path: 'org_status.organization.owner', model: 'User', select: '_id name first_name last_name profile_photo_url type subtype'})
   .populate({path: 'org_status.groups', model: 'Group'})
   .exec(function(err, user){
     if (user){
