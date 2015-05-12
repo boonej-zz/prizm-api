@@ -65,7 +65,9 @@ PushNotification.prototype.activity = function activity(){
       this.object.action === 'accolade' ||
       this.object.action === 'trust_request'|| 
       this.object.action === 'insight' || 
-      this.object.action === 'group_joined'){
+      this.object.action === 'group_joined' ||
+      this.object.action === 'group_added' ||
+      this.object.action === 'leader'){
 
     var self = this;
 
@@ -97,13 +99,20 @@ PushNotification.prototype.activity = function activity(){
         }
         if(self.object.action === 'trust_accepted') action = 'accepted your trust request';
         if(self.object.action === 'trust_request') action = 'has sent you a trust invite';
+        if (self.object.action === 'group_approved') action = 'has approved your membership';
+        if (self.object.action === 'group_added') action = 'has added you to a group';
+        if (self.object.action === 'leader') action = 'made you a leader';
+
         if(self.object.insight_id) {
           action = 'sent you an insight';
         }
-        if (self.object.action === 'post') action = 'created a new post.';
+
+        if(self.object.action === 'like' && self.object.message_id) {
+          action = 'liked your message';
+        }
+        if (self.object.action === 'post') action = 'created a new post';
         if(self.object.action === 'accolade') action = 'has sent you an accolade';
         findUserById(self.object.from, function(from_user){
-          console.log('logger user returned from from_user object:'+JSON.stringify(from_user));
           if(from_user && from_user._id){
             self.message = from_user.name + ' ' + action;
             self.send();

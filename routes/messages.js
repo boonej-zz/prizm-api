@@ -251,6 +251,14 @@ exports.updateMessage = function(req, res){
             message.likes_count += 1;
             message.save(function(err, res){
               if (err) console.log(err);
+              new Activity({
+                from: uid,
+                to: message.creator,
+                action: 'like',
+                message_id: message._id
+              }).save(function(err, result){
+                if (err) console.log(err);
+              });
             });
             utils.prismResponse(res, message, true);
           } else {
@@ -513,6 +521,7 @@ exports.createGroup = function(req, res){
   var description = req.body.description;
   var members = req.body.members;
   var name = req.body.name;
+  var creator = req.body.creator;
   Organization.findOne({_id: org_id}, function(err, org){
     if (org){
       if (!members) {
@@ -558,6 +567,17 @@ exports.createGroup = function(req, res){
               u.markModified('org_status');
               u.save(function(err, result){
                 if (err) console.log(err);
+                else {
+                  new Activity({
+                    action: 'group_added',
+                    to: result._id,
+                    from: creator,
+                    group_id: group._id
+                  }).save(function(err, activity){
+                    if (err) console.log(err);
+                    console.log('finished making activity');
+                  });
+                }
               });
             });
 
@@ -729,6 +749,18 @@ exports.updateGroupMembers = function(req, res){
         u.markModified('org_status');
         u.save(function(err, user){
           if (err) console.log(err);
+          else {
+            new Activity({
+              action: 'group_added',
+              to: u._id,
+              from: requestor,
+              group_id: group_id
+            }).save(function(err, activity){
+              if (err) console.log(err);
+              console.log('finished making activity');
+            });
+
+          }
         });
         users.push(u);
       });  

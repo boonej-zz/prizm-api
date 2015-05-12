@@ -24,13 +24,14 @@ var activitySchema = new _mongoose.Schema({
   insight_id:       {type: String, default: null, required: false},
   insight_target_id: {type: String, default: null, required: false},
   has_been_viewed:  {type: Boolean, default: false, required: false},
-  group_id:         {type: _object_id, ref: 'Group', required: false}
+  group_id:         {type: _object_id, ref: 'Group', required: false},
+  message_id:       {type: _object_id, ref: 'Message', required: false}
 }, { versionKey: false });
 
 activitySchema.statics.selectFields = function(type){
   if(type === 'short' || type == 'basic'){
     return ['id','from','to','create_date','post_id','comment_id','action', 
-      'has_been_viewed', 'insight_id', 'insight_target_id'];
+      'has_been_viewed', 'insight_id', 'insight_target_id', 'message_id'];
   }
 };
 
@@ -42,6 +43,7 @@ activitySchema.statics.canResolve = function(){
     {comment_id: {identifier: 'comments._id', model: 'Post'}},
     {insight_id: {identifier: '_id', model: 'Insight'}},
     {insight_target_id: {identifier: '_id', model: 'InsightTarget'}}
+    {message_id: {identifier: '_id', model: 'Message'}}
   ];
 };
 
@@ -57,7 +59,8 @@ activitySchema.methods.format = function(type){
       insight_target_id: this.insight_target_id,
       comment_id: this.comment_id,
       create_date: this.create_date,
-      has_been_viewed: this.has_been_viewed
+      has_been_viewed: this.has_been_viewed,
+      message_id: this.message_id
     };
   }
 };

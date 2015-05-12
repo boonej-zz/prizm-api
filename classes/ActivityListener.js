@@ -97,6 +97,10 @@ ActivityListener.prototype.activityHandler = function(activity){
         new_activity.insight_target_id = activity.insight_target_id;
       }
 
+      if (_.has(activity, 'group_id')) {
+        new_activity.group_id = activity.group_id;
+      }
+
       new_activity.save(function(err, saved){
         if(err){
           _logger.log('error', 'Error occured saving new activity',
