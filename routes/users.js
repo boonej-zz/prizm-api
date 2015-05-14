@@ -1,4 +1,5 @@
 /**
+ * me
  * Handles routing & management for /user* endpoints
  *
  * @author DJ Hayden <dj.hayden@stablekernel.com>
@@ -836,7 +837,10 @@ exports.fetchUserNewsFeed = function(req, res){
         for(var i = 0; i < user.following.length; i++){
           following_array.push(user.following[i]._id);
         }
-
+        var org = _.filter(user.org_status, function(os){
+          return os.status == 'active';
+        });
+        var orgIds = _.pluck(org, 'organization');
         Trust.find({status: 'accepted', $or : [{to:req.params.id},{from:req.params.id}]}, function(err, trusts){
           if(err){
             _logger.log('error', 'an error was returned while trying to fetch trusts for feed for user: '+req.params.id);
@@ -857,27 +861,34 @@ exports.fetchUserNewsFeed = function(req, res){
                 trusts_array.push(item);
               }
             }
-            //user should see its own posts, so add the user to the following_array
-            //which is used in the search criteria
-
-            //TODO: ensure trust is accepted
-            var posts_array = [];
-
-            var criteria = {$or: [  {scope: 'public', status: 'active', creator: {$in:following_array}},
-                                    {scope: {$in:['trust', 'public']}, status: 'active', creator: {$in:trusts_array}},
-                                    {creator: user._id, status: 'active'}
-                                 ],
-                                 is_flagged: false
+            User.find({org_status: {$elemMatch: {organization: {$in: orgIds}, status: 'active'}}})
+            .select({_id: 1})
+            .exec(function(err, users){
+              if (err) console.log(err);
+              var orgArray = [];
+              if (users) {
+                orgArray = _.pluck(users, '_id');
+              }
+              var posts_array = [];
+              var criteria = {$or: 
+                [  
+                  {scope: 'public', 
+                   status: 'active', 
+                   creator: {$in:following_array}},
+                   {scope: {$in:['trust', 'public']}, 
+                     status: 'active', 
+                     creator: {$in:trusts_array}},
+                    {creator: user._id, status: 'active'},
+                   {scope: {$in:['trust', 'public']},
+                     status: 'active',
+                     creator: {$in: orgArray}}
+                  ],
+                  is_flagged: false
             };
-
-            _logger.log('info', 'news feed find criteria', {criteria:criteria});
-
-            new Twine('Post', criteria, req, {status: 'active'}, function(err, result){
+              new Twine('Post', criteria, req, {status: 'active'}, function(err, result){
               if(err){
                 _logger.log('error', 'fetch news feed via twine returned error', {error:err});
                 _utils.prismResponse(res, null, false, PrismError.serverError);
-
-              // }else if(result){
               }else{
                 for(var index in result){
                   if(result[index].status === 'inactive'){
@@ -886,6 +897,7 @@ exports.fetchUserNewsFeed = function(req, res){
                 }
                 _utils.prismResponse(res, result, true);
               }
+            });
 
             });
           }
