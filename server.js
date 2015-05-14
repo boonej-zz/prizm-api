@@ -14,6 +14,7 @@ require(_prism_home + 'models/organization');
 require(_prism_home + 'models/group');
 require(_prism_home + 'models/message');
 require(_prism_home + 'models/mute');
+require(_prism_home + 'models/invite');
 
 var _express        = require('express'),
     _mongoose       = require('mongoose'),

@@ -22,6 +22,7 @@ var _mongoose     = require('mongoose'),
     Organization  = _mongoose.model('Organization'),
     Theme         = _mongoose.model('Theme'),
  ObjectId    = _mongoose.Schema.Types.ObjectId;
+var Invite = _mongoose.model('Invite');
 var jade = require('jade');
 var Interest = _mongoose.model('Interest');
 var path = require('path');
@@ -84,9 +85,20 @@ var checkAndUpdateOrg = function(user, next){
               {_id: result._id.toString(), date: date}
             };**/
           }
-          console.log(owner_update);
           result.joinOrganization(organization, function(err, saved){
             next(err, saved);
+            if (saved) {
+              Invite.findOne({address: saved.email, organization: organization._id})
+              .exec(function(err, invite){
+                if (invite) {
+                  invite.status = 'accepted';
+                  invite.user = result._id;
+                  invite.save(function(err, inviteResult){
+                    if (err) console.log(err);
+                  });
+                }
+              });
+            }
           });
           /**
           User.findOneAndUpdate({_id: user._id}, user_update, function(err, saved){
