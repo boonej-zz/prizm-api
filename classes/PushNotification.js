@@ -131,7 +131,11 @@ module.exports.sendMessageToUser = function(message, user, badge){
     } else {
       messageString = messageString + 'all:';
     }
-    messageString =  messageString + message.creator.name + '\n' + message.text;
+    if (message.text) {
+      messageString =  messageString + message.creator.name + '\n' + message.text;
+    } else {
+      messageString = messageString + message.creator.name + '\n' + 'Posted an image';
+    }
     _request({
       url: _config.push_server,
       method: "POST",
