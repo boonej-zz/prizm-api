@@ -413,15 +413,18 @@ var notifyUsers = function(m){
 exports.createMessage = function(req, res){
   var creator = req.body.creator;
   var text = req.body.text;
-  var urls = utils.urls(text);
+  var urls = false;
   var group = req.body.group=='all'?null:req.body.group;
   var organization = req.body.organization;
-
+  var imageURL = req.body.image_url;
+  if (text) urls = utils.urls(text)
   var message = new Message({
     creator: creator, 
     text: text, 
     group: group, 
-    organization: organization});
+    organization: organization,
+    image_url: imageURL
+  });
   var save = function(){
     message.save(function(err, result){
       if (err) {
