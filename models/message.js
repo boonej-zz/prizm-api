@@ -104,4 +104,25 @@ messageSchema.statics.unlikeMessage = function(id, user, next){
   });
 };
 
+messageSchema.methods.prettyText = function(next) {
+  var User = mongoose.model('User');
+  var $this = this;
+  User.resolvePostTags(this, function(err, users){
+    var prettyText = $this.text;
+    var match = $this.text.match(/@\S{24}/g);
+    if (match && match.length > 0) {
+      _.each(match, function(tag, idx, list){
+        var uid = tag.substr(1);
+        var mu = _.find(users, function(user){
+          return String(user._id) == String(uid);
+        });
+        if (mu){
+          prettyText = prettyText.replace(tag, '@' + mu.name);
+        }
+      });
+    } 
+    next(prettyText);
+  });
+};
+
 mongoose.model('Message', messageSchema);

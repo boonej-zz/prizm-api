@@ -165,6 +165,28 @@ userSchema.statics.selectFields = function(type){
   }
 };
 
+userSchema.statics.resolvePostTags = function(post, next){
+  var postText = post.text || '';
+  var commentText = [];
+  if (post.comments) {
+    _.pluck(post.comments, 'text');
+  }
+  commentText.push(postText);
+  var userArray = [];
+  _.each(commentText, function(comment, idx, list){
+    var match = comment.match(/@\S{24}/g);  
+    if (match) {
+      _.each(match, function(item, idx, list){
+        userArray.push(item.substr(1));  
+      });
+    }
+  });
+  this.model('User').find({_id: {$in: userArray}}, '_id name', function(err, users){
+    next(err, users);
+  });
+};
+
+
 userSchema.statics.updateTrustCount = function(user_id, callback){
   this.findOne({_id: user_id}).exec(function(err, user){
     if(err){
@@ -429,7 +451,6 @@ userSchema.methods.shortUser = function(){
 };
 
 userSchema.methods.follow = function(user, next){
-  console.log(user);
   var User = _mongoose.model('User');
   var isFollowing = false;
   var userID = user && typeof(user) == 'object'?user.toString():user;

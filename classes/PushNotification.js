@@ -125,33 +125,37 @@ PushNotification.prototype.activity = function activity(){
 
 module.exports.sendMessageToUser = function(message, user, badge){
   if (user.device_token) {
-    var messageString = '#';
-    if (message.group){
-      messageString = messageString + message.group.name + ':';
-    } else {
-      messageString = messageString + 'all:';
-    }
-    if (message.text) {
-      messageString =  messageString + message.creator.name + '\n' + message.text;
-    } else {
-      messageString = messageString + message.creator.name + '\n' + 'Posted an image';
-    }
-    _request({
-      url: _config.push_server,
-      method: "POST",
-      json: true,
-      body: {
-        device: user.device_token,
-        alert: messageString,
-        payload: {_id: message._id},
-        badge: badge
+    message.prettyText(function(prettyText){
+      var messageString = '#';
+      var groupName = message.group?'#' + message.group.name:'#all';
+      if (message.group){
+        messageString = messageString + message.group.name + ':';
+      } else {
+        messageString = messageString + 'all:';
       }
-    }, function(err, result){
-      if (err) console.log(JSON.stringify(err));
-      else {
-        console.log('sent push notification');
+      if (message.text) {
+        messageString =  messageString + message.creator.name + '\n' + prettyText;
+      } else {
+        messageString = message.creator.name + ' just posted an image in ' + groupName + '.';
       }
-    })
+      _request({
+        url: _config.push_server,
+        method: "POST",
+        json: true,
+        body: {
+          device: user.device_token,
+          alert: messageString,
+          payload: {_id: message._id},
+          badge: badge
+        }
+      }, function(err, result){
+        if (err) console.log(JSON.stringify(err));
+        else {
+          console.log('sent push notification');
+        }
+      });
+    });
+   
   } else {
     return false;
   }
