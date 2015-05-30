@@ -253,7 +253,7 @@ userSchema.methods.format = function(type, add_fields, callback){
     };
   }
 
-  if(type === 'basic' || type === 'internal'){
+  if(type === 'basic' || type === 'internal' || type === 'advanced'){
     format = {
       _id:                  this._id,
       name:                 this.name,
