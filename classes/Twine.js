@@ -16,6 +16,7 @@ var _util       = require('util'),
     User        = require('../models/user').User,
     Theme       = require('../models/organization').Theme,
     Organization = require('../models/organization').Organization;
+var util = require('util');
 
 /**
  * Twine Constants
@@ -512,6 +513,12 @@ Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForFiel
     if(typeof item.toObject === 'function') {
       item = item.toObject();
     }
+    if (field == 'interests') {
+      console.log('Interests item: ' + util.inspect(item));
+      _.each(item[field], function(interest) {
+        distinct.push(String(interest));
+      });
+    }
 
     if(_.has(item, field)) {
       if(!_.isArray(item[field]) && !_.isNull(item[field])) {
@@ -522,9 +529,11 @@ Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForFiel
           if(!_.contains(distinct, field_array[id])) {
             distinct.push(field_array[id]);
           }
+        } else {
+          console.log('Field Array: ' + field_array);         
         }
       });
-    }
+    } 
   });
 
   return distinct;
@@ -596,7 +605,7 @@ Twine.prototype.processResolve = function processResolve(base, map, container, b
   var self = this;
   if(!self.resolve_start) self.resolve_start = new Date();
   //set resolve key
-  _logger.log('info', 'map from resolve', {map:map});
+  console.log('info', 'map from resolve', {map:map});
   var resolve_field = Object.keys(map)[0];
   //set the object to resolve & unshift the map array
   var resolve_map_object = map[resolve_field];
