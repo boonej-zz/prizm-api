@@ -121,7 +121,7 @@ userSchema.statics.canResolve = function(){
     {following: {identifier: '_id' , model: 'User'}},
     {followers: {identifier: '_id' , model: 'User'}},
     {trusts: {identifier: 'user_id', model: 'User'}},
-    {interests: {identifier: '_id', model: 'Interest'}},
+    {interests: {model: 'Interest'}},
     {theme: {identifier: '_id', model: 'Theme'}},
     {organization: {identifier: '_id', model: 'Organization'}},
     {'org_status.organization': {identifier: '_id', model: 'Organization'}},
