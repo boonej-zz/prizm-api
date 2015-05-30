@@ -248,7 +248,8 @@ userSchema.methods.format = function(type, add_fields, callback){
       type: this.type,
       active: this.active,
       insight_count: this.insight_count,
-      subtype: this.subtype
+      subtype: this.subtype,
+      interests: this.interests
     };
   }
 
