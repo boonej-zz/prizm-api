@@ -246,7 +246,6 @@ Twine.prototype.$__setSort = function $__setSort(){
     } else {
       sort[this.sort_by] = this.sort;
     }
-   console.log('setting sort' +  String(sort));
    this.fetch.sort(sort);
   }
 };
@@ -328,26 +327,18 @@ Twine.prototype.returnResult = function returnResult (err, resp) {
   var self = this;
   self.end_time = new Date();
 
-  console.log(" \n\n ----- START OF TWINE TRANSACTION ------");
-  console.log(" TWINE TRANSACTION CRITERIA: " + JSON.stringify(this.criteria));
-  console.log(" TWINE TRANSACTION ARGS: " + JSON.stringify(this.args));
   self.total_time = (self.end_time.getTime() - self.start_time.getTime())/1000;
-  console.log('start/end:' + self.start_time + '/' + self.end_time + ' -> ' + self.total_time + 'ms' );
   //calc base req time
   var btotal = (self.base_end.getTime() - self.base_start.getTime())/1000;
-  console.log('baserequest: '+btotal+'ms');
   //calc contains total time
   if(self.contains_end && self.contains_start) {
     var ctotal = (self.contains_end.getTime() - self.contains_start.getTime())/1000;
-    console.log('contains total: '+ ctotal + 'ms');
   }
   //calc resolve total time
   if(self.resolve_end && self.resolve_start) {
     var rtotal = (self.resolve_end.getTime() - self.resolve_start.getTime())/1000;
-    console.log('resolve total: '+ rtotal + 'ms');
   }
   //calc total time
-  console.log("------ END OF TWINE TRANSACTION ------- \n");
   self.cb(err, resp);
 };
 
@@ -514,7 +505,6 @@ Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForFiel
       item = item.toObject();
     }
     if (field == 'interests') {
-      console.log('Interests item: ' + util.inspect(item));
       _.each(item[field], function(interest) {
         distinct.push(String(interest));
       });
@@ -530,7 +520,6 @@ Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForFiel
             distinct.push(field_array[id]);
           }
         } else {
-          console.log('Field Array: ' + field_array);         
         }
       });
     } 
