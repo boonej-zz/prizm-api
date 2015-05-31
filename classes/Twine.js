@@ -353,7 +353,7 @@ Twine.prototype.returnResult = function returnResult (err, resp) {
 
 Twine.prototype.$__applyResultSort = function applyResultSort(err, response){
   var self = this;
-  if(response.data.length > 0){
+  if(response.data && response.data.length > 0){
     var key = self.sort_by;
     var direction = self.sort;
 
