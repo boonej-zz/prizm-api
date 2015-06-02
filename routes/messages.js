@@ -747,7 +747,15 @@ exports.updateGroupMembers = function(req, res){
         _.each(u.org_status, function(o, c, d){
           if (String(o.organization) == String(org_id)) {
             if (!o.groups) o.groups = [];
-            o.groups.push(ObjectId(group_id));
+            var x = -1;
+            _.each(o.groups, function(g, index){
+              if (String(g) == String(group_id)) {
+                x = index;
+              }
+            });
+            if (x == -1) {
+              o.groups.push(ObjectId(group_id));
+            }
           }
         });
         u.markModified('org_status');
