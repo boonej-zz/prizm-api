@@ -841,6 +841,7 @@ exports.fetchUserNewsFeed = function(req, res){
           return os.status == 'active';
         });
         var orgIds = _.pluck(org, 'organization');
+        var owners = _.pluck(org, 'owner');
         Trust.find({status: 'accepted', $or : [{to:req.params.id},{from:req.params.id}]}, function(err, trusts){
           if(err){
             _logger.log('error', 'an error was returned while trying to fetch trusts for feed for user: '+req.params.id);
@@ -881,7 +882,10 @@ exports.fetchUserNewsFeed = function(req, res){
                     {creator: user._id, status: 'active'},
                    {scope: {$in:['trust', 'public']},
                      status: 'active',
-                     creator: {$in: orgArray}}
+                     creator: {$in: orgArray}},
+                   {scope: {$in:['trust', 'public']},
+                     status: 'active',
+                     creator: {$in: owners}}
                   ],
                   is_flagged: false
             };
