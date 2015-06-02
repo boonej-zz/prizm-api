@@ -825,7 +825,9 @@ exports.updateUser = function(req, res){
  */
 exports.fetchUserNewsFeed = function(req, res){
   if(req.params.id){
-    User.findOne({_id: req.params.id}, function(err, user){
+    User.findOne({_id: req.params.id})
+      .populate({path: 'org_status.organization', model: 'Organization'})
+      .exec(function(err, user){
 
       if(err || !user){
         _utils.prismResponse(res,null,false,PrismError.invalidUserRequest);
@@ -840,8 +842,13 @@ exports.fetchUserNewsFeed = function(req, res){
         var org = _.filter(user.org_status, function(os){
           return os.status == 'active';
         });
-        var orgIds = _.pluck(org, 'organization');
-        var owners = _.pluck(org, 'owner');
+        console.log(org);
+        var organizations = _.pluck(org, 'organization');
+        console.log(organizations);
+        var orgIds = _.pluck(organizations, '_id');
+        var owners = _.pluck(organizations, 'owner');
+        console.log('Owners: ' + owners);
+        console.log('OrgIds: ' + orgIds);
         Trust.find({status: 'accepted', $or : [{to:req.params.id},{from:req.params.id}]}, function(err, trusts){
           if(err){
             _logger.log('error', 'an error was returned while trying to fetch trusts for feed for user: '+req.params.id);
@@ -883,7 +890,9 @@ exports.fetchUserNewsFeed = function(req, res){
                    {scope: {$in:['trust', 'public']},
                      status: 'active',
                      creator: {$in: orgArray}},
-                
+                   {scope: {$in:['trust', 'public']},
+                     status: 'active',
+                     creator: {$in: owners}}
                   ],
                   is_flagged: false
             };
