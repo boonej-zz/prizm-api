@@ -883,9 +883,7 @@ exports.fetchUserNewsFeed = function(req, res){
                    {scope: {$in:['trust', 'public']},
                      status: 'active',
                      creator: {$in: orgArray}},
-                   {scope: {$in:['trust', 'public']},
-                     status: 'active',
-                     creator: {$in: owners}}
+                
                   ],
                   is_flagged: false
             };
