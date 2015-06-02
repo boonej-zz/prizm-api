@@ -506,7 +506,11 @@ Twine.prototype.getDistinctValuesForField = function newGetDistinctValuesForFiel
     }
     if (field == 'interests') {
       _.each(item[field], function(interest) {
-        distinct.push(String(interest));
+        if (interest._id){
+          distinct.push(String(interest._id));
+        } else {
+          distinct.push(String(interest));
+        }
       });
     }
 
