@@ -131,7 +131,7 @@ var checkAndUpdateOrg = function(user, next){
   });
  } else {
    console.log('No org present');
-  User.joinOrganization({_id: user._id}, empty_set, next);
+  User.findOneAndUpdate({_id: user._id}, empty_set, next);
  } 
 };
 
