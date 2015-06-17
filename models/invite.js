@@ -7,7 +7,8 @@ var inviteSchema = new mongoose.Schema({
   user          : {type: ObjectId, ref: 'User', required: false},
   organization  : {type: ObjectId, ref: 'Organization', index: true},
   create_date   : {type: Date},
-  modify_date   : {type: Date}
+  modify_date   : {type: Date},
+  code          : {type: String}
 });
 
 inviteSchema.pre('save', function(next){

@@ -66,25 +66,6 @@ var checkAndUpdateOrg = function(user, next){
             result.follow(organization.owner, function(err, res){
               if (err) console.log(err);
             });
-/**
-            _.each(result.following, function(item, idx, list){
-              if (item._id == organization.owner.toString()){
-                exists = true;
-              }
-            });
-          } else {
-            exists = true;
-          }
-          if (!exists) {
-            console.log('adding following');
-            user_update.$inc = {following_count: 1};
-            user_update.$push.following = 
-              {_id: organization.owner.toString(), date: date}
-            ;
-            owner_update.$inc = {followers_count: 1};
-            owner_update.$push = {followers: 
-              {_id: result._id.toString(), date: date}
-            };**/
           }
           result.joinOrganization(organization, function(err, saved){
             next(err, saved);
@@ -127,12 +108,30 @@ var checkAndUpdateOrg = function(user, next){
       });
     } else {
       console.log('Org did not exist');
-      User.findOneAndUpdate({_id: user._id}, empty_set, next);
+      Invite.findOne({code: user.program_code, status: 'sent'})
+      .populate({path: 'organization'})
+      .exec(function(err, invite) {
+
+        if (invite) {
+          invite.status = 'accepted';
+          invite.save(function(err, result){
+            if (err) console.log(err);
+          });
+          User.findOne({_id: user._id}, function(err, u){
+            u.joinOrganization(invite.organization, next, true);
+          });
+
+        } else {
+
+          User.findOneAndUpdate({_id: user._id}, empty_set, next);
+        }
+
+      });
     }
   });
  } else {
    console.log('No org present');
-  User.findOneAndUpdate({_id: user._id}, empty_set, next);
+  User.joinOrganization({_id: user._id}, empty_set, next);
  } 
 };
 

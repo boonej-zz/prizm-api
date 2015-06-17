@@ -281,30 +281,30 @@ _app.get('/files/:name', function(req, res){
   });
 });
 
-_app.post('/insights', _insight.createInsight);
-_app.get('/insights', _insight.fetchInsights);
-_app.post('/insights/:id', _insight.sendInsight);
-_app.get('/users/:id/insights', _insight.fetchUserInsights);
-_app.post('/insights/:id/like', _insight.likeInsight);
-_app.post('/insights/:id/dislike', _insight.dislikeInsight);
+_app.post('/insights', _gateway, _insight.createInsight);
+_app.get('/insights', _gateway, _insight.fetchInsights);
+_app.post('/insights/:id', _gateway, _insight.sendInsight);
+_app.get('/users/:id/insights', _gateway, _insight.fetchUserInsights);
+_app.post('/insights/:id/like', _gateway, _insight.likeInsight);
+_app.post('/insights/:id/dislike', _gateway, _insight.dislikeInsight);
 
-_app.post('/interests', _interest.createInterest);
-_app.get('/interests', _interest.fetchInterests);
-_app.get('/organizations/:code', _organization.searchOrganizations);
-_app.get('/users/:id/organizations', _message.fetchOrgs);
-_app.get('/users/:user_id/organizations/:org_id/groups', _message.fetchGroups);
-_app.get('/users/:id/suggestions', _follow.fetchSuggestions);
-_app.get('/organizations/:org_id/groups/:group_name/messages', _message.fetchMessages);
-_app.put('/organizations/:org_id/groups/:group_name/messages/:message_id', _message.updateMessage);
-_app.post('/organizations/:org_id/groups/:group/messages', _message.createMessage);
-_app.delete('/organizations/:org_id/groups/:group/messages/:message_id', _message.deleteMessage);
-_app.get('/organizations/:org_id/members', _message.fetchGroupMembers);
-_app.post('/organizations/:org_id/groups', _message.createGroup);
-_app.delete('/organizations/:org_id/groups/:group_id', _message.deleteGroup);
-_app.put('/organizations/:org_id/groups/:group_id', _message.updateGroup);
-_app.put('/organizations/:org_id/groups/:group_id/members', _message.updateGroupMembers);
-_app.delete('/organizations/:org_id/groups/:group_id/members/:user_id', _message.deleteUserFromGroup);
-_app.put('/organizations/:org_id', _message.updateOrganization);
+_app.post('/interests', _gateway, _interest.createInterest);
+_app.get('/interests', _gateway, _interest.fetchInterests);
+_app.get('/organizations/:code', _gateway, _organization.searchOrganizations);
+_app.get('/users/:id/organizations', _gateway, _message.fetchOrgs);
+_app.get('/users/:user_id/organizations/:org_id/groups', _gateway, _message.fetchGroups);
+_app.get('/users/:id/suggestions', _gateway, _follow.fetchSuggestions);
+_app.get('/organizations/:org_id/groups/:group_name/messages', _gateway,  _message.fetchMessages);
+_app.put('/organizations/:org_id/groups/:group_name/messages/:message_id', _gateway,  _message.updateMessage);
+_app.post('/organizations/:org_id/groups/:group/messages', _gateway, _message.createMessage);
+_app.delete('/organizations/:org_id/groups/:group/messages/:message_id', _gateway, _message.deleteMessage);
+_app.get('/organizations/:org_id/members', _gateway, _message.fetchGroupMembers);
+_app.post('/organizations/:org_id/groups', _gateway, _message.createGroup);
+_app.delete('/organizations/:org_id/groups/:group_id', _gateway, _message.deleteGroup);
+_app.put('/organizations/:org_id/groups/:group_id', _gateway, _message.updateGroup);
+_app.put('/organizations/:org_id/groups/:group_id/members', _gateway, _message.updateGroupMembers);
+_app.delete('/organizations/:org_id/groups/:group_id/members/:user_id', _gateway, _message.deleteUserFromGroup);
+_app.put('/organizations/:org_id', _gateway, _message.updateOrganization);
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
   if(req.params.id){

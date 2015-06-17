@@ -488,9 +488,10 @@ userSchema.methods.follow = function(user, next){
   }
 }
 
-userSchema.methods.joinOrganization = function(organization, next){
+userSchema.methods.joinOrganization = function(organization, next, approval){
+  var userStatus = approval?'active':'pending';
   var user_update = {
-    $push: {org_status: {status: 'pending', 
+    $push: {org_status: {status: userStatus, 
       organization: organization._id, date: new Date().toString()}}
   };
   var present = false;
