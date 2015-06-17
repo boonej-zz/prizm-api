@@ -1,0 +1,56 @@
+- var dateNow = new Date();
+- var year = dateNow.getFullYear();
+html
+  head
+    body(style="background-color: #eef0f4; text-align: center; font-family: 'Helvetica', 'Arial', sans-serif; color: #47494d; font-size: 16px")
+      table(style='width: 670px; margin: 0 auto; border-collapse: collapse')
+        tr
+          td(style='padding-top: 20px; padding-bottom: 20px; font-size: 14px')
+        tr(style='background-color:#ffffff; text-align: left')
+          td(style='height: 88px; border-bottom: #dde3f1;')
+            div(style='height: 88px; width: 100%; border-bottom: 1px solid #dde3f1;')
+              img(src='http://www.prizmapp.com/images/logo.png' alt='Prizm'
+                  style='margin-top: 22px; height: 47px; width: 116px; margin-left: 20px;')
+        tr(style='background-color: #ffffff;')
+          if greeting || subgreeting
+            td(style='height: 174px; vertical-align: middle; width: 100%; text-align: center; color: #25689a')
+              if greeting
+                p(style='font-size: 26px; width: 420px; margin: 5px auto;')
+                | #{greeting}
+              if subgreeting
+                p(style='font-size: 22px; font-weight: light; width: 420px; margin: 5px auto;')
+                  | #{subgreeting}
+        tr(style='background-color: #ffffff;')
+          td(style='padding: 30px; text-align: left;')
+            for p in body
+              p(style='font-size: 16px')
+                | !{p}
+            if closing
+              p(style='font-size: 16px')
+                | #{closing}
+            p(style='font-size: 16px') Prizm Product Team
+        tr(style='background-color: #ffffff')
+          td(style='text-align: center; padding: 20px;')
+            p(style='font-size: 14px; color: #25689a;') FOLLOW PRIZM
+            a(href='https://www.facebook.com/prizmapp'
+            style='text-decoration: none')
+              img(src='http://www.prizmapp.com/images/facebook.png'
+              style='height: 32px; width: 32px;'
+              alt='Facebook')
+            a(href='https://www.twitter.com/beprizmatic'
+            style='text-decoration: none; margin-left: 5px;')
+              img(src='http://www.prizmapp.com/images/twitter.png'
+              style='height: 32px; width: 32px;'
+              alt='Twitter')
+            a(href='https://www.instagram.com/beprizmatic'
+            style='text-decoration: none; margin-left: 5px;')
+              img(src='http://www.prizmapp.com/images/instagram.png'
+              style='height: 32px; width: 32px;'
+              alt='Instagram') 
+        tr(style='background-color: #ffffff')
+          td
+            div(style='height: 40px; width: 100%; border-bottom: 1px solid #dde3f1;')
+        tr
+          td(style='padding: 10px 0px')
+            p(style='font-size: 12px')
+              | Copyright &copy; #{year} Higher Altitude, Inc. All rights reserved.

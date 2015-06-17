@@ -33,9 +33,53 @@ var welcomeMail = fs.readFileSync(path.join(__dirname +
       '/../views/welcome.jade'), 'utf8');
 var mandrill = require('node-mandrill')(config.mandrill.client_secret);
 var mandrillEndpointSend = '/messages/send';
+var util = require('util');
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
  */
+var baseMail = path.join(__dirname, '/../views/base.jade');
+
+var iPush = require('../classes/i_push');
+var ownerGreeting = 'Dear %s,';
+var ownerBody1 = '%s has requested to join %s\'s Prizm group. Please go to your admin page <a href="https://www.prizmapp.com/profile/members">here</a> to approve or deny.';
+var ownerBody1Alt = '%s has just joined %s\'s Prizm group. Please go to your admin page <a href="https://www.prizmapp.com/profile/members">here</a> to review your members.';
+var ownerClosing = 'Thank you,';
+var ownerPush = '%s has requested to join your Prizm group. Please go to your admin page to approve or deny.';
+var ownerPushAlt = '%s has just joined your Prizm group. Please go to your admin page to review your members.';
+
+var notifyOwnerJoined = function(owner, user, joined){
+  var bodyp = joined?ownerBody1Alt:ownerBody1;
+  var pushp = joined?ownerPushAlt:ownerPush;
+  var params = {
+    body: [
+      util.format(ownerGreeting, owner.name),
+      util.format(bodyp, user.first_name + ' ' + user.last_name, owner.name)
+    ],
+    closing: ownerClosing
+  };
+  var mail = jade.renderFile(baseMail, params);
+  mandrill(mandrillEndpointSend, {
+    message: {
+      to: [{email: owner.email}],
+      from_email: 'info@prizmapp.com',
+      from_name: 'Prizm',
+      subject: 'New Member Pending',
+      html: mail}
+    }, function (err, response){
+      if (err) console.log(err); 
+    }); 
+    var messageString = util.format(pushp, user.first_name + ' ', user.last_name);
+    iPush.sendNotification({
+      device: owner.device_token,
+      alert: messageString,
+      payload: {_id: owner._id},
+      badge: 1 
+    }, function(err, result){
+      if (err) console.log(err);
+      else console.log('Sent push'); 
+    });
+
+};
 
 var checkAndUpdateOrg = function(user, next){
  if (!user) {
@@ -47,7 +91,9 @@ var checkAndUpdateOrg = function(user, next){
   theme: null
  };
  if (user && user.program_code) {
-  Organization.findOne({code: user.program_code}, function(err, organization){
+  Organization.findOne({code: user.program_code})
+  .populate({path: 'owner'})
+  .exec(function(err, organization){
     if (!err && organization) {
       var in_org = false;
       var date = new Date().toString();
@@ -70,6 +116,7 @@ var checkAndUpdateOrg = function(user, next){
           result.joinOrganization(organization, function(err, saved){
             next(err, saved);
             if (saved) {
+              notifyOwnerJoined(organization.owner, saved, false);
               Invite.findOne({address: saved.email, organization: organization._id})
               .exec(function(err, invite){
                 if (invite) {
@@ -118,6 +165,13 @@ var checkAndUpdateOrg = function(user, next){
             if (err) console.log(err);
           });
           User.findOne({_id: user._id}, function(err, u){
+            Organization.findOne({_id: invite.organization._id})
+            .populate({path: 'owner'})
+            .exec(function(err, org){
+              if (org) {
+                notifyOwnerJoined(org.owner, u, true);
+              }
+            });
             u.joinOrganization(invite.organization, next, true);
           });
 
