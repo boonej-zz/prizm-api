@@ -113,10 +113,12 @@ var checkAndUpdateOrg = function(user, next){
               if (err) console.log(err);
             });
           }
-          result.joinOrganization(organization, function(err, saved){
+          result.joinOrganization(organization, function(err, saved, sendPush){
             next(err, saved);
             if (saved) {
-              notifyOwnerJoined(organization.owner, saved, false);
+              if (sendPush){
+                notifyOwnerJoined(organization.owner, saved, false);
+              }
               Invite.findOne({address: saved.email, organization: organization._id})
               .exec(function(err, invite){
                 if (invite) {

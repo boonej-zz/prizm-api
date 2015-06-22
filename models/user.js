@@ -510,10 +510,10 @@ userSchema.methods.joinOrganization = function(organization, next, approval){
           'group_joined'
           );
       }
-      next(err, result);
+      next(err, result, true);
     });
   } else {
-    next(null, this);
+    next(null, this, false);
   }
 };
 
