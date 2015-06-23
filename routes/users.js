@@ -50,6 +50,7 @@ var ownerPushAlt = '%s has just joined your Prizm group. Please go to your admin
 var notifyOwnerJoined = function(owner, user, joined){
   var bodyp = joined?ownerBody1Alt:ownerBody1;
   var pushp = joined?ownerPushAlt:ownerPush;
+  var subject = joined?'New Member Added':'New Member Pending';
   var params = {
     body: [
       util.format(ownerGreeting, owner.name),
@@ -63,7 +64,7 @@ var notifyOwnerJoined = function(owner, user, joined){
       to: [{email: owner.email}],
       from_email: 'info@prizmapp.com',
       from_name: 'Prizm',
-      subject: 'New Member Pending',
+      subject: subject,
       html: mail}
     }, function (err, response){
       if (err) console.log(err); 
@@ -109,7 +110,7 @@ var checkAndUpdateOrg = function(user, next){
           var exists = false;
           console.log(result.following);
           if (organization.owner){
-            result.follow(organization.owner, function(err, res){
+            result.follow(organization.owner._id, function(err, res){
               if (err) console.log(err);
             });
           }
