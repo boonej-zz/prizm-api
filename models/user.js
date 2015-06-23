@@ -489,10 +489,22 @@ userSchema.methods.follow = function(user, next){
 }
 
 userSchema.methods.joinOrganization = function(organization, next, approval){
-  var userStatus = approval?'active':'pending';
+  var invite = null;
+  if (organization.organization){
+    invite = organization;
+    organization = invite.organization;
+    console.log('have invite');
+  }
+  var userStatus = invite?'active':'pending';
+  var groups = [];
+  if (invite && invite.group){
+    groups.push(invite.group);
+  }
   var user_update = {
     $push: {org_status: {status: userStatus, 
-      organization: organization._id, date: new Date().toString()}}
+      organization: organization._id, date: new Date().toString(),
+      groups: groups
+    }}
   };
   var present = false;
   _.each(this.org_status, function(item, idx, list){

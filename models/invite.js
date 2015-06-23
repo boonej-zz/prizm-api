@@ -8,7 +8,8 @@ var inviteSchema = new mongoose.Schema({
   organization  : {type: ObjectId, ref: 'Organization', index: true},
   create_date   : {type: Date},
   modify_date   : {type: Date},
-  code          : {type: String}
+  code          : {type: String},
+  group         : {type: ObjectId, ref: 'Group', required: false}
 });
 
 inviteSchema.pre('save', function(next){

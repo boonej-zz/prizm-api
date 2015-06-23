@@ -170,11 +170,13 @@ var checkAndUpdateOrg = function(user, next){
             Organization.findOne({_id: invite.organization._id})
             .populate({path: 'owner'})
             .exec(function(err, org){
-              if (org) {
-                notifyOwnerJoined(org.owner, u, true);
-              }
+              u.joinOrganization(invite, function(err, saved, groupJoined){
+                if (groupJoined){
+                  notifyOwnerJoined(org.owner, u, true);
+                } 
+                next(err, saved);
+              });
             });
-            u.joinOrganization(invite.organization, next, true);
           });
 
         } else {
