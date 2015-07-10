@@ -65,7 +65,7 @@ var shuffleExploreResults = function(results) {
 };
 
 var explore = function(req, res){
-  var criteria = {status: 'active', scope: 'public', is_flagged: false};
+  var criteria = {status: 'active', category: {$ne: 'personal'}, scope: 'public', is_flagged: false};
   var randomize_result = true;
   var options = {limit:60, sort_by: 'create_date'};
 
