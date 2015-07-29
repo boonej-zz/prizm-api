@@ -189,8 +189,19 @@ var checkAndUpdateOrg = function(user, next){
     }
   });
  } else {
-   console.log('No org present');
-  User.findOneAndUpdate({_id: user._id}, empty_set, next);
+   if (user.type == 'institution_verified') {
+     Organization.findOne({owner: user._id})
+     .exec(function(err, org){
+        if (org) {
+          User.findOneAndUpdate({_id: user._id}, {theme: org.theme, organization: org._id}, next);
+        } else {
+          User.findOneAndUpdate({_id: user._id}, empty_set, next);
+        }
+     });
+   } else {
+    console.log('No org present');
+    User.findOneAndUpdate({_id: user._id}, empty_set, next);
+   }
  } 
 };
 
