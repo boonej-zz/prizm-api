@@ -113,7 +113,12 @@ var userSchema = new _mongoose.Schema({
   age                   : {type: Number, default: 0},
   pwd_updated           : {type: Boolean, default: false},
   org_status            : {type: Array, default: []},
-  visibility            : {type: String, default: null} 
+  visibility            : {type: String, default: null},
+  parent_contact        : {
+    first: {type: String},
+    last: {type: String},
+    email: {type: String}
+  }, 
 },{ versionKey          : false });
 
 userSchema.statics.canResolve = function(){

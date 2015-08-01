@@ -205,6 +205,23 @@ var checkAndUpdateOrg = function(user, next){
  } 
 };
 
+exports.parentConsent = function(req, res){
+  var uid = req.params.uid;
+  var parentContact = {
+    first: req.body.first,
+    last: req.body.last,
+    email: req.body.email
+  };
+  User.findOneAndUpdate({_id: uid}, {parent_contact: parentContact}, function(err, user){
+    if (user) {
+       _utils.prismResponse(res, user, true); 
+    } else {
+      if (err) console.log(err);
+      res.status(400).send('Invalid information');
+    }
+  });
+};
+
 /*jshint -W087*/
 
 /**

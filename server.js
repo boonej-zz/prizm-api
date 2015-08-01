@@ -144,6 +144,9 @@ _app.get('/users/:id/likes', _gateway, _post.fetchLikedPosts);
 /* Add Post to User */
 _app.post('/users/:id/posts', _gateway, _user.createUserPost);
 
+/* Update parent consent */
+_app.put('/users/:uid/consent', _gateway, _user.parentConsent);
+
 /* Fetch Post by Identifier */
 _app.get('/posts/:id', _gateway, _post.fetchPostById);
 
