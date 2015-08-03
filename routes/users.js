@@ -645,6 +645,12 @@ exports.register = function(req, res){
      
       if(typeof(req.body.website) !== 'undefined')
         newUser.website = req.body.website;
+      if (req.body.contact_first) 
+        newUser.contact_first = req.body.contact_first;
+      if (req.body.contact_last) 
+        newUser.contact_last = req.body.contact_last;
+      if (req.body.contact_emaiL)
+        newUser.contact_email = req.body.contact_email;
 
       newUser.review_key = _uuid.v1();
     }
@@ -813,6 +819,9 @@ exports.updateUser = function(req, res){
         if(typeof(body.website) !== 'undefined') user.website = body.website;
         if(typeof(body.ethnicity) !== 'undefined') user.ethnicity = body.ethnicity;
         if(typeof(body.affiliations) !== 'undefined') user.affliations = body.affliations;
+        if(body.contact_first) user.contact_first = body.contact_first;
+        if(body.contact_last) user.contact_last = body.contact_last;
+        if(body.contact_email) user.contact_email = body.contact_email;
         if(typeof(body.program_code) !== 'undefined'){
           user.program_code = body.program_code;
         }

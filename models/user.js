@@ -114,6 +114,9 @@ var userSchema = new _mongoose.Schema({
   pwd_updated           : {type: Boolean, default: false},
   org_status            : {type: Array, default: []},
   visibility            : {type: String, default: null},
+  contact_first    : {type: String, default: null},
+  contact_last     : {type: String, default: null},
+  contact_email         : {type: String, default: null},
   parent_contact        : {
     first: {type: String},
     last: {type: String},
@@ -145,7 +148,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
-            'insight_count', 'theme', 'organization', 'birthday', 'org_status', 'visibility'];
+            'insight_count', 'theme', 'organization', 'birthday', 'org_status', 'visibility', 'contact_first', 'contact_last', 'contact_email'];
   }else if(type == 'advanced'){
     return ['_id','name','first_name','last_name','profile_photo_url',
             'cover_photo_url','email','info','website','city','state',
@@ -153,7 +156,7 @@ userSchema.statics.selectFields = function(type){
             'instagram_min_id', 'instagram_token', 'twitter_token',
             'twitter_min_id','type', 'device_token', 'followers', 'following', 'subtype', 'trust_count',
             'tumblr_min_id', 'tumblr_token', 'tumblr_token_secret', 'interests',
-            'insight_count', 'theme', 'organization', 'birthday', 'org_status', 'visibility'];
+            'insight_count', 'theme', 'organization', 'birthday', 'org_status', 'visibility', 'contact_first', 'contact_last', 'contact_email'];
 
   }
   else{
@@ -166,7 +169,7 @@ userSchema.statics.selectFields = function(type){
             'modify_date','delete_date','active','password', 'type', 'device_token',
             'subtype', 'trust_count', 'tumblr_min_id', 'tumblr_token',
             'tumblr_token_secret', 'program_code', 'interests', 'insight_count', 
-            'theme', 'organization','pwd_updated','org_status','visibility'];
+            'theme', 'organization','pwd_updated','org_status','visibility', 'contact_first', 'contact_last', 'contact_email'];
   }
 };
 
@@ -295,7 +298,10 @@ userSchema.methods.format = function(type, add_fields, callback){
       theme:                this.theme,
       pwd_updated:          this.pwd_updated,
       org_status:           this.org_status,
-      visibility:           this.visibility
+      visibility:           this.visibility,
+      contact_first:        this.contact_first,
+      contact_last:         this.contact_last,
+      contact_email:        this.contact_email
     };
   }
 
