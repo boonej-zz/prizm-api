@@ -31,6 +31,7 @@ var fs = require('fs');
 var config = require('config');
 var welcomeMail = fs.readFileSync(path.join(__dirname + 
       '/../views/welcome.jade'), 'utf8');
+var consentMail = path.join(__dirname + '/../views/consent.jade');
 var mandrill = require('node-mandrill')(config.mandrill.client_secret);
 var mandrillEndpointSend = '/messages/send';
 var util = require('util');
@@ -214,6 +215,24 @@ exports.parentConsent = function(req, res){
   };
   User.findOneAndUpdate({_id: uid}, {parent_contact: parentContact}, function(err, user){
     if (user) {
+      if (user.parent_contact && user.parent_contact.email) {
+            if (user.org_status && user.org_status.length > 0) {
+              Organization.findOne({_id: user.org_status[0].organization}, function(err, org){
+                if (org) {
+                  var mail = jade.renderFile(consentMail, {user: user, organization: org});
+                  mandrill(mandrillEndpointSend, {message: {
+                    to: [{email: user.parent_contact.email}],
+                    from_email: 'info@prizmapp.com',
+                    from_name: 'Prizm',
+                    subject: 'Your child created an account on Prizm.',
+                    html: mail
+                  }}, function(err, res){
+                    if (err) console.log(err); 
+                  });
+                }
+              });
+            }
+          }
        _utils.prismResponse(res, user, true); 
     } else {
       if (err) console.log(err);
@@ -668,6 +687,7 @@ exports.register = function(req, res){
             var mail = new Mail();
             mail.institutionReview(result.toObject());
           }
+          
           var html = jade.render(welcomeMail, {user: result});
           mandrill(mandrillEndpointSend,{message: {
             to: [{email: result.email}],
