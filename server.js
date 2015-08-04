@@ -111,15 +111,6 @@ _app.get('/', function(req,res){ res.send('Welcome to the Prism API'); });
 _app.get('/oauth2/authorize', _auth);
 
 
-_app.get('/consent', function(req, res) {
-  var Jade = require('jade');
-  var User = _mongoose.model('User');
-  User.findOne({_id: '55bdb200f472810000c3f42d'}, function(err, u) {
-    var b = Jade.renderFile(_prism_home + 'views/consent.jade', {user: u});
-    res.send(b);
-  });
-});
-
 /* Default Authorization Code RedirectUri Callback Endpoint - FOR PRISM MOBILE USE ONLY */
 _app.get('/callback', function(req, res){
   var array = [{authorization_code: req.query.code}];
