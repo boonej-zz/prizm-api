@@ -224,7 +224,7 @@ exports.parentConsent = function(req, res){
                     to: [{email: user.parent_contact.email}],
                     from_email: 'info@prizmapp.com',
                     from_name: 'Prizm',
-                    subject: 'Your child created an account on Prizm.',
+                    subject: org.name + ' is using Prizm this year.',
                     html: mail
                   }}, function(err, res){
                     if (err) console.log(err); 
