@@ -15,6 +15,7 @@ require(_prism_home + 'models/group');
 require(_prism_home + 'models/message');
 require(_prism_home + 'models/mute');
 require(_prism_home + 'models/invite');
+require(_prism_home + 'models/survey');
 
 var _express        = require('express'),
     _mongoose       = require('mongoose'),
@@ -41,6 +42,7 @@ var _express        = require('express'),
     _interest       = require(_prism_home + 'routes/interests');
     _organization   = require(_prism_home + 'routes/organizations');
     _message        = require(_prism_home + 'routes/messages');
+    _survey         = require(_prism_home + 'routes/surveys');
     new ActivityListener();
 
 var _app            = _express();
@@ -147,6 +149,9 @@ _app.post('/users/:id/posts', _gateway, _user.createUserPost);
 
 /* Update parent consent */
 _app.put('/users/:uid/consent', _gateway, _user.parentConsent);
+
+/* Get user surveys */
+_app.get('/users/:uid/surveys', _gateway, _survey.fetchUserSurveys);
 
 /* Fetch Post by Identifier */
 _app.get('/posts/:id', _gateway, _post.fetchPostById);
@@ -309,6 +314,10 @@ _app.put('/organizations/:org_id/groups/:group_id', _gateway, _message.updateGro
 _app.put('/organizations/:org_id/groups/:group_id/members', _gateway, _message.updateGroupMembers);
 _app.delete('/organizations/:org_id/groups/:group_id/members/:user_id', _gateway, _message.deleteUserFromGroup);
 _app.put('/organizations/:org_id', _gateway, _message.updateOrganization);
+
+_app.post('/surveys/:sid/questions/:qid', _gateway, _survey.postAnswer);
+_app.post('/surveys/:sid/finalize', _gateway, _survey.finalizeSurvey);
+
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
   if(req.params.id){
