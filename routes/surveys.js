@@ -8,6 +8,8 @@ var Twine       = require(prism_home + 'classes/Twine');
 var _ = require('underscore');
 var ObjectId    = mongoose.Schema.Types.ObjectId;
 var Survey = mongoose.model('Survey');
+var Question = mongoose.model('Question');
+var Answer = mongoose.model('Answer');
 
 exports.fetchUserSurveys = function(req, res) {
   var uid = req.params.uid;
@@ -28,7 +30,9 @@ exports.fetchUserSurveys = function(req, res) {
 exports.postAnswer = function(req, res) {
   var uid = req.body.uid;
   var qid = req.params.qid;
-  var value = req.body.value;
+  var value = req.body.answer_value;
+  console.log(uid);
+  console.log(value);
   Question.findOne({_id: qid}, function(err, q){
     if (q){
       var current = _.filter(q.answers, function(obj){
@@ -44,9 +48,13 @@ exports.postAnswer = function(req, res) {
         });
       } else {
         answer = new Answer({user: uid, value: value});
-        q.answers.push(answer);
-        q.save(function(err, result){
-          utils.prismResponse(res, result, true);
+        answer.save(function(err, answer){
+          if (err) console.log(err);
+          q.answers.push(answer);
+            q.markModified('answers');
+            q.save(function(err, result){
+            utils.prismResponse(res, result, true);
+          });
         });
       }
     } else {
