@@ -6,10 +6,11 @@ var PrismError  = require(prism_home + 'error');
 var User        = mongoose.model('User');
 var Twine       = require(prism_home + 'classes/Twine');
 var _ = require('underscore');
-var ObjectId    = mongoose.Schema.Types.ObjectId;
+var ObjectId    = require('mongoose').Types.ObjectId;
 var Survey = mongoose.model('Survey');
 var Question = mongoose.model('Question');
 var Answer = mongoose.model('Answer');
+var moment = require('moment');
 
 exports.fetchUserSurveys = function(req, res) {
   var uid = req.params.uid;
@@ -77,5 +78,67 @@ exports.finalizeSurvey = function(req, res) {
       if (err) console.log(err);
       res.status(400).send();
     }
+  });
+}
+
+exports.getLeaderboard = function(req, res) {
+  var oid = req.params.oid;
+
+  var surveyPoints = {};
+  User.find({active: true, org_status: {$elemMatch: {status: 'active', organization:ObjectId(oid)}}})
+  .exec(function(err, users){
+    var u = _.pluck(users, '_id');
+    Survey.find({completed:  {$in: u}, organization: oid})
+    .populate({path: 'questions', model: 'Question'})
+    .populate({path: 'completed', model: 'User'})
+    .exec(function(err, surveys){
+      Survey.populate(surveys, {path: 'questions.answers', model: 'Answer'}, function(err, surveys){
+        _.each(surveys, function(survey){
+          _.each(survey.completed, function(u){
+            if (! surveyPoints[String(u._id)]) {
+              var key = String(u._id);
+              surveyPoints[key] = {user: u, points: (survey.number_of_questions * 10), surveys: 1};
+            } else {
+              surveyPoints[String(u._id)].points += (survey.number_of_questions * 10);
+              surveyPoints[String(u._id)].surveys += 1;
+            }
+          });
+          _.each(survey.questions[0].answers, function(a){
+            if (surveyPoints[String(a.user)]) { 
+              surveyPoints[String(a.user)].startTime = a.create_date;
+            }
+          });
+          _.each(survey.questions[survey.questions.length - 1].answers, function(a){
+            var q = survey.questions[survey.questions.length -1];
+            if (surveyPoints[String(a.user)]) {
+            surveyPoints[String(a.user)].endTime = a.create_date;
+            console.log(a.user);
+            console.log(surveyPoints);
+            var take_diff = moment.duration(new moment(a.create_date).diff(surveyPoints[String(a.user)].startTime));
+            var take_hours = Math.round(take_diff.asHours()/6);
+            var speed_points = (25 - (take_hours * 5));
+            speed_points = speed_points > 0?speed_points:0;
+            var respond_diff = moment.duration(new moment(a.create_date).diff(q.create_date));
+            var respond_hours = respond_diff.asMinutes();
+            response_points = (25 - (respond_hours *5));
+            response_points = response_points > 0?response_points:0;
+            surveyPoints[String(a.user)].points += (speed_points + response_points);
+            }
+          });
+        });
+        console.log(surveyPoints);
+        var response = [];
+        for (key in surveyPoints){
+          response.push({
+            _id: surveyPoints[key].user._id,
+            user: surveyPoints[key].user,
+            points: Math.round(surveyPoints[key].points),
+            organization: oid,
+            surveys: surveyPoints[key].surveys
+          });
+        }
+        utils.prismResponse(res, response, true);
+      });
+    });
   });
 }

@@ -317,6 +317,7 @@ _app.put('/organizations/:org_id', _gateway, _message.updateOrganization);
 
 _app.post('/surveys/:sid/questions/:qid', _gateway, _survey.postAnswer);
 _app.post('/surveys/:sid/finalize', _gateway, _survey.finalizeSurvey);
+_app.get('/organizations/:oid/surveys/leaderboard', _gateway, _survey.getLeaderboard);
 
 /* HACK Find User by instagram_id */
 _app.get('/instagram/:id', _gateway, function(req, res){
