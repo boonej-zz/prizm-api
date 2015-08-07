@@ -429,7 +429,7 @@ exports.deleteUser = function(req, res){
 var unregisterDeviceFromUsers = function(device, block){
   if(!device || !block) throw new Error('A device id & callback are required');
   User.update(
-    {device_token: device},
+    {device: device},
     {$set: {device_token: null}},
     {multi: true},
     function(err, updated){
@@ -445,7 +445,7 @@ var unregisterDeviceFromUsers = function(device, block){
  */
 exports.registerDevice = function(req, res){
   if(req.params.id && req.body.device){
-    unregisterDeviceFromUsers(req.params.id, function(err, updated){
+    unregisterDeviceFromUsers(req.body.device, function(err, updated){
       if(err){
         _logger.log('error',
                     'Error unregistering previous devices on device register',
@@ -468,8 +468,10 @@ exports.registerDevice = function(req, res){
                             info);
               }
               _utils.prismResponse(res, null, false, PrismError.serverError);
+              console.log('Could not register device ' + req.body.device + ' for user ' + user.name);
 
             }else{
+              console.log('Registered device ' + req.body.device + ' for user ' + user.name);
               var message = "Successfully registered device for " + req.params.id;
               _utils.prismResponse(res, {message: message}, true);
 
