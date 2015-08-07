@@ -109,7 +109,7 @@ exports.getLeaderboard = function(req, res) {
     var u = _.pluck(users, '_id');
     Survey.find({completed:  {$in: u}, organization: oid})
     .populate({path: 'questions', model: 'Question'})
-    .populate({path: 'completed', model: 'User'})
+    .populate({path: 'completed', model: 'User', select: {_id: 1, first_name: 1, last_name: 1, profile_photo_url: 1}})
     .exec(function(err, surveys){
       Survey.populate(surveys, {path: 'questions.answers', model: 'Answer'}, function(err, surveys){
         _.each(surveys, function(survey){
@@ -145,7 +145,6 @@ exports.getLeaderboard = function(req, res) {
             }
           });
         });
-        console.log(surveyPoints);
         var response = [];
         for (key in surveyPoints){
           response.push({
