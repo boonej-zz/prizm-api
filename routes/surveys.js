@@ -72,7 +72,26 @@ exports.finalizeSurvey = function(req, res) {
     if (survey) {
       survey.completed.push(uid);
       survey.save(function(err, result){
-        utils.prismResponse(res, result, true);
+        Survey.populate(result, {path: 'questions', model: 'Question'}, function(err, survey){
+          Survey.populate(survey, {path: 'questions.answers', model: 'Answer'}, function(err, survey){
+            var startTime;
+            var endTime;
+            survey = survey.toObject();
+            survey.rank = survey.completed.length;
+            _.each(survey.questions[0].answers, function(a){
+              if (String(a.user) == String(uid)){
+                startTime = a.create_date;
+              }
+            });
+            _.each(survey.questions[survey.questions.length - 1].answers, function(a){
+              if (String(a.user) == String(uid)){
+                endTime = a.create_date;
+              }
+            });
+            survey.duration = moment.utc(moment.duration(moment(endTime).subtract(startTime)).asMilliseconds()).format('HH:mm:ss');
+            utils.prismResponse(res, survey, true);
+          });
+        });
       });
     } else {
       if (err) console.log(err);
