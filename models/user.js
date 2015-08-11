@@ -115,6 +115,7 @@ var userSchema = new _mongoose.Schema({
   org_status            : {type: Array, default: []},
   visibility            : {type: String, default: null},
   contact_first    : {type: String, default: null},
+  push_enabled      : {type: Boolean, default: false},
   contact_last     : {type: String, default: null},
   contact_email         : {type: String, default: null},
   parent_contact        : {

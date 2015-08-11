@@ -38,10 +38,10 @@ var _express        = require('express'),
     PrismError      = require(_prism_home + 'error'),
     _winston        = require('winston'),
     ActivityListener = require(_prism_home + 'classes/ActivityListener'),
-    _activity       = require(_prism_home + 'routes/activities');
-    _interest       = require(_prism_home + 'routes/interests');
-    _organization   = require(_prism_home + 'routes/organizations');
-    _message        = require(_prism_home + 'routes/messages');
+    _activity       = require(_prism_home + 'routes/activities'),
+    _interest       = require(_prism_home + 'routes/interests'),
+    _organization   = require(_prism_home + 'routes/organizations'),
+    _message        = require(_prism_home + 'routes/messages'),
     _survey         = require(_prism_home + 'routes/surveys');
     new ActivityListener();
 
@@ -282,6 +282,8 @@ _app.get('/search/:id/trusts/:name', _gateway, _trust.searchForUsersInTrust);
 
 /* Register/Unregister Device for a User */
 _app.post('/users/:id/devices', _gateway, _user.registerDevice);
+
+_app.post('/users/:uid/push_enabled', _gateway, _user.setUserPushEnabled); 
 
 /* Unregister devices from push notifications */
 _app.post('/devices/:id', _user.unregisterDevice);

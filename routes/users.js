@@ -35,6 +35,7 @@ var consentMail = path.join(__dirname + '/../views/consent.jade');
 var mandrill = require('node-mandrill')(config.mandrill.client_secret);
 var mandrillEndpointSend = '/messages/send';
 var util = require('util');
+var url = require('url');
 /**
  * TODO: pull logging for errors out into error class (which needs refactoring)
  */
@@ -797,6 +798,16 @@ exports.fetchAllUsers = function(req, res){
 exports.fetchUser = function(req, res){
   if(req.params.id){
     var criteria = {_id: req.params.id };
+    console.log(req.url);
+    var url_parts = url.parse(req.url, true);
+    var query = url_parts.query; 
+    var push_enabled = query.push_enabled;
+    console.log(query);
+    if (push_enabled) {
+      User.findOneAndUpdate(criteria, {push_enabled: true}, function(err, user){
+        if (err) console.log(err); 
+      });
+    }
     new Twine('User', criteria, req, null, function(error, result){
       if(error){
         _logger.log('Error', 'Error retrieving user by id: ' + req.params.id);
@@ -810,6 +821,24 @@ exports.fetchUser = function(req, res){
     _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
   }
 };
+
+exports.setUserPushEnabled = function(req, res) {
+  if(req.params.uid){
+    var criteria = {_id: req.params.uid};
+    var enabled = req.body.push_enabled;
+    User.findOneAndUpdate(criteria, {push_enabled: enabled}, function(err, user){
+      if (user) {
+        _utils.prismResponse(res, user, true);
+      } else {
+        if (err) console.log(err);
+        _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+      }
+    });
+  } else {
+    _utils.prismResponse(res, null, false, PrismError.invalidUserRequest);
+  }
+
+}
 
 /**
  * Updates available User object fields
