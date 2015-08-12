@@ -156,6 +156,8 @@ _app.get('/users/:uid/surveys', _gateway, _survey.fetchUserSurveys);
 /* Get completed user surveys */
 _app.get('/users/:uid/surveys/completed', _gateway, _survey.getUserSurveys);
 
+_app.get('/organizations/:oid/surveys/latest', _gateway, _survey.getLatestSurvey);
+
 /* Fetch Post by Identifier */
 _app.get('/posts/:id', _gateway, _post.fetchPostById);
 

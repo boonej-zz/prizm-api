@@ -220,3 +220,22 @@ exports.getUserSurveys = function(req, res) {
     });
   });
 }
+
+exports.getLatestSurvey = function(req, res) {
+  var oid = req.params.oid;
+  Survey.findOne({organization: oid, status: 'active'})
+  .sort({date_created: -1})
+  .populate({path: 'questions', model: 'Question'})
+  .populate({path: 'targeted_users', model: 'User', select: {_id: 1, first_name: 1, last_name: 1, name: 1, active: 1, profile_photo_url: 1}})
+  .exec(function(err, survey){
+    if (err) console.log(err);
+    if (survey) {
+      Survey.populate(survey, {path: 'questions.answers', model: 'Answer'}, function(err, survey){
+        if (err) console.log(err);
+        utils.prismResponse(res, survey, true);
+      });
+    } else {
+        res.status(400).send('Bad request');
+    }
+  });
+};
