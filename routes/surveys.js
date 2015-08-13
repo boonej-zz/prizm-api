@@ -223,10 +223,10 @@ exports.getUserSurveys = function(req, res) {
 
 exports.getLatestSurvey = function(req, res) {
   var oid = req.params.oid;
-  Survey.findOne({organization: oid, status: 'active'})
-  .sort({date_created: -1})
+  Survey.findOne({organization: oid, status: 'active', targeted_users: {$ne: []}})
+  .sort({create_date: -1})
   .populate({path: 'questions', model: 'Question'})
-  .populate({path: 'targeted_users', model: 'User', select: {_id: 1, first_name: 1, last_name: 1, name: 1, active: 1, profile_photo_url: 1}})
+  .populate({path: 'targeted_users.user', model: 'User', select: {_id: 1, first_name: 1, last_name: 1, name: 1, active: 1, profile_photo_url: 1}})
   .exec(function(err, survey){
     if (err) console.log(err);
     if (survey) {
