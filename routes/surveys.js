@@ -34,14 +34,19 @@ exports.postAnswer = function(req, res) {
   var value = req.body.answer_value;
   console.log(uid);
   console.log(value);
-  Question.findOne({_id: qid}, function(err, q){
+  Question.findOne({_id: qid})
+    .populate({path: 'answers', model: 'Answer'})
+    .exec(function(err, q){
     if (q){
-      var current = _.filter(q.answers, function(obj){
-        return String(obj.user) == String(uid);
+      var index = -1;
+      _.each(q.answers, function(a, idx){
+        if (String(a.user) == String(uid)) {
+          index = idx;
+        }
       });
       var answer = false;
-      if (current.length > 0) {
-        answer = current[0];
+      if (index != -1) {
+        answer = q.answers[index];
         answer.value = value;
         answer.create_date = date.now();
         answer.save(function (err, result){ 
@@ -51,10 +56,16 @@ exports.postAnswer = function(req, res) {
         answer = new Answer({user: uid, value: value});
         answer.save(function(err, answer){
           if (err) console.log(err);
-          q.answers.push(answer);
-            q.markModified('answers');
-            q.save(function(err, result){
-            utils.prismResponse(res, result, true);
+          Question.findOne({_id: qid}, function(err, question){
+            if (question) {
+              question.answers.push(answer);
+              question.markModified('answers');
+              question.save(function(err, result){
+                utils.prismResponse(res, result, true);
+              });
+            } else {
+              utils.prismResponse(res, answer, true);
+            }
           });
         });
       }
@@ -70,7 +81,15 @@ exports.finalizeSurvey = function(req, res) {
   var sid = req.params.sid;
   Survey.findOne({_id: sid}, function(err, survey){
     if (survey) {
-      survey.completed.push(uid);
+      var present = false;
+      _.each(survey.completed, function(c){
+        if (String(c) == String(uid)){
+          present = true;
+        }
+      });
+      if (!present) {
+        survey.completed.push(uid);
+      }
       survey.save(function(err, result){
         Survey.populate(result, {path: 'questions', model: 'Question'}, function(err, survey){
           Survey.populate(survey, {path: 'questions.answers', model: 'Answer'}, function(err, survey){
