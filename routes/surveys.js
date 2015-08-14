@@ -58,7 +58,7 @@ exports.postAnswer = function(req, res) {
           if (err) console.log(err);
           Question.findOne({_id: qid}, function(err, question){
             if (question) {
-              question.answers.push(answer);
+              question.answers.push(answer._id);
               question.markModified('answers');
               question.save(function(err, result){
                 utils.prismResponse(res, result, true);
