@@ -332,7 +332,7 @@ exports.fetchSuggestions = function(req, res){
       if (user.org_status && user.org_status.length > 0) {
         var orgArray = [];
         _.each(user.org_status, function(item, idx, list){
-          if (item.status != 'pending' && item.status != 'denied') {
+          if (item.status != 'pending' && item.status != 'inactive') {
             orgArray.push(item.organization);
           }
         }); 
@@ -342,7 +342,7 @@ exports.fetchSuggestions = function(req, res){
           {org_status : {
             $elemMatch: {
               organization: {$in: orgArray}, 
-              $or: [{status: {$ne: 'pending'}}, {status: {$ne: 'denied'}}]
+              $or: [{status: {$ne: 'pending'}}, {status: {$ne: 'inactive'}}]
             }
           }},
           {subtype : 'luminary'}
@@ -351,12 +351,17 @@ exports.fetchSuggestions = function(req, res){
         criteria.subtype = 'luminary';
       }
       criteria.posts_count = {$gt: 4};
-      new Twine('User', criteria, req, null, function(error, result){
-        if (error) {
-          _utils.prismResponse(res, null, false, PrismError.ServerError);
-        } else {
-          _utils.prismResponse(res, result, true);
-        }
+      User.find(criteria)
+        .select({_id: 1, name: 1, first_name: 1, last_name: 1, interests: 1, profile_photo_url: 1, type: 1, subtype: 1, active: 1, posts_count: 1})
+        .populate({path: 'interests', model: 'Interest'})
+        .exec(function(error, result){
+          console.log(error);
+          console.log(result);
+          if (error) {
+            _utils.prismResponse(res, null, false, PrismError.ServerError);
+          } else {
+            _utils.prismResponse(res, result, true);
+          }
       });
     }
   });
