@@ -355,8 +355,6 @@ exports.fetchSuggestions = function(req, res){
         .select({_id: 1, name: 1, first_name: 1, last_name: 1, interests: 1, profile_photo_url: 1, type: 1, subtype: 1, active: 1, posts_count: 1})
         .populate({path: 'interests', model: 'Interest'})
         .exec(function(error, result){
-          console.log(error);
-          console.log(result);
           if (error) {
             _utils.prismResponse(res, null, false, PrismError.ServerError);
           } else {
