@@ -32,6 +32,7 @@ var config = require('config');
 var welcomeMail = fs.readFileSync(path.join(__dirname + 
       '/../views/welcome.jade'), 'utf8');
 var consentMail = path.join(__dirname + '/../views/consent.jade');
+var nonOrgConsentMail = path.join(__dirname + '/../views/non_org_consent.jade');
 var mandrill = require('node-mandrill')(config.mandrill.client_secret);
 var mandrillEndpointSend = '/messages/send';
 var util = require('util');
@@ -231,6 +232,17 @@ exports.parentConsent = function(req, res){
                     if (err) console.log(err); 
                   });
                 }
+              });
+            } else {
+              var mail = jade.renderFile(nonOrgConsentMail, {user: user});
+              mandrill(mandrillEndpointSend, {message: {
+                  to: [{email: user.parent_contact.email}],
+                  from_email: 'info@prizmapp.com',
+                  from_name: 'Prizm',
+                  subject: user.name + ' just signed up for Prizm.',
+                  html: mail
+                }}, function(err, res){
+                  if (err) console.log(err); 
               });
             }
           }
