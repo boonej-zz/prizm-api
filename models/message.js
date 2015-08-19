@@ -15,6 +15,7 @@ var messageSchema = new mongoose.Schema({
   likes_count: {type: Number, default: 0},
   pretty_text: {type: String},
   image_url: {type: String},
+  target: {type: ObjectId, ref: 'User'},
   meta: {
     message_id: {type: ObjectId, ref:'Message'},
     description: {type: String},

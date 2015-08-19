@@ -161,7 +161,54 @@ exports.fetchGroupMembers = function(req, res){
   });
 }
 
-
+exports.getDirectMessages = function(req, res){
+  var org_id = req.params.org_id;
+  var target = req.params.uid;
+  var user_id = req.query.requestor;
+  var criteria = {$or: [{target: target, creator: user_id}, {creator: target, target: user_id}]};
+  var sort = {create_date: -1};
+  if (req.query.since) {
+    criteria.create_date = {$gt: req.query.since};
+    sort = {create_date: 1}
+  }
+  if (req.query.before) {
+    criteria.create_date = {$lt: req.query.before};
+    sort = {create_date: -1}
+  }
+  if (req.query.updated) {
+    criteria.modify_date = {$gt: req.query.updated};
+  }
+  Message.find(criteria)
+  .sort(sort)
+  .limit(20)
+  .exec(function(err, messages){
+    if (err) {
+      console.log(err);
+      res.status(500).send(err);
+    } else {
+      if (!req.query.since) {
+        messages = messages.reverse();
+      }
+      if (user_id){
+        _.each(messages, function(m, i, l){
+          var hasRead = false;
+          _.each(m.read, function(r, id, l){
+            console.log(r);
+            if (String(r) == String(user_id)){
+              hasRead = true;
+            }
+          });
+          if (!hasRead){
+            m.read.push(ObjectId(user_id));
+            m.markModified('read');
+            m.save(function(err, obj){});
+          }
+        });
+      }
+      utils.prismResponse(res, messages, true);
+    }
+  });
+};
 
 exports.fetchMessages = function(req, res){
   var group = req.params.group_name;
@@ -169,7 +216,7 @@ exports.fetchMessages = function(req, res){
   var user_id = req.query.requestor;
   var action = req.query.action;
   group = group == 'all'?null:group;
-  var criteria = {organization: org_id, group: group};
+  var criteria = {organization: org_id, group: group, target: null};
   var sort = {create_date: -1};
   if (action) {
     if (action == 'unread') {
@@ -396,6 +443,9 @@ var notifyUsers = function(m){
         criteriab.org_status = {$elemMatch: {organization: organization._id, status: 'active'}};
       }
       var criteria = {$or: [criteriaa, criteriab]};
+      if (message.target) {
+        criteria = {_id: criteria.target};
+      }
       User.find(criteria)
         .populate({path: 'org_status.organization', model: 'Organization'})
         .populate({path: 'org_status.organization.groups', model: 'Group'})
@@ -504,6 +554,103 @@ exports.createMessage = function(req, res){
     } else {
       save(message);
     }
+}
+
+exports.createDirectMessage = function(req, res) {
+  var creator = req.body.creator;
+  var text = req.body.text;
+  var urls = false;
+  var target = req.params.uid;
+  var organization = req.params.org_id;
+  var imageURL = req.body.image_url;
+  if (text) urls = utils.urls(text)
+  var message = new Message({
+    creator: creator, 
+    text: text, 
+    target: target, 
+    organization: organization,
+    image_url: imageURL
+  });
+  var save = function(){
+    message.save(function(err, result){
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        notifyUsers(result);
+        utils.prismResponse(res, result, true);
+
+      }
+    });
+  }
+  if (urls) {
+      request({
+        uri: urls[0],
+        method: 'GET',
+        timeout: 10000,
+        followRedirect: true,
+        maxRedirects: 10
+      }, function(error, response, body) {
+        console.log(error);
+        var handler = new htmlparser.DefaultHandler(function(err, dom){
+          if (err) console.log(err);
+          var meta = [];
+          var traverse = function(doc) {
+            _.each(doc, function(node, i, l){
+              if (node.name == 'meta') {
+                if (node.attribs.property && node.attribs.property.match('og:')) {
+                  meta.push(node.attribs);
+                } 
+                if (node.attribs.name && node.attribs.name.match('og:')) {
+                  meta.push(node.attribs);
+                } 
+              } 
+              if (node.children && node.children.length > 0){
+                traverse(node.children);
+              }
+            });
+          };
+          traverse(dom);
+          if (meta.length > 0){
+            var metaData = {image:{}};
+            _.each(meta, function(m, i, l){
+              var accessor = '';
+              if (m.property) accessor = 'property';
+              if (m.name) accessor = 'name';
+              if (m[accessor] == 'og:image'){
+                metaData.image.url = m.content;
+              } 
+              if (m[accessor] == 'og:image:width') {
+                metaData.image.width = m.content;
+              }
+              if (m[accessor] == 'og:image:height') {
+                metaData.image.height = m.content;
+              }
+              if (m[accessor] == 'og:description'){
+                metaData.description = m.content;
+              }
+              if (m[accessor] == 'og:title'){
+                metaData.title = m.content;
+              }
+              if (m[accessor] == 'og:url'){
+                metaData.url = m.content;
+              }
+              if (m[accessor] == 'og:video:url'){
+                if (!metaData.video_url) {
+                  metaData.video_url = m.content;
+                }
+              }
+            });
+            message.meta = metaData;
+          }
+          save(message);
+        });
+        var parser = new htmlparser.Parser(handler);
+        parser.parseComplete(body);
+      });
+    } else {
+      save(message);
+    }
+
 }
 
 
@@ -810,3 +957,12 @@ exports.deleteUserFromGroup = function(req, res){
   });
 };
 
+exports.fetchDirectDigest = function(req, res) {
+  var uid = req.params.uid;
+  Message.find({target: uid, creator: {$ne: uid}, read: {$ne: ObjectId(uid)}})
+  .populate({path: 'creator', model: 'User', select: {_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1}})
+  .exec(function(err, messages){
+    console.log(messages);
+    utils.prismResponse(res, messages, true);
+  });
+};
