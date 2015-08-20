@@ -48,13 +48,15 @@ exports.fetchOrgs = function(req, res){
         });
       } else {
         var orgs = [];
-        _.each(user.org_status, function(o, i, l){
-           if (o.status == 'active' && o.organization){
-             orgs.push(o.organization);
-           } 
-        });
+        User.populate(user, {path: 'org_status.organization.theme', model: 'Theme'}, function(err, user){
+          _.each(user.org_status, function(o, i, l){
+             if (o.status == 'active' && o.organization){
+               orgs.push(o.organization);
+             } 
+          });
 
-        utils.prismResponse(res, orgs, true);
+          utils.prismResponse(res, orgs, true);
+        });
       }
     } else {
       res.status(400).send();
