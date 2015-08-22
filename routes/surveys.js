@@ -182,7 +182,12 @@ exports.getLeaderboard = function(req, res) {
 
 exports.getUserSurveys = function(req, res) {
   var uid = req.params.uid;
-  Survey.find({completed: uid})
+  var oid = req.query.organization;
+  var params = {completed: uid};
+  if (oid) {
+    params.organization = oid;
+  }
+  Survey.find(params)
   .populate({path: 'questions', model: 'Question'})
   .exec(function(err, surveys){
     Survey.populate(surveys, {path: 'questions.answers', model: 'Answer', select: {create_date: 1, user: 1}}, function(err, surveys){
