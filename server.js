@@ -89,9 +89,10 @@ _app.use(_e_winston.errorLogger({
 
 //Set SSL options for HTTPS traffic
 var ssl_options = {
-  key:                  _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.key'),
-  cert:                 _fs.readFileSync(_prism_home + '/config/ssl/PrismApiDev.crt'),
-  ca:                   _fs.readFileSync(_prism_home + '/config/ssl/stablekernel.crt'),
+  key:                  _fs.readFileSync(_prism_home + '/config/ssl/PrizmApp.key'),
+  cert:                 _fs.readFileSync(_prism_home + '/config/ssl/star_prizmapp_com.crt'),
+  ca:                   _fs.readFileSync(_prism_home + '/config/ssl/DigiCertCA.crt'),
+  requestCert:        false,
 //  requestCert:       true,
   rejectUnauthorized:   false
 };
