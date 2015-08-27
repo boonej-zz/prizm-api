@@ -39,12 +39,14 @@ module.exports = function(req, res){
  * @return {Array} Returns an array of user:pass passed by  Basic Auth headers
  */
 var credentials = function(header){
+   console.log(header);
    if(header){
     var authArray = header.split(" ");
     if(authArray.length == 2 && authArray[0] == 'Basic'){
       var creds = new Buffer(authArray[1], 'base64').toString('ascii');
       var credsArray = creds.split(':');
       if(credsArray.length == 2){
+        console.log(credsArray);
         return credsArray;
       }
     }
@@ -63,6 +65,7 @@ var credentials = function(header){
  */
 var authorizeClientRequest = function(req, res, callback){
   var creds = credentials(req.get('Authorization'));
+  console.log(creds);
   if(creds){
     Client.findOne({client_id: creds[0], client_secret: creds[1]}, function(error, result){
       if(error){
@@ -72,6 +75,7 @@ var authorizeClientRequest = function(req, res, callback){
       }
     });
   }else{
+    console.log('No credentials.');
     callback('Error parsing credentials', false, null);
   }
 };
@@ -83,6 +87,7 @@ var authorizeClientRequest = function(req, res, callback){
  * @param {HTTPResponse} res The response object
  */
 var createAuthorizationToken = function(req, res){
+  console.log('creating token');
   var grant_type    = req.body.grant_type,
       code          = req.body.code,
       redirect_uri  = req.body.redirect_uri,
@@ -90,6 +95,7 @@ var createAuthorizationToken = function(req, res){
 
   switch(grant_type){
     case 'authorization_code':
+      console.log('Has auth code');
       handleAuthorizationCode(req, res);
       break;
     case 'client_credentials':
@@ -122,7 +128,11 @@ var handleAuthorizationCode = function(req, res){
         Client.findOne({client_id: authCode.client_id}, function(error, client){
           if(client){
             var creds = credentials(req.get('Authorization'));
+            console.log(client);
+            console.log(client.client_id + '=' + creds[0]);
+            console.log(client.client_secret + '=' + creds[1]);
             if(client.client_id == creds[0] && client.client_secret == creds[1]){
+              console.log('Credentials match');
               Token.remove({code: code}, function(error){
                 if(error) console.log(error);
                 if(authCode.redirect_uri == redirect_uri){

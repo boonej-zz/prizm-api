@@ -91,7 +91,7 @@ _app.use(_e_winston.errorLogger({
 var ssl_options = {
   key:                  _fs.readFileSync(_prism_home + '/config/ssl/PrizmApp.key'),
   cert:                 _fs.readFileSync(_prism_home + '/config/ssl/star_prizmapp_com.crt'),
-  ca:                   _fs.readFileSync(_prism_home + '/config/ssl/TrustedRoot.crt'),
+  ca:                   _fs.readFileSync(_prism_home + '/config/ssl/DigiCertCA.crt'),
   requestCert:        false,
 //  requestCert:       true,
   rejectUnauthorized:   false
