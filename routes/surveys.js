@@ -48,7 +48,7 @@ exports.postAnswer = function(req, res) {
       if (index != -1) {
         answer = q.answers[index];
         answer.value = value;
-        answer.create_date = date.now();
+        answer.create_date = Date.now();
         answer.save(function (err, result){ 
           utils.prismResponse(res, q, true);
         });

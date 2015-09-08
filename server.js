@@ -42,6 +42,7 @@ var _express        = require('express'),
     _interest       = require(_prism_home + 'routes/interests'),
     _organization   = require(_prism_home + 'routes/organizations'),
     _message        = require(_prism_home + 'routes/messages'),
+    V2Groups        = require(_prism_home + 'routes/v2_groups'),
     _survey         = require(_prism_home + 'routes/surveys');
     new ActivityListener();
 
@@ -112,6 +113,8 @@ _app.get('/', function(req,res){ res.send('Welcome to the Prism API'); });
 
 /* Authentication Code Endpoint */
 _app.get('/oauth2/authorize', _auth);
+
+_app.all('/v2/organizations/*', _gateway, V2Groups);
 
 
 /* Default Authorization Code RedirectUri Callback Endpoint - FOR PRISM MOBILE USE ONLY */
