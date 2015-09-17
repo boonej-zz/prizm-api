@@ -569,6 +569,26 @@ userSchema.pre('save', function(next){
   }
 });
 
+userSchema.methods.fetchGroups = function(org_id, next) {
+  model = this.model('User');
+  model.populate(this, {path: 'org_status.groups', model: 'Group'}, function(err, user){
+    model.populate(user, {path: 'org_status.groups.owner', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1}}, function(err, user){
+      var orgs = _.filter(user.org_status, function(obj){
+        return String(obj.organization) == String(org_id);
+      }); 
+      if (orgs.length > 0) {
+        org = orgs[0];
+        var groups = _.filter(org.groups, function(obj){
+          return obj.status == 'active';
+        });
+        next(err, groups);        
+      } else {
+        next(err, []);
+      }
+    });
+  });
+}
+
 exports.User = _mongoose.model('User', userSchema);
 _mongoose.model('OrgStatus', orgStatusSchema);
 // exports.Trust = _mongoose.model('Trust', trustSchema);

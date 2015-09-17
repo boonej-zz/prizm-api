@@ -43,6 +43,8 @@ var _express        = require('express'),
     _organization   = require(_prism_home + 'routes/organizations'),
     _message        = require(_prism_home + 'routes/messages'),
     _survey         = require(_prism_home + 'routes/surveys');
+var v2 = require(_prism_home + 'v2');
+    
     new ActivityListener();
 
 var _app            = _express();
@@ -80,6 +82,7 @@ _app.use(_e_winston.logger({
   msg: "HTTP METHOD:{{req.method}}  URL:{{req.url}}  QUERY:{{JSON.stringify(req.query)}}  BODY:{{JSON.stringify(req.body)}}"
 }));
 
+_app.use('/v2/', v2);
 _app.use(_app.router);
 
 /* express winston errorLogger after router */

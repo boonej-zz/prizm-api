@@ -2,6 +2,7 @@ var mongoose          = require('mongoose'),
     utils             = require(process.env.PRISM_HOME + 'utils'),
     User              = mongoose.model('User'),
     ObjectId          = mongoose.Schema.Types.ObjectId;
+var _ = require('underscore');
 
 var organizationSchema = new mongoose.Schema({
   code                : {type: String, default: null, required: true, 
@@ -51,6 +52,20 @@ organizationSchema.methods.format = function(type, add_fields){
   return format;
 }
 
+organizationSchema.methods.fetchGroups = function(next) {
+  var model = this.model('Organization');
+  model.populate(this, {path: 'groups', model: 'Group'}, function(err, organization){
+    model.populate(organization, {path:'groups.owner', model: 'User'}, function(err, organization){
+      var groups = false;
+      if (organization.groups) {
+        groups = _.filter(organization.groups, function(obj) {
+          return obj.status == 'active';
+        });
+      }
+      next(err, groups); 
+    });
+  });
+};
 organizationSchema.statics.canResolve = function(){
   return [
     {members: {identifier: '_id', model: 'User'}},
