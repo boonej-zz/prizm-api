@@ -128,4 +128,52 @@ messageSchema.methods.prettyText = function(next) {
   });
 };
 
+
+messageSchema.statics.findAndFlatten = function(criteria, limit, next){
+  var model = this.model('Message');
+  model.find(criteria)
+  .sort({create_date: -1})
+  .limit(limit || 25)
+  .exec(function(err, messages) {
+    if (messages) {
+      model.populate(messages, {path: 'creator', 
+        model: 'User', 
+        select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
+        function(err, messages){
+          var result = [];
+          _.each(messages, function(m){
+            m = m.toObject();
+            m.creator_profile_photo_url = m.creator.profile_photo_url;
+            m.creator_id = m.creator._id;
+            m.creator_subtype = m.creator.subtype;
+            m.creator_active = m.creator.active;
+            m.creator_name = m.creator.name;
+            if (m.meta) {
+              if (m.meta.image && m.meta.image.url) {
+                m.meta_image_url = m.meta.image.url;
+              }
+              if (m.meta.title) {
+                m.meta_title = m.meta.title;
+              }
+              if (m.meta.description) {
+                m.meta_description = m.meta.description;
+              }
+              if (m.meta.url) {
+                m.meta_url = m.meta.url;
+              }
+              if (m.meta.video_url) {
+                m.meta_video_url = m.meta.video_url;
+              }
+            }
+            
+            result.push(m);
+          });
+          next(err, result); 
+        });
+    } else {
+      next(err, []);
+    }
+  });
+};
+
 mongoose.model('Message', messageSchema);

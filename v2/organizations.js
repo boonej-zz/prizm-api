@@ -5,6 +5,7 @@ var config = require('config');
 var gateway = require('../gateway');
 var Organization = mongoose.model('Organization');
 var User = mongoose.model('User');
+var Message = mongoose.model('Message');
 
 // Organization Endpoints
 
@@ -60,6 +61,50 @@ app.get('/:org_id/users/:uid/groups', function(req, res) {
   } else {
     res.status(400).send();
   }
+});
+
+app.get('/:org_id/groups/:gid/messages', function(req, res) {
+  var org_id = req.params.org_id;
+  var gid = req.params.gid != "all"?req.params.gid:false;
+  var before = req.query.before?new Date(req.query.before):false;
+  var after = req.query.after?new Date(req.query.after):false;
+  var limit = req.query.limit || false;
+  var params = {organization: org_id, target: null};
+  if (gid) {
+    params.group = gid;
+  } else {
+    params.group = null;
+  }
+  var createDateBefore = false;
+  var createDateAfter = false;
+  if (after) {
+    createDateAfter = {$gt: after};
+  }
+  if (before) {
+    createDateBefore = {$lt: before};
+  }
+  var createDateRequest = false;
+  if (before) {
+    if (after) {
+      createDateRequest = {$and: [createDateBefore, createDateAfter]}; 
+    } else {
+      createDateRequest = createDateBefore;
+    }
+  } else if (after) {
+    createDateRequest = createDateAfter;
+  }
+
+  if (createDateRequest) {
+    params.create_date = createDateRequest;
+  }
+
+  Message.findAndFlatten(params, limit, function(err, messages){
+    if (err) {
+      res.status(500).json(err);
+    } else {
+      res.status(200).json(messages);
+    }
+  });
 });
 
 module.exports = app;
