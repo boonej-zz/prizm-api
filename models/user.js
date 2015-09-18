@@ -611,22 +611,34 @@ userSchema.pre('save', function(next){
 
 userSchema.methods.fetchGroups = function(org_id, next) {
   model = this.model('User');
-  model.populate(this, {path: 'org_status.groups', model: 'Group'}, function(err, user){
-    model.populate(user, {path: 'org_status.groups.owner', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1}}, function(err, user){
-      var orgs = _.filter(user.org_status, function(obj){
-        return String(obj.organization) == String(org_id);
-      }); 
-      if (orgs.length > 0) {
-        org = orgs[0];
-        var groups = _.filter(org.groups, function(obj){
-          return obj.status == 'active';
-        });
-        next(err, groups);        
-      } else {
-        next(err, []);
-      }
+  if (this.type == 'user') {
+    model.populate(this, {path: 'org_status.groups', model: 'Group'}, function(err, user){
+      model.populate(user, {path: 'org_status.groups.owner', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1}}, function(err, user){
+        var orgs = _.filter(user.org_status, function(obj){
+          return String(obj.organization) == String(org_id);
+        }); 
+        if (orgs.length > 0) {
+          org = orgs[0];
+          var groups = _.filter(org.groups, function(obj){
+            return obj.status == 'active';
+          });
+          next(err, groups);        
+        } else {
+          next(err, []);
+        }
+      });
     });
-  });
+  } else if (this.type == 'institution_verified') {
+    var Group = _mongoose.model('Group');
+    console.log(this._id);
+    Group.find({organization: org_id, status: 'active'})
+    .sort({name: 1})
+    .exec(function(err, groups){
+      next(err, groups);
+    });
+  } else {
+    next(null, []);
+  }
 }
 
 exports.User = _mongoose.model('User', userSchema);
