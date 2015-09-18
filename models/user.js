@@ -174,6 +174,46 @@ userSchema.statics.selectFields = function(type){
   }
 };
 
+userSchema.statics.findOneCore = function(uid, next) {
+  var Organization = _mongoose.model('Organization');
+  var primaryOrg = false;
+  var model = this.model('User');
+  model.findOne({_id: uid})
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, cover_photo_url: 1,
+   email: 1, info: 1, city: 1, state: 1, active: 1, subtype: 1, type: 1, 
+   org_status: {$elemMatch: {status: 'active'}}})
+  .exec(function(err, user){
+    if (user && user.type == 'user') {
+      model.populate(user, {path: 'org_status.organization', model: 'Organization'}, 
+        function(err, user) {
+          model.populate(user, {path: 'org_status.organization.theme', model: 'Theme'}, 
+            function(err, user){
+              user = user.toObject();
+              if (user.org_status.length > 0) {
+                user.primary_organization = user.org_status[0].organization._id;
+                user.theme = user.org_status[0].organization.theme.background_url;
+                next(err, user);
+              }
+            });
+      });
+    } else if (user && user.type == 'institution_verified') {
+      Organization.findOne({owner: user._id})
+      .populate({path: 'theme', model: 'Theme'})
+      .exec(function(err, org){
+        if (org){
+          user = user.toObject();
+          user.primary_organization = org._id;
+          user.theme = org.theme.background_url;
+        }
+        next(err, user);
+      });
+    } else {
+     next(err, user);
+    }
+  });
+
+};
+
 userSchema.statics.resolvePostTags = function(post, next){
   var postText = post.text || '';
   var commentText = [];
