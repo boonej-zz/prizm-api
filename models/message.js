@@ -168,6 +168,7 @@ messageSchema.statics.findAndFlatten = function(criteria, limit, next){
             
             result.push(m);
           });
+          result.reverse();
           next(err, result); 
         });
     } else {
