@@ -142,30 +142,7 @@ messageSchema.statics.findAndFlatten = function(criteria, limit, next){
         function(err, messages){
           var result = [];
           _.each(messages, function(m){
-            m = m.toObject();
-            m.creator_profile_photo_url = m.creator.profile_photo_url;
-            m.creator_id = m.creator._id;
-            m.creator_subtype = m.creator.subtype;
-            m.creator_active = m.creator.active;
-            m.creator_name = m.creator.name;
-            if (m.meta) {
-              if (m.meta.image && m.meta.image.url) {
-                m.meta_image_url = m.meta.image.url;
-              }
-              if (m.meta.title) {
-                m.meta_title = m.meta.title;
-              }
-              if (m.meta.description) {
-                m.meta_description = m.meta.description;
-              }
-              if (m.meta.url) {
-                m.meta_url = m.meta.url;
-              }
-              if (m.meta.video_url) {
-                m.meta_video_url = m.meta.video_url;
-              }
-            }
-            
+            fillMessage(m); 
             result.push(m);
           });
           result.reverse();
@@ -181,8 +158,40 @@ messageSchema.statics.createMessage = function(params, next) {
   var model = this.model('Message');
   var message = new model(params);
   message.save(function(err, result){
-    next(err, result);
+    model.populate(result, {path: 'creator', 
+      model: 'User', 
+      select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
+      function(err, message) {
+        fillMessage(message); 
+        next(err, message);
+      });
   });
 };
+
+var fillMessage = function(m) {
+  m = m.toObject();
+  m.creator_profile_photo_url = m.creator.profile_photo_url;
+  m.creator_id = m.creator._id;
+  m.creator_subtype = m.creator.subtype;
+  m.creator_active = m.creator.active;
+  m.creator_name = m.creator.name;
+  if (m.meta) {
+    if (m.meta.image && m.meta.image.url) {
+      m.meta_image_url = m.meta.image.url;
+    }
+    if (m.meta.title) {
+      m.meta_title = m.meta.title;
+    }
+    if (m.meta.description) {
+      m.meta_description = m.meta.description;
+    }
+    if (m.meta.url) {
+      m.meta_url = m.meta.url;
+    }
+    if (m.meta.video_url) {
+      m.meta_video_url = m.meta.video_url;
+    }
+  }
+}
 
 mongoose.model('Message', messageSchema);
