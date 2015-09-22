@@ -178,7 +178,8 @@ messageSchema.statics.findAndFlatten = function(criteria, limit, next){
 };
 
 messageSchema.statics.createMessage = function(params, next) {
-  var message = new Message(params);
+  var model = this.model('Message');
+  var message = new model(params);
   message.save(function(err, result){
     next(err, result);
   });
