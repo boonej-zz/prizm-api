@@ -107,4 +107,26 @@ app.get('/:org_id/groups/:gid/messages', function(req, res) {
   });
 });
 
+app.post("/:oid/groups/:gid/messages", function(req, res){
+  var oid = req.params.oid;
+  var gid = req.params.gid;
+  if (gid == "all") {
+    gid = null;
+  }
+  var text = req.body.text;
+  var creator = req.body.creator;
+  Message.createMessage({
+    organization: oid,
+    group: gid,
+    text: text,
+    creator: creator
+  }, function(err, message){
+    if (err) {
+      res.status(500).json(err);
+    } else {
+      res.status(200).json([message]);
+    }
+  });
+})
+
 module.exports = app;

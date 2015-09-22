@@ -177,4 +177,11 @@ messageSchema.statics.findAndFlatten = function(criteria, limit, next){
   });
 };
 
+messageSchema.statics.createMessage = function(params, next) {
+  var message = new Message(params);
+  message.save(function(err, result){
+    next(err, result);
+  });
+};
+
 mongoose.model('Message', messageSchema);
