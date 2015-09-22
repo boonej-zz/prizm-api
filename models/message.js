@@ -218,7 +218,8 @@ messageSchema.statics.isLiked = function(messages, requestor) {
 }
 
 messageSchema.statics.likeMessage = function(mid, uid, next){
-  Message.findOne({id: mid}, function(err, message){
+  var model = this.model("Message");
+  model.findOne({id: mid}, function(err, message){
     if (err) next(err, message);
     else {
       var liked = false;
@@ -239,7 +240,6 @@ messageSchema.statics.likeMessage = function(mid, uid, next){
       message.save(function(err, result) {
         if (err) next(err, result);
         else {
-          var model = this.model("Message");
           model.fillMessage(result);
           result = messageLiked(result, uid);
           next(err, result);
