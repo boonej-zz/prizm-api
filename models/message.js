@@ -241,7 +241,7 @@ messageSchema.statics.likeMessage = function(mid, uid, next){
       message.save(function(err, result) {
         if (err) next(err, result);
         else {
-          model.fillMessage(result);
+          result = fillMessage(result);
           result = messageLiked(result, uid);
           next(err, result);
         }
