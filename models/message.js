@@ -195,4 +195,24 @@ var fillMessage = function(m) {
   return m;
 }
 
+messageSchema.statics.isLiked = function(messages, requestor) {
+  console.log(requestor);
+  _.each(messages, function(m){
+    var isLiked = false;
+    if (String(m.creator_id) == String(requestor)){
+      m.my_post = true;
+    } else {
+      m.my_post = false;
+    }
+    _.each(m.likes, function(l){
+      if (String(l) == String(requestor)) {
+        isLiked = true;
+      }
+    });
+    m.liked = isLiked;
+    console.log(m);
+  });
+  return messages;
+}
+
 mongoose.model('Message', messageSchema);

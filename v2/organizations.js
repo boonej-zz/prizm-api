@@ -69,6 +69,7 @@ app.get('/:org_id/groups/:gid/messages', function(req, res) {
   var before = req.query.before?new Date(req.query.before):false;
   var after = req.query.after?new Date(req.query.after):false;
   var limit = req.query.limit || false;
+  var requestor = req.query.requestor || false;
   var params = {organization: org_id, target: null};
   if (gid) {
     params.group = gid;
@@ -102,6 +103,7 @@ app.get('/:org_id/groups/:gid/messages', function(req, res) {
     if (err) {
       res.status(500).json(err);
     } else {
+      messages = Message.isLiked(messages, requestor); 
       res.status(200).json(messages);
     }
   });
