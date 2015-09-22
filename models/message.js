@@ -142,7 +142,7 @@ messageSchema.statics.findAndFlatten = function(criteria, limit, next){
         function(err, messages){
           var result = [];
           _.each(messages, function(m){
-            fillMessage(m); 
+            m = fillMessage(m); 
             result.push(m);
           });
           result.reverse();
@@ -162,7 +162,7 @@ messageSchema.statics.createMessage = function(params, next) {
       model: 'User', 
       select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
       function(err, message) {
-        fillMessage(message); 
+        message = fillMessage(message); 
         next(err, message);
       });
   });
@@ -192,6 +192,7 @@ var fillMessage = function(m) {
       m.meta_video_url = m.meta.video_url;
     }
   }
+  return m;
 }
 
 mongoose.model('Message', messageSchema);
