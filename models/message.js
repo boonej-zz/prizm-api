@@ -241,9 +241,14 @@ messageSchema.statics.likeMessage = function(mid, uid, next){
       message.save(function(err, result) {
         if (err) next(err, result);
         else {
-          result = fillMessage(result);
-          messageLiked(result, uid);
-          next(err, result);
+        model.populate(result, {path: 'creator', 
+          model: 'User', 
+          select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
+          function(err, result){
+            result = fillMessage(result);
+            messageLiked(result, uid);
+            next(err, result);
+          });
         }
       });
     } else {
