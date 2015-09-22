@@ -131,4 +131,15 @@ app.post("/:oid/groups/:gid/messages", function(req, res){
   });
 })
 
+app.post("/:oid/groups/:gid/messages/:mid", function(req, res){
+  var mid = req.params.mid;
+  var requestor = req.body.requestor;
+  Message.likeMessage(mid, requestor, function(err, message){
+    if (err) res.status(500).json(err);
+    else {
+      res.status(200).json(message);
+    }
+  });
+});
+
 module.exports = app;
