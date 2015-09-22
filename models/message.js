@@ -242,7 +242,7 @@ messageSchema.statics.likeMessage = function(mid, uid, next){
         if (err) next(err, result);
         else {
           result = fillMessage(result);
-          result = messageLiked(result, uid);
+          messageLiked(result, uid);
           next(err, result);
         }
       });
