@@ -195,24 +195,58 @@ var fillMessage = function(m) {
   return m;
 }
 
-messageSchema.statics.isLiked = function(messages, requestor) {
-  console.log(requestor);
-  _.each(messages, function(m){
-    var isLiked = false;
-    if (String(m.creator_id) == String(requestor)){
-      m.my_post = true;
-    } else {
-      m.my_post = false;
+var messageLiked = function(m, r) {
+  var isLiked = false;
+  if (String(m.creator_id) == String(r)){
+    m.my_post = true;
+  } else {
+    m.my_post = false;
+  }
+  _.each(m.likes, function(l){
+    if (String(l) == String(r)) {
+      isLiked = true;
     }
-    _.each(m.likes, function(l){
-      if (String(l) == String(requestor)) {
-        isLiked = true;
-      }
-    });
-    m.liked = isLiked;
-    console.log(m);
+  });
+  m.liked = isLiked;
+};
+
+messageSchema.statics.isLiked = function(messages, requestor) {
+  _.each(messages, function(m){
+    m = messageLiked(m, requestor);   
   });
   return messages;
+}
+
+messageSchema.statics.likeMessage = function(mid, uid, next){
+  Message.findOne({id: mid}, function(err, message){
+    if (err) next(err, message);
+    else {
+      var liked = false;
+      var idx = -1;
+      _.each(message.likes, function(l, index) {
+          if (String(l) == String(uid)){
+            liked = true;
+            idx = index;
+          }
+      });
+      if (liked) {
+        message.likes = message.likes.splice(idx, 1);
+        message.likes_count -= 1;
+      } else {
+        message.likes.push(uid);
+        message.likes_count +=1;
+      }
+      message.save(function(err, result) {
+        if (err) next(err, result);
+        else {
+          var model = this.model("Message");
+          model.fillMessage(result);
+          result = messageLiked(result, uid);
+          next(err, result);
+        }
+      });
+    }
+  }); 
 }
 
 mongoose.model('Message', messageSchema);
