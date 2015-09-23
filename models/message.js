@@ -129,7 +129,8 @@ messageSchema.methods.prettyText = function(next) {
 };
 
 
-messageSchema.statics.findAndFlatten = function(criteria, limit, next){
+
+messageSchema.statics.findAndFlatten = function(criteria, requestor, limit, next){
   var model = this.model('Message');
   model.find(criteria)
   .sort({create_date: -1})
@@ -140,13 +141,10 @@ messageSchema.statics.findAndFlatten = function(criteria, limit, next){
         model: 'User', 
         select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
         function(err, messages){
-          var result = [];
-          _.each(messages, function(m){
-            m = fillMessage(m); 
-            result.push(m);
+          androidText(messages, requestor, function(result){
+            result.reverse();
+            next(err, result); 
           });
-          result.reverse();
-          next(err, result); 
         });
     } else {
       next(err, []);
@@ -162,11 +160,59 @@ messageSchema.statics.createMessage = function(params, next) {
       model: 'User', 
       select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
       function(err, message) {
-        message = fillMessage(message); 
-        next(err, message);
+        androidText(message, params.creator, function(m){
+          next(err, message);
+        });
       });
   });
 };
+
+var extractTags = function(obj, users) {
+  var at = obj.text;
+  if (obj.text) {
+    var match = String(obj.text).match(/@\w{24}/g);
+    if (match && match.length > 0) {
+      _.each(match, function(tag, idx, list){
+        var uid = tag.substr(1);
+        var mu = _.find(users, function(user){
+          return String(user._id) == String(uid);
+        });
+        if (mu){
+          at  = at.replace(tag, '@(' + mu.name + '|' + mu._id + ')');
+        }
+      });
+    } 
+  }
+  return at;
+}
+
+var androidText = function(obj, requestor, next) {
+  var User = mongoose.model('User');
+  if (_.isArray(obj)) {
+    var finalArray = [];
+    _.each(obj, function(o, idx, list){
+      messageLiked(o, requestor);
+      User.resolvePostTags(o, function(err, users) {
+        var at = extractTags(o, users);
+        o = fillMessage(o);
+        o.android_text = at;
+        finalArray.push(o);
+        if (finalArray.length == list.length) {
+          next(finalArray);
+        }
+      });
+    });
+  } else {
+    User.resolvePostTags(obj, function(err, users) {
+      var at = extractTags(obj);   
+      obj = fillMessage(obj);
+      obj.android_text = at;
+      next(obj);
+    });
+
+  }
+}
+
 
 var fillMessage = function(m) {
   m = m.toObject();
@@ -244,9 +290,9 @@ messageSchema.statics.likeMessage = function(mid, uid, next){
           model: 'User', 
           select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
           function(err, result){
-            result = fillMessage(result);
-            messageLiked(result, uid);
-            next(err, result);
+            androidText(result, uid, function(message){
+              next(err, message);
+            });
           });
         }
       });

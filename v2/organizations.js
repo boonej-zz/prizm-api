@@ -99,7 +99,7 @@ app.get('/:org_id/groups/:gid/messages', function(req, res) {
     params.create_date = createDateRequest;
   }
 
-  Message.findAndFlatten(params, limit, function(err, messages){
+  Message.findAndFlatten(params, requestor, limit, function(err, messages){
     if (err) {
       res.status(500).json(err);
     } else {
