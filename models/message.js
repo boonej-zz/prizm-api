@@ -136,7 +136,7 @@ messageSchema.statics.findAndFlatten = function(criteria, requestor, limit, next
   .sort({create_date: -1})
   .limit(limit || 25)
   .exec(function(err, messages) {
-    if (messages) {
+    if (messages && messages.length > 0) {
       model.populate(messages, {path: 'creator', 
         model: 'User', 
         select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 

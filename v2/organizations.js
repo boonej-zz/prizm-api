@@ -6,6 +6,7 @@ var gateway = require('../gateway');
 var Organization = mongoose.model('Organization');
 var User = mongoose.model('User');
 var Message = mongoose.model('Message');
+var Group = mongoose.model('Group');
 
 // Organization Endpoints
 
@@ -63,19 +64,28 @@ app.get('/:org_id/users/:uid/groups', function(req, res) {
   }
 });
 
+var getMessages = function (criteria, requestor, limit, req, res) {
+ Message.findAndFlatten(criteria, requestor, limit, function(err, messages){
+   console.log('completed request');
+    if (err) {
+      res.status(500).json(err);
+    } else {
+      messages = Message.isLiked(messages, requestor); 
+      res.status(200).json(messages);
+    }
+  });
+};
+
 app.get('/:org_id/groups/:gid/messages', function(req, res) {
   var org_id = req.params.org_id;
-  var gid = req.params.gid != "all"?req.params.gid:false;
+  var gid = req.params.gid != "all"?req.params.gid:null;
+  
   var before = req.query.before?new Date(req.query.before):false;
   var after = req.query.after?new Date(req.query.after):false;
   var limit = req.query.limit || false;
   var requestor = req.query.requestor || false;
   var params = {organization: org_id, target: null};
-  if (gid) {
-    params.group = gid;
-  } else {
-    params.group = null;
-  }
+  
   var createDateBefore = false;
   var createDateAfter = false;
   if (after) {
@@ -98,16 +108,23 @@ app.get('/:org_id/groups/:gid/messages', function(req, res) {
   if (createDateRequest) {
     params.create_date = createDateRequest;
   }
+  if (gid && gid.substr(0, 1) == "~") {
+    Group.findOne({organization: org_id, name: gid.substr(1)})
+      .select({_id: 1})
+      .exec(function(err, group){
+        params.group = String(group._id);
+        if (err) {
+          res.status(500).json(err);
+        } else {
+          getMessages(params, requestor, limit, req, res);
+        }
+    });
+  } else {
+    params.group = gid;
+    getMessages(params, requestor, limit, req, res); 
+  }
 
-  Message.findAndFlatten(params, requestor, limit, function(err, messages){
-    if (err) {
-      res.status(500).json(err);
-    } else {
-      messages = Message.isLiked(messages, requestor); 
-      res.status(200).json(messages);
-    }
-  });
-});
+ });
 
 app.post("/:oid/groups/:gid/messages", function(req, res){
   var oid = req.params.oid;
