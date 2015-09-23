@@ -116,11 +116,13 @@ app.post("/:oid/groups/:gid/messages", function(req, res){
     gid = null;
   }
   var text = req.body.text;
+  var image_url = req.body.image_url;
   var creator = req.body.creator;
   Message.createMessage({
     organization: oid,
     group: gid,
     text: text,
+    image_url: image_url,
     creator: creator
   }, function(err, message){
     if (err) {
