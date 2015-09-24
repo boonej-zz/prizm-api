@@ -641,6 +641,19 @@ userSchema.methods.fetchGroups = function(org_id, next) {
   }
 }
 
+userSchema.statics.findBasic = function(params, limit, next){
+  var model = this.model('User');
+  params.active = true;
+  model.find(params)
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, type: 1, subtype: 1})
+  .sort({name: 1})
+  .limit(limit)
+  .exec(function(err, users) {
+    next(err, users);
+  });
+  
+};
+
 exports.User = _mongoose.model('User', userSchema);
 _mongoose.model('OrgStatus', orgStatusSchema);
 // exports.Trust = _mongoose.model('Trust', trustSchema);
