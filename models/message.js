@@ -161,7 +161,7 @@ messageSchema.statics.createMessage = function(params, next) {
       select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
       function(err, message) {
         androidText(message, params.creator, function(m){
-          next(err, message);
+          next(err, m);
         });
       });
   });
