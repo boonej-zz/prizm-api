@@ -21,7 +21,7 @@ app.get('/', function(req, res){
   if (organization) {
     var orgStatus = {organization: ObjectId(organization), status: 'active'};
     if (group) {
-      orgStatus.group = ObjectId(group);
+      orgStatus.groups = ObjectId(group);
     }
     params.org_status = {$elemMatch: orgStatus};
   }
