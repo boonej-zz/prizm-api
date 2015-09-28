@@ -204,7 +204,7 @@ var androidText = function(obj, requestor, next) {
     });
   } else {
     User.resolvePostTags(obj, function(err, users) {
-      var at = extractTags(obj);   
+      var at = extractTags(obj, users);   
       obj = fillMessage(obj);
       obj.android_text = at;
       next(obj);
