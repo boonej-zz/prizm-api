@@ -194,4 +194,24 @@ app.get("/:oid/users/:uid/messages", function(req, res){
   }
 });
 
+app.post("/:oid/users/:uid/messages", function(req, res){
+  var oid = req.params.oid;
+  var uid = req.params.uid;
+  var target = req.query.target;
+  Message.createMessage({
+    organization: oid,
+    target: req.body.target,
+    text: req.body.text,
+    image_url: req.body.image_url,
+    creator: uid
+  }, function(err, message){
+    if (err) {
+      res.status(500).json(err);
+    } else {
+      res.status(200).json([message]);
+    }
+  });
+
+});
+
 module.exports = app;
