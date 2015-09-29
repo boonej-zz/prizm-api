@@ -309,13 +309,45 @@ messageSchema.statics.findSentList = function(user, oid, next){
   .sort({create_date: -1})
   .exec(function(err, messages){
     if (messages) {
-      model.populate(messages, {path: 'target', model: 'User', select: {name: 1, first_name:1, last_name: 1, profile_photo_url: 1, active: 1}}, function(err, messages) {
+      model.populate(messages, {path: 'target', model: 'User', select: {_id: 1, name: 1, first_name:1, last_name: 1, profile_photo_url: 1, active: 1}}, function(err, messages) {
         var users = _.uniq(_.pluck(messages, 'target'));
         next(err, users); 
       });
     } else {
       next(err, []);
     }
+  });
+};
+
+messageSchema.statics.getMessageAggregate = function(user, oid, next) {
+  var userParams = {_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1};
+  var model = this.model('Message');
+  var params = {
+    $or: [
+                {target: user._id}, 
+                {creator: user._id, target: {$ne: null}}
+              ], organization: oid
+  };
+  model.find(params)
+  .select({target: 1,
+    creator: 1, create_date: 1})
+  .sort({create_date: -1})
+  .exec(function(err, messages) {
+    model.populate(messages, {path: 'target', select: userParams, model: 'User'}, function(err, messages) {
+
+      model.populate(messages, {path: 'creator', select: userParams, model: 'User'}, function(err, messages) {
+        if (messages) {
+          var targets = _.pluck(messages, 'target');
+          var creators = _.pluck(messages, 'creator');
+          var users = _.filter(_.uniq(_.union(targets, creators), function(obj){
+            return String(obj._id);
+          }), function(obj){
+            return String(obj._id) != String(user._id); 
+          });
+        }
+        next(err, users);
+      });
+    });
   });
 };
 

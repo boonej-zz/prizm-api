@@ -171,36 +171,14 @@ app.get("/:oid/users/:uid/messages", function(req, res){
       if (err) {
         res.status(500).json(err);
       } else {
-        if (user.type == 'institution_verified') {
-          Message.findSentList(user, oid, function(err, users){
-            if (err) {
-              res.status(500).json(err);
-            } else {
-              res.status(200).json(users);
-            }
-          });
-        } else if (user.org_status && user.org_status.length == 1) {
-          if (user.org_status[0].role == 'leader'){
-            Message.findSentList(user, oid,  function(err, users){
-              if (err) {
-                res.status(500).json(err);
-              } else {
-                res.status(200).json(users);
-              }
-            });
+        Message.getMessageAggregate(user, oid, function(err, users){
+          if (err) {
+            res.status(500).json(err);
           } else {
-            User.findAvailableDirectRecipients(user, function(err, users){
-              if (err) {
-                res.status(500).json(err);
-              } else {
-                res.status(200).send(users);
-              }
-            });
+            res.status(200).json(users);
           }
-        } else {
-          res.status(400).send();
-        }
-      } 
+        });
+      }
     });
   }
 });
