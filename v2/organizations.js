@@ -214,4 +214,33 @@ app.post("/:oid/users/:uid/messages", function(req, res){
 
 });
 
+app.get('/:oid/users/:uid/contacts', function(req, res) {
+  var oid = req.params.oid;
+  var uid = req.params.uid;
+  var last = req.query.last;
+  User.findOrganizationUser(uid, oid, function(err, user){
+    if (user.type == 'institution_verified'){
+      User.findOrganizationMembers(oid, last, function(err, users){
+        if (err) res.status(500).json(err);
+        else res.status(200).json(users);
+      });
+    } else {
+      if (user.org_status && user.org_status[0].role == 'leader') {
+        User.findOrganizationMembers(oid, last, function(err, users){
+          if (err) res.status(500).json(err);
+          else res.status(200).json(users);
+        }); 
+      } else {
+        User.findAvailableDirectRecipients(user, function(err, users){
+          if (err) {
+            res.status(500).json(err);
+          } else {
+            res.status(200).json(users);
+          }
+        });
+      }
+    }
+  });
+});
+
 module.exports = app;

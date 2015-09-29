@@ -701,6 +701,21 @@ userSchema.statics.findAvailableDirectRecipients = function(user, next){
   });
 };
 
+userSchema.statics.findOrganizationMembers = function(oid, last, next){
+  var model = this.model('User');
+  var params = {org_status: {$elemMatch: {organization: mObjectId(oid), status: 'active'}}, active: true};
+  if (last) {
+    params.name = {$gt: last};
+  }
+  model.find(params)
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1})
+  .sort({name: 1})
+  .limit(25)
+  .exec(function(err, users){
+    next(err, users);
+  });
+};
+
 exports.User = _mongoose.model('User', userSchema);
 _mongoose.model('OrgStatus', orgStatusSchema);
 // exports.Trust = _mongoose.model('Trust', trustSchema);
