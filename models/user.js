@@ -10,6 +10,7 @@ var _mongoose   = require('mongoose'),
     _           = require('underscore'),
     Trust       = require(_prism_home + 'models/trust').Trust,
     ObjectId    = _mongoose.Schema.Types.ObjectId,
+    mObjectId   = _mongoose.Types.ObjectId,
     _utils      = require(_prism_home + 'utils');
 
 var moment = require('moment');
@@ -652,6 +653,52 @@ userSchema.statics.findBasic = function(params, limit, next){
     next(err, users);
   });
   
+};
+
+userSchema.statics.findOrganizationUser = function(uid, oid, next){
+  var model = this.model('User');
+  var params = {_id: uid};
+  params.active = true;
+  var select = {_id: 1, type: 1};
+  select.org_status = {
+    $elemMatch: {
+      status: 'active',
+      organization: mObjectId(oid)
+    }
+  };
+  model.findOne(params)
+  .select(select)
+  .exec(function(err, user){
+    next(err, user);
+  });
+};
+
+userSchema.statics.findAvailableDirectRecipients = function(user, next){
+  var model = this.model('User');
+  if (!user.org_status || user.org_status.length != 1) {
+    next({error: 'User does not belong to an organization'}, null);
+    return;
+  }
+  var params = {};
+  var org_status = {
+    organization: user.org_status[0].organization,
+    role: 'leader',
+    status: 'active'
+  };
+  model.populate(user, {path: 'org_status.organization', model: 'Organization'}, function(err, user){
+    params = {
+      $or: [
+        {_id: user.org_status[0].organization.owner},
+        {org_status: {$elemMatch: org_status}}
+      ]
+    };
+    model.find(params)
+    .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1})
+    .sort({name: 1})
+    .exec(function(err, users){
+      next(err, users);
+    });
+  });
 };
 
 exports.User = _mongoose.model('User', userSchema);

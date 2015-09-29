@@ -300,6 +300,23 @@ messageSchema.statics.likeMessage = function(mid, uid, next){
       next({error: "no message"}, message);
     }
   }); 
-}
+};
+
+messageSchema.statics.findSentList = function(user, oid, next){
+  var model = this.model('Message');
+  model.find({creator: user._id, $and: [{target: {$ne: null}}, {target: {$ne: user._id}}], group: null, organization: oid})
+  .select({target: 1})
+  .sort({create_date: -1})
+  .exec(function(err, messages){
+    if (messages) {
+      model.populate(messages, {path: 'target', model: 'User', select: {name: 1, first_name:1, last_name: 1, profile_photo_url: 1, active: 1}}, function(err, messages) {
+        var users = _.uniq(_.pluck(messages, 'target'));
+        next(err, users); 
+      });
+    } else {
+      next(err, []);
+    }
+  });
+};
 
 mongoose.model('Message', messageSchema);

@@ -161,4 +161,48 @@ app.post("/:oid/groups/:gid/messages/:mid", function(req, res){
   });
 });
 
+
+app.get("/:oid/users/:uid/messages", function(req, res){
+  var oid = req.params.oid;
+  var uid = req.params.uid;
+  var format = req.query.format;
+  if (format == 'digest') {
+    User.findOrganizationUser(uid, oid, function(err, user){
+      if (err) {
+        res.status(500).json(err);
+      } else {
+        if (user.type == 'institution_verified') {
+          Message.findSentList(user, oid, function(err, users){
+            if (err) {
+              res.status(500).json(err);
+            } else {
+              res.status(200).json(users);
+            }
+          });
+        } else if (user.org_status && user.org_status.length == 1) {
+          if (user.org_status[0].role == 'leader'){
+            Message.findSentList(user, oid,  function(err, users){
+              if (err) {
+                res.status(500).json(err);
+              } else {
+                res.status(200).json(users);
+              }
+            });
+          } else {
+            User.findAvailableDirectRecipients(user, function(err, users){
+              if (err) {
+                res.status(500).json(err);
+              } else {
+                res.status(200).send(users);
+              }
+            });
+          }
+        } else {
+          res.status(400).send();
+        }
+      } 
+    });
+  }
+});
+
 module.exports = app;
