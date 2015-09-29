@@ -166,6 +166,9 @@ app.get("/:oid/users/:uid/messages", function(req, res){
   var oid = req.params.oid;
   var uid = req.params.uid;
   var format = req.query.format;
+  var target = req.query.target;
+  var before = req.query.before;
+  var after = req.query.after;
   if (format == 'digest') {
     User.findOrganizationUser(uid, oid, function(err, user){
       if (err) {
@@ -178,6 +181,14 @@ app.get("/:oid/users/:uid/messages", function(req, res){
             res.status(200).json(users);
           }
         });
+      }
+    });
+  } else {
+    Message.fetchDirectMessages(uid, target, oid, before, after, function(err, messages){
+      if (err) {
+        res.status(500).json(err);
+      } else {
+        res.status(200).json(messages);
       }
     });
   }

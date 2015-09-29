@@ -351,4 +351,27 @@ messageSchema.statics.getMessageAggregate = function(user, oid, next) {
   });
 };
 
+messageSchema.statics.fetchDirectMessages = function(uid, tid, oid, before, after, next){
+  var userParams = {_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1};
+  var model = this.model('Message');
+  var params = {$or: [{creator: uid, target: tid, organization: oid}, {creator:tid, target: uid, organization: oid}]};
+  if (before) {
+    params.create_date =  {$lt: before};
+  }
+  if (after) {
+    params.create_date = {$gt: after};
+  }
+  model.find(params)
+  .populate({path: 'creator', model: 'User', select: userParams})
+  .populate({path: 'target', model: 'User', select: userParams}) 
+  .sort({create_date: -1})
+  .limit(25)
+  .exec(function(err, messages){
+    androidText(messages, uid, function(m) {
+      m.reverse();
+      next(err, m);
+    });
+  });
+}
+
 mongoose.model('Message', messageSchema);
