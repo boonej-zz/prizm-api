@@ -193,6 +193,7 @@ userSchema.statics.findOneCore = function(uid, next) {
               if (user.org_status.length > 0) {
                 user.primary_organization = user.org_status[0].organization._id;
                 user.theme = user.org_status[0].organization.theme.background_url;
+                user.role = user.org_status[0].role;
                 next(err, user);
               }
             });
