@@ -206,6 +206,7 @@ userSchema.statics.findOneCore = function(uid, next) {
           user = user.toObject();
           user.primary_organization = org._id;
           user.theme = org.theme.background_url;
+          user.role = 'owner';
         }
         next(err, user);
       });
