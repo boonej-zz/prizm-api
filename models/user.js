@@ -710,10 +710,15 @@ userSchema.statics.findOrganizationMembers = function(oid, last, next){
     params.name = {$gt: last};
   }
   model.find(params)
-  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1})
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1,
+    org_status: {$elemMatch: {organization: mObjectId(oid), status: 'active'}}})
   .sort({name: 1})
   .limit(25)
   .exec(function(err, users){
+    _.each(users, function(u){
+      u = u.toObject();
+      u.role = u.org_status[0].role;
+    });
     next(err, users);
   });
 };
