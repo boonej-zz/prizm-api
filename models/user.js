@@ -715,11 +715,13 @@ userSchema.statics.findOrganizationMembers = function(oid, last, next){
   .sort({name: 1})
   .limit(25)
   .exec(function(err, users){
+    var results = [];
     _.each(users, function(u){
       u = u.toObject();
       u.role = u.org_status[0].role;
+      results.push(u);
     });
-    next(err, users);
+    next(err, results);
   });
 };
 
