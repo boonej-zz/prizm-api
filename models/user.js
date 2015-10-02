@@ -726,6 +726,7 @@ userSchema.statics.findOrganizationMembers = function(oid, last, next){
 };
 
 userSchema.statics.addToGroup = function(uid, group, next){
+  console.log(uid + ': ' + group);
   var model = this.model('User');
   model.findOne({_id: uid}, function(err, user){
     if (user) {
