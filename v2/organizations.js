@@ -100,6 +100,7 @@ app.post('/:oid/groups', function(req, res) {
         User.addToGroup(m, group);
       });
     }
+    res.status(200).send(group);
 
   });
   
