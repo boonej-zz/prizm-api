@@ -7,6 +7,7 @@ var Organization = mongoose.model('Organization');
 var User = mongoose.model('User');
 var Message = mongoose.model('Message');
 var Group = mongoose.model('Group');
+var _ = require('underscore');
 
 // Organization Endpoints
 
