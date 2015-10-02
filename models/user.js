@@ -732,6 +732,7 @@ userSchema.statics.addToGroup = function(uid, group, next){
     console.log(user.name + ': ' + user.org_status.length);
     if (user) {
       _.each(user.org_status, function(o){
+        console.log(o._id + ':' + o.organization);
         if (String(o._id) == String(o.organization)) {
           var exists = false;
           _.each(o.groups, function(g){
