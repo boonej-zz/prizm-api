@@ -729,6 +729,7 @@ userSchema.statics.addToGroup = function(uid, group, next){
   console.log(uid + ': ' + group);
   var model = this.model('User');
   model.findOne({_id: uid}, function(err, user){
+    console.log(user.name + ': ' + user.org_status.length);
     if (user) {
       _.each(user.org_status, function(o){
         if (String(o._id) == String(o.organization)) {
