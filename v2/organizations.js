@@ -96,6 +96,9 @@ app.post('/:oid/groups', function(req, res) {
       if (!_.isArray(members)) {
         members = JSON.parse(members);
       }
+      if (params.leader) {
+        User.addToGroup(params.leader, group);
+      }
       _.each(members, function(m){
         User.addToGroup(m, group);
       });
