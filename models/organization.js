@@ -55,14 +55,22 @@ organizationSchema.methods.format = function(type, add_fields){
 organizationSchema.methods.fetchGroups = function(next) {
   var model = this.model('Organization');
   model.populate(this, {path: 'groups', model: 'Group'}, function(err, organization){
-    model.populate(organization, {path:'groups.owner', model: 'User'}, function(err, organization){
+    model.populate(organization, {path:'groups.leader', model: 'User'}, function(err, organization){
       var groups = false;
+      var result = [];
       if (organization.groups) {
         groups = _.filter(organization.groups, function(obj) {
           return obj.status == 'active';
         });
+        _.each(groups, function(g) {
+          g = g.toObject();
+          if (g.leader) {
+            g.leader_name = g.leader.name;
+          }
+          result.push(g);
+        });
       }
-      next(err, groups); 
+      next(err, result); 
     });
   });
 };
