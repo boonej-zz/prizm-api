@@ -79,7 +79,7 @@ var getMessages = function (criteria, requestor, limit, req, res) {
 /** GROUPS **/
 
 /** CREATE **/
-app.put('/:oid/groups', function(req, res) {
+app.post('/:oid/groups', function(req, res) {
   var oid = req.params.oid;
   var params = {
     name: req.body.name,
