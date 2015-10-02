@@ -738,13 +738,17 @@ userSchema.statics.addToGroup = function(uid, group, next){
               exists = true;
             }
           });
+          console.log("Exists: " + exists);
           if (!exists) {
             o.groups.push(group._id);
           }
+          console.log(o);
         }
       });
+      user.markModified('org_status');
       user.save(function(err, result){
         if (next) {
+          console.log(err);
           next(err, result);
         } else {
           if (err) {
