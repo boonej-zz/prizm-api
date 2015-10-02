@@ -725,6 +725,42 @@ userSchema.statics.findOrganizationMembers = function(oid, last, next){
   });
 };
 
+userSchema.statics.addToGroup = function(uid, group, next){
+  var model = this.model('User');
+  model.findOne({_id: uid}, function(err, user){
+    if (user) {
+      _.each(user.org_status, function(o){
+        if (String(o._id) == String(o.organization)) {
+          var exists = false;
+          _.each(o.groups, function(g){
+            if (String(g) == String(group._id)){
+              exists = true;
+            }
+          });
+          if (!exists) {
+            o.groups.push(group._id);
+          }
+        }
+      });
+      user.save(function(err, result){
+        if (next) {
+          next(err, result);
+        } else {
+          if (err) {
+            console.log(err);
+          }
+        }
+      });
+    } else {
+      if (next) {
+        next(err, user);
+      } else {
+        console.log(err);
+      }
+    }
+  });
+};
+
 exports.User = _mongoose.model('User', userSchema);
 _mongoose.model('OrgStatus', orgStatusSchema);
 // exports.Trust = _mongoose.model('Trust', trustSchema);

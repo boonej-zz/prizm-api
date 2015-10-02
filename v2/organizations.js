@@ -76,6 +76,31 @@ var getMessages = function (criteria, requestor, limit, req, res) {
   });
 };
 
+/** GROUPS **/
+
+/** CREATE **/
+app.put('/:oid/groups', function(req, res) {
+  var oid = req.params.oid;
+  var params = {
+    name: req.body.name,
+    description: req.body.description,
+    organization: oid,
+    leader: req.body.leader
+  };
+  var members = req.body.members;
+  Group.newGroup(params, function(err, group) {
+    if (err) {
+      res.status(500).json(err);
+    } else {
+      _.each(members, function(m){
+        User.addToGroup(m, group);
+      });
+    }
+
+  });
+  
+});
+
 app.get('/:org_id/groups/:gid/messages', function(req, res) {
   var org_id = req.params.org_id;
   var gid = req.params.gid != "all"?req.params.gid:null;
