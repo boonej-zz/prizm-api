@@ -187,17 +187,15 @@ userSchema.statics.findOneCore = function(uid, next) {
     if (user && user.type == 'user') {
       model.populate(user, {path: 'org_status.organization', model: 'Organization'}, 
         function(err, user) {
-          console.log(user);
           model.populate(user, {path: 'org_status.organization.theme', model: 'Theme'}, 
             function(err, user){
-              console.log(user);
               user = user.toObject();
               if (user.org_status.length > 0) {
                 user.primary_organization = user.org_status[0].organization._id;
                 user.theme = user.org_status[0].organization.theme.background_url;
                 user.role = user.org_status[0].role;
-                next(err, user);
               }
+              next(err, user);
             });
       });
     } else if (user && user.type == 'institution_verified') {
