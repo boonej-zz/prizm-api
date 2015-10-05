@@ -187,8 +187,10 @@ userSchema.statics.findOneCore = function(uid, next) {
     if (user && user.type == 'user') {
       model.populate(user, {path: 'org_status.organization', model: 'Organization'}, 
         function(err, user) {
+          console.log(user);
           model.populate(user, {path: 'org_status.organization.theme', model: 'Theme'}, 
             function(err, user){
+              console.log(user);
               user = user.toObject();
               if (user.org_status.length > 0) {
                 user.primary_organization = user.org_status[0].organization._id;
@@ -616,7 +618,7 @@ userSchema.methods.fetchGroups = function(org_id, next) {
   model = this.model('User');
   if (this.type == 'user') {
     model.populate(this, {path: 'org_status.groups', model: 'Group'}, function(err, user){
-      model.populate(user, {path: 'org_status.groups.owner', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1}}, function(err, user){
+      model.populate(user, {path: 'org_status.groups.leader', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1}}, function(err, user){
         var orgs = _.filter(user.org_status, function(obj){
           return String(obj.organization) == String(org_id);
         }); 
