@@ -114,6 +114,9 @@ app.post('/:oid/groups', function(req, res) {
 app.put('/:org_id/groups/:gid', function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
+  var name = req.body.name;
+  var description = req.body.description;
+  var leader = req.body.leader;
   var members = req.body.members;
   if (!_.isArray(members)) {
     members = JSON.parse(members);
@@ -123,10 +126,12 @@ app.put('/:org_id/groups/:gid', function(req, res) {
     if (err) {
       res.status(400).json(err);
     } else {
-      group.name = req.body.name;
-      group.leader = req.body.leader;
-      group.description = req.body.description;
+      group.name = name;
+      group.leader = leader;
+      group.description = description;
       group.save(function(err, g){
+        console.log(err);
+        console.log(g);
         User.find({active: true, org_status: {
           $elemMatch: {
             organization: ObjectId(oid),
