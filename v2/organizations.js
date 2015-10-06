@@ -247,6 +247,8 @@ app.post("/:oid/users/:uid/messages", function(req, res){
 
 });
 
+/** MEMBERS **/
+
 app.get('/:oid/users/:uid/contacts', function(req, res) {
   var oid = req.params.oid;
   var uid = req.params.uid;
@@ -274,6 +276,32 @@ app.get('/:oid/users/:uid/contacts', function(req, res) {
       }
     }
   });
+});
+
+app.get('/:oid/groups/:gid/members', function(req, res) {
+  var oid = req.params.oid;
+  var gid = req.params.gid;
+  var last = req.query.last;
+  var show_all = req.query.show_all;
+  
+  if (show_all) {
+    User.findOrganizationMembers(oid, last, function(err, users){
+      if (err) {
+        res.status(500).json(err);
+      } else {
+        _.each(users, function(u){
+          u.is_member = false;
+          _.each(u.org_status[0].groups, function(g){
+            if (String(g) == String(gid)){
+              u.is_member = true;
+            }
+          });
+        });
+        res.status(200).json(users);
+      }
+    });
+  }
+  
 });
 
 module.exports = app;
