@@ -122,7 +122,7 @@ app.put('/:org_id/groups/:gid', function(req, res) {
     members = JSON.parse(members);
   }
 
-  console.log(members);
+  console.log('MEMBERS: ' + members);
 
   Group.findOne({_id: gid}, function(err, group) {
     if (err || !group) {
