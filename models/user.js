@@ -21,7 +21,7 @@ var orgStatusSchema = new _mongoose.Schema({
   organization          : {type: ObjectId, ref: 'Organization', required: true},
   status                : {type: String, default: 'pending', required: true},
   create_date           : {type: Date, default: Date.now()},
-  groups                : {type: Array},
+  groups                : [ObjectId],
   role                  : {type: String},
   member_id             : {type: String} 
 });

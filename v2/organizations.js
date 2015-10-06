@@ -132,13 +132,10 @@ app.put('/:org_id/groups/:gid', function(req, res) {
       group.leader = leader;
       group.description = req.body.description;
       group.save(function(err, g){
-        console.log(err);
-        console.log(g);
         User.find({active: true, org_status: {
           $elemMatch: {
-            organization: ObjectId(oid),
-            groups: ObjectId(gid), 
-            status: 'active' 
+            organization: oid,
+            groups: gid 
           }
         }
         }, function(err, users){
