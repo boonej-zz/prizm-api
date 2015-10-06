@@ -7,7 +7,7 @@ var Organization = mongoose.model('Organization');
 var User = mongoose.model('User');
 var Message = mongoose.model('Message');
 var Group = mongoose.model('Group');
-var ObjectId = require('mongoose').Types.ObjectId;
+var ObjectId = mongoose.Types.ObjectId;
 var _ = require('underscore');
 
 // Organization Endpoints
@@ -136,8 +136,8 @@ app.put('/:oid/groups/:gid', function(req, res) {
         console.log(gid);
         User.find({active: true, org_status: {
           $elemMatch: {
-            organization: oid,
-            groups: gid 
+            organization: ObjectId(oid),
+            groups: ObjectId(gid) 
           }
         }
         }, function(err, users){
