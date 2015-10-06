@@ -144,6 +144,7 @@ app.put('/:org_id/groups/:gid', function(req, res) {
         }, function(err, users){
           if (users){
             _.each(users, function(u) {
+              console.log('CURRENT USER: ' + u.name);
               var idx = -1;
               _.each(members, function(m, i) {
                 if (String(m) == String(u._id)){
