@@ -122,8 +122,6 @@ app.put('/:oid/groups/:gid', function(req, res) {
     members = JSON.parse(members);
   }
 
-  console.log('MEMBERS: ' + members);
-
   Group.findOne({_id: gid}, function(err, group) {
     if (err || !group) {
       res.status(400).json(err);
@@ -132,8 +130,6 @@ app.put('/:oid/groups/:gid', function(req, res) {
       group.leader = leader;
       group.description = req.body.description;
       group.save(function(err, g){
-        console.log(oid);
-        console.log(gid);
         User.find({active: true, org_status: {
           $elemMatch: {
             organization: ObjectId(oid),
@@ -141,11 +137,8 @@ app.put('/:oid/groups/:gid', function(req, res) {
           }
         }
         }, function(err, users){
-          console.log(err);
-          console.log(users);
           if (users){
             _.each(users, function(u) {
-              console.log('CURRENT USER: ' + u.name);
               var idx = -1;
               _.each(members, function(m, i) {
                 if (String(m) == String(u._id)){
@@ -153,6 +146,7 @@ app.put('/:oid/groups/:gid', function(req, res) {
                 }
               });
               if (idx == -1){
+                console.log('NOT FOUND': u.name);
                 _.each(u.org_status, function(o){
                   var i = 0;
                   if (String(o._id) == String(oid)){
@@ -161,7 +155,7 @@ app.put('/:oid/groups/:gid', function(req, res) {
                         i = index;
                       }
                     });
-                    o.groups = o.groups.splice(i, 1);
+                    o.groups.splice(i, 1);
                   }
                 });
                 u.markModified('org_status');
