@@ -161,6 +161,7 @@ app.put('/:org_id/groups/:gid', function(req, res) {
           _.each(members, function(m) {
               User.addToGroup(m, gid);
           });
+          res.status(200).json(g);
           
         });
       });
