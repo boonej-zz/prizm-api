@@ -136,7 +136,7 @@ app.put('/:org_id/groups/:gid', function(req, res) {
         console.log(g);
         User.find({active: true, org_status: {
           $elemMatch: {
-            organization: ObjectId(oid),
+            organization: oid,
             groups: ObjectId(gid), 
             status: 'active' 
           }
