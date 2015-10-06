@@ -632,7 +632,7 @@ userSchema.methods.fetchGroups = function(org_id, next) {
             g.leader_id = g.leader._id;
             result.push(g);
           });
-          next(err, g);        
+          next(err, result);        
         } else {
           next(err, []);
         }
