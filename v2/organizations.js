@@ -149,7 +149,7 @@ app.put('/:oid/groups/:gid', function(req, res) {
                 console.log('NOT FOUND: ' +  u.name);
                 _.each(u.org_status, function(o){
                   var i = 0;
-                  if (String(o._id) == String(oid)){
+                  if (String(o.organization) == String(oid)){
                     _.each(o.groups, function(g, index) {
                       if (String(g) == String(gid)) {
                         i = index;
