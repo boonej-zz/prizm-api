@@ -7,6 +7,7 @@ var Organization = mongoose.model('Organization');
 var User = mongoose.model('User');
 var Message = mongoose.model('Message');
 var Group = mongoose.model('Group');
+var ObjectId = mongoose.Types.ObjectId;
 var _ = require('underscore');
 
 // Organization Endpoints
@@ -107,6 +108,64 @@ app.post('/:oid/groups', function(req, res) {
 
   });
   
+});
+
+/** UPDATE **/
+app.put('/:org_id/groups/:gid', function(req, res) {
+  var oid = req.params.oid;
+  var gid = req.params.gid;
+  var members = req.body.members;
+  if (!_.isArray(members)) {
+    members = JSON.parse(members);
+  }
+
+  Group.find({_id: gid}, function(err, group) {
+    if (err) {
+      res.status(400).json(err);
+    } else {
+      group.name = req.body.name;
+      group.leader = req.body.leader;
+      group.description = req.body.description;
+      group.save(function(err, g){
+        User.find({active: true, org_status: {
+          $elemMatch: {
+            organization: ObjectId(oid),
+            groups: ObjectId(gid), 
+            status: active 
+          }
+        }
+        }, function(err, users){
+          if (users){
+            _.each(users, function(u) {
+              var idx = _.indexOf(members, String(u._id));
+              if (idx == -1){
+                _.each(u.org_status, function(o){
+                  var i = 0;
+                  if (String(o._id) == String(oid)){
+                    _.each(o.groups, function(g, index) {
+                      if (String(g) == String(gid)) {
+                        i = index;
+                      }
+                    });
+                    o.groups = o.groups.splice(i, 1);
+                  }
+                });
+                u.markModified('org_status');
+                u.save(function(err, result){
+                  if (err) console.log(err);
+                });
+              }
+            });
+            
+          } 
+          _.each(members, function(m) {
+              User.addToGroup(m, gid);
+          });
+          
+        });
+      });
+    }
+  });
 });
 
 app.get('/:org_id/groups/:gid/messages', function(req, res) {
