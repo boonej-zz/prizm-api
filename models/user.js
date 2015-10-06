@@ -787,6 +787,7 @@ userSchema.statics.addToGroup = function(uid, group, next){
   });
 };
 
+
 exports.User = _mongoose.model('User', userSchema);
 _mongoose.model('OrgStatus', orgStatusSchema);
 // exports.Trust = _mongoose.model('Trust', trustSchema);

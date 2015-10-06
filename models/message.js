@@ -374,4 +374,29 @@ messageSchema.statics.fetchDirectMessages = function(uid, tid, oid, before, afte
   });
 }
 
+messageSchema.statics.getTopLevelMessageCount = function(org, user, next){
+  var model = this.model('Message');
+  var groups = _.filter(org.groups, function(obj){
+    return obj.status == 'active';
+  });
+  groups = _.pluck(groups, '_id');
+  var oid = org.organization?org.organization:org._id;
+  model.aggregate([
+    {$project: {creator: 1, group: 1, organization: 1, target: 1, read: 1}},
+    {$match: { 
+      organization: oid,
+      read: {$ne: user._id},
+      $or: [
+        {group: {$in: groups}},
+        {group: null, target: null},
+        {target: user._id}
+      ]
+    }},
+    {$group: {_id: {organization: "$organization", group: "$group", target: "$target"}, total: {$sum: 1} }}
+  ])
+  .exec(function(err, results){
+    next(err, results);
+  });
+}
+
 mongoose.model('Message', messageSchema);

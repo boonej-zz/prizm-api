@@ -43,6 +43,45 @@ app.get('/:org_id/groups', function(req, res) {
   }
 });
 
+app.get('/:oid/users/:uid/unread', function(req, res) {
+  var uid = req.params.uid;
+  var oid = req.params.oid;
+  User.findOne({_id: uid}, function(err, user){
+    if (user) {
+      if (user.type == 'institution_verified') {
+        Organization.findOne({owner: user._id})
+        .populate({path: 'groups', model: 'Group'})
+        .exec(function(err, org){
+          Message.getTopLevelMessageCount(org, user, function(err, results){
+            if (err) {
+              res.status(500).json(err);
+            } else {
+              res.status(200).json(results);
+            }
+          });
+        });
+      } else {
+        User.populate(user, {path: 'org_status.groups', model: 'Group'}, function(err, user){
+          var org = _.filter(user.org_status, function(obj){
+            return String(obj.organization) == String(oid);
+          });
+          if (_.isArray(org)) {
+            org = org[0];
+          }
+          Message.getTopLevelMessageCount(org, user, function(err, results){
+            if (err) {
+              res.status(500).json(err);
+            } else {
+              res.status(200).json(results);
+            }
+          });
+        });
+
+      }
+    }
+  });
+});
+
 app.get('/:org_id/users/:uid/groups', function(req, res) {
   var uid = req.params.uid;
   var org_id = req.params.org_id;
@@ -146,7 +185,6 @@ app.put('/:oid/groups/:gid', function(req, res) {
                 }
               });
               if (idx == -1){
-                console.log('NOT FOUND: ' +  u.name);
                 _.each(u.org_status, function(o){
                   var i = 0;
                   if (String(o.organization) == String(oid)){
