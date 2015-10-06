@@ -139,6 +139,8 @@ app.put('/:org_id/groups/:gid', function(req, res) {
           }
         }
         }, function(err, users){
+          console.log(err);
+          console.log(users);
           if (users){
             _.each(users, function(u) {
               console.log('CURRENT USER: ' + u.name);
