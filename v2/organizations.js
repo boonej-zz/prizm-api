@@ -111,7 +111,7 @@ app.post('/:oid/groups', function(req, res) {
 });
 
 /** UPDATE **/
-app.put('/:org_id/groups/:gid', function(req, res) {
+app.put('/:oid/groups/:gid', function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
   var name = req.body.name;
