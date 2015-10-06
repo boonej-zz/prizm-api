@@ -146,7 +146,7 @@ app.put('/:oid/groups/:gid', function(req, res) {
                 }
               });
               if (idx == -1){
-                console.log('NOT FOUND': u.name);
+                console.log('NOT FOUND: ' +  u.name);
                 _.each(u.org_status, function(o){
                   var i = 0;
                   if (String(o._id) == String(oid)){
