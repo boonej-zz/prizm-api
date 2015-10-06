@@ -115,9 +115,9 @@ app.put('/:org_id/groups/:gid', function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
   var name = req.body.name;
-  var description = req.body.description;
   var leader = req.body.leader;
   var members = req.body.members;
+  console.log(gid);
   if (!_.isArray(members)) {
     members = JSON.parse(members);
   }
@@ -128,7 +128,7 @@ app.put('/:org_id/groups/:gid', function(req, res) {
     } else {
       group.name = name;
       group.leader = leader;
-      group.description = description;
+      group.description = req.body.description;
       group.save(function(err, g){
         console.log(err);
         console.log(g);
