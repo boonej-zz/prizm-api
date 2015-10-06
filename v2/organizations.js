@@ -142,7 +142,12 @@ app.put('/:org_id/groups/:gid', function(req, res) {
         }, function(err, users){
           if (users){
             _.each(users, function(u) {
-              var idx = _.indexOf(members, String(u._id));
+              var idx = -1;
+              _.each(members, function(m, i) {
+                if (String(m) == String(u._id)){
+                  idx = i;
+                }
+              });
               if (idx == -1){
                 _.each(u.org_status, function(o){
                   var i = 0;
