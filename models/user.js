@@ -625,7 +625,14 @@ userSchema.methods.fetchGroups = function(org_id, next) {
           var groups = _.filter(org.groups, function(obj){
             return obj.status == 'active';
           });
-          next(err, groups);        
+          var result = [];
+          _.each(groups, function(g) {
+            g = g.toObject();
+            g.leader_name = g.leader.name;
+            g.leader_id = g.leader._id;
+            result.push(g);
+          });
+          next(err, g);        
         } else {
           next(err, []);
         }
@@ -635,9 +642,18 @@ userSchema.methods.fetchGroups = function(org_id, next) {
     var Group = _mongoose.model('Group');
     console.log(this._id);
     Group.find({organization: org_id, status: 'active'})
+    .populate({path: 'leader', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1}})
     .sort({name: 1})
     .exec(function(err, groups){
-      next(err, groups);
+      var result = [];
+      _.each(groups, function(g) {
+        g = g.toObject();
+        g.leader_name = g.leader.name;
+        g.leader_id = g.leader._id;
+        result.push(g);
+      });
+
+      next(err, result);
     });
   } else {
     next(null, []);
