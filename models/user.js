@@ -744,7 +744,7 @@ userSchema.statics.findOrganizationMembers = function(oid, last, next){
 userSchema.statics.findGroupMembers = function(oid, gid, last, next){
   var model = this.model('User');
   var params = {org_status: {$elemMatch: {organization: mObjectId(oid), 
-    group: mObjectId(gid), status: 'active'}}, active: true};
+    groups: mObjectId(gid), status: 'active'}}, active: true};
   if (last) {
     params.name = {$gt: last};
   }
