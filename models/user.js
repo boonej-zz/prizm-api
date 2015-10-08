@@ -741,6 +741,31 @@ userSchema.statics.findOrganizationMembers = function(oid, last, next){
   });
 };
 
+userSchema.statics.findOrganizationMembers = function(oid, gid, last, next){
+  var model = this.model('User');
+  var params = {org_status: {$elemMatch: {organization: mObjectId(oid), 
+    group: mObjectId(gid), status: 'active'}}, active: true};
+  if (last) {
+    params.name = {$gt: last};
+  }
+  model.find(params)
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1,
+    org_status: {$elemMatch: {organization: mObjectId(oid), status: 'active'}}})
+  .sort({name: 1})
+  .limit(25)
+  .exec(function(err, users){
+    var results = [];
+    _.each(users, function(u){
+      u = u.toObject();
+      u.role = u.org_status[0].role;
+      results.push(u);
+    });
+    next(err, results);
+  });
+
+
+}
+
 userSchema.statics.addToGroup = function(uid, group, next){
   console.log(uid + ': ' + group);
   var model = this.model('User');

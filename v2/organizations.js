@@ -406,6 +406,13 @@ app.get('/:oid/groups/:gid/members', function(req, res) {
         res.status(200).json(users);
       }
     });
+  } else {
+    User.findGroupMembers(oid, gid, last, function(err, users){
+      if (err) res.status(500).json(err);
+      else {
+        res.status(200).json(users);
+      }
+    });
   }
   
 });
