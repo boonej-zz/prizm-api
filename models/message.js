@@ -132,7 +132,6 @@ messageSchema.methods.prettyText = function(next) {
 
 messageSchema.statics.findAndFlatten = function(criteria, requestor, limit, next){
   var model = this.model('Message');
-  console.log(criteria);
   model.find(criteria)
   .limit(limit || 25)
   .sort('-create_date')
