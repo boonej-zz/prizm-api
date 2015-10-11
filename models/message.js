@@ -142,7 +142,6 @@ messageSchema.statics.findAndFlatten = function(criteria, requestor, limit, next
         model: 'User', 
         select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
         function(err, messages){
-          console.log(messages);
           androidText(messages, requestor, function(result){
             next(err, result); 
           });
