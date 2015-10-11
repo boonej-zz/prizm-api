@@ -137,6 +137,7 @@ messageSchema.statics.findAndFlatten = function(criteria, requestor, limit, next
   .sort({create_date: -1})
   .limit(limit || 25)
   .exec(function(err, messages) {
+    console.log(messages);
     if (messages && messages.length > 0) {
       model.populate(messages, {path: 'creator', 
         model: 'User', 
@@ -255,6 +256,7 @@ var messageLiked = function(m, r) {
     }
   });
   m.liked = isLiked;
+  return m;
 };
 
 messageSchema.statics.isLiked = function(messages, requestor) {
