@@ -626,13 +626,37 @@ userSchema.methods.fetchGroups = function(org_id, next) {
             return obj.status == 'active';
           });
           var result = [];
-          _.each(groups, function(g) {
-            g = g.toObject();
-            g.leader_name = g.leader.name;
-            g.leader_id = g.leader._id;
-            result.push(g);
-          });
-          next(err, result);        
+      var incriteria = _.pluck(groups, "_id");
+      console.log(incriteria);
+      var criteria = {active: true, org_status: {
+        $elemMatch: {
+          organization: mObjectId(org_id),
+          status: 'active'
+        }}
+      };
+      var select = {org_status: {$elemMatch: {groups: incriteria}}};
+      model.aggregate([
+        {$match: criteria},
+        {$project: {org_status: 1}},
+        {$unwind: "$org_status"},
+        {$unwind: "$org_status.groups"},
+        {$group: {_id: "$org_status.groups", count: {$sum: 1} }}
+      ]).exec(function(err, counts){
+        _.each(groups, function(g) {
+        g = g.toObject();
+        g.leader_name = g.leader.name;
+        g.leader_id = g.leader._id;
+        var object = _.find(counts, function(obj){
+          return(String(obj._id) == String(g._id));
+        });
+        if (object) {
+          g.member_count = object.count;
+        }
+        result.push(g);
+      });
+      next(err, result);
+
+      });      
         } else {
           next(err, []);
         }
