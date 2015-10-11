@@ -135,7 +135,7 @@ messageSchema.statics.findAndFlatten = function(criteria, requestor, limit, next
   console.log(criteria);
   model.find(criteria)
   .limit(limit || 25)
-  .sort({create_date: -1})
+  .sort('-create_date')
   .exec(function(err, messages) {
     if (messages && messages.length > 0) {
       model.populate(messages, {path: 'creator', 
