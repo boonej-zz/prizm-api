@@ -199,6 +199,7 @@ var androidText = function(obj, requestor, next) {
         o.android_text = at;
         finalArray.push(o);
         if (finalArray.length == list.length) {
+          finalArray = _.sortBy(finalArray, "create_date");
           next(finalArray);
         }
       });
