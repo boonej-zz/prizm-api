@@ -142,11 +142,41 @@ messageSchema.statics.findAndFlatten = function(criteria, requestor, limit, next
         select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
         function(err, messages){
           androidText(messages, requestor, function(result){
-            next(err, result); 
+            next(err, result);
           });
+          messageIds = _.pluck(messages, '_id');
+          if (requestor) {
+            model.readMessages(messageIds, requestor, function(err, result){
+              if (err) console.log(err);
+            });
+          }
         });
     } else {
       next(err, []);
+    }
+  });
+};
+
+messageSchema.statics.readMessages = function(messages, requestor, next) {
+  var model = this.model('Message');
+  model.find({_id: {$in: messages}}, function(err, messages){
+    if (messages) {
+      _.each(messages, function(m){
+        var index = -1;
+        _.each(m.read, function(r, idx){
+          if (String(r) == String(requestor)){
+            index = idx;
+          }
+        });
+        if (index == -1) {
+          m.read.push(requestor);
+          m.markModified('read');
+          m.save(function(err, result){
+            if (err) console.log(err);
+          });
+        }
+      });
+      next(err, messages);
     }
   });
 };
