@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Schema.Types.ObjectId;
+var mObjectId = mongoose.Types.ObjectId;
 var time       = require('../lib/helpers/date_time');
 var _ = require('underscore');
 
@@ -29,7 +30,7 @@ var messageSchema = new mongoose.Schema({
       height: {type: Number}
     }
   },
-  read: {type: Array}
+  read: [ObjectId] 
 });
 
 messageSchema.pre('save', function(next){
