@@ -170,7 +170,7 @@ messageSchema.statics.readMessages = function(messages, requestor, next) {
           }
         });
         if (index == -1) {
-          m.read.push(requestor);
+          m.read.push(mObjectId(requestor));
           m.markModified('read');
           m.save(function(err, result){
             if (err) console.log(err);
