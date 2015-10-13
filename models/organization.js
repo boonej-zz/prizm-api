@@ -2,6 +2,7 @@ var mongoose          = require('mongoose'),
     utils             = require(process.env.PRISM_HOME + 'utils'),
     User              = mongoose.model('User'),
     ObjectId          = mongoose.Schema.Types.ObjectId;
+var mObjectId         = mongoose.Types.ObjectId;
 var _ = require('underscore');
 
 var organizationSchema = new mongoose.Schema({
@@ -82,6 +83,28 @@ organizationSchema.statics.canResolve = function(){
     {mutes: {identifier: '_id', model: 'Mute'}},
     {owner: {identifier: '_id', model: 'User'}}
   ];
+}
+
+organizationSchema.statics.findOneAndFlatten = function(oid, next) {
+  var model = this.model('Organization');
+  var User = this.model('User');
+  model.findOne({_id: oid}).
+    exec(function(err, organization){
+      User.count(
+        {
+          active: true,
+          org_status: {
+            $elemMatch: {
+              organization: organization._id,
+              status: 'active'
+            }
+          }
+        }, function(err, count){
+          var result = organization.toObject();
+          result.member_count = count;
+          next(err, result);
+        });
+    });
 }
 
 var themeSchema = new mongoose.Schema({

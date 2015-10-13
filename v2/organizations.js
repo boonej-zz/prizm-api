@@ -18,6 +18,14 @@ app.get('/', function(req, res){
   });
 });
 
+app.get('/:oid', function(req, res){
+  var oid = req.params.oid;
+  Organization.findOneAndFlatten(oid, function(err, org){
+    if (err) res.status(500).json(err);
+    else res.status(200).json(org);
+  });
+});
+
 app.get('/:org_id/groups', function(req, res) {
   console.log('in request');
   var org_id = req.params.org_id;
