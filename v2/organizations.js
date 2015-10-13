@@ -392,6 +392,15 @@ app.get('/:oid/users/:uid/contacts', function(req, res) {
   });
 });
 
+app.get('/:oid/members', function(req, res){
+  var oid = req.params.oid;
+  var last = req.query.last;
+  User.findOrganizationMembers(oid, last, function(err, users){
+    if (err) res.status(500).json(err);
+    else res.status(200).json(users);
+  });
+});
+
 app.get('/:oid/groups/:gid/members', function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
