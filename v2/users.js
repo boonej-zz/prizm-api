@@ -46,4 +46,17 @@ app.get('/:uid', function(req, res){
   });
 });
 
+// Register Device
+app.put('/:uid/devices', function(req, res){
+  var uid = req.params.uid;
+  var device = req.body.device;
+  User.registerDevice(uid, device, function(err, user){
+    if (err){
+      res.status(500).json(err);
+    } else {
+      res.status(200).json(user);
+    }
+  });
+});
+
 module.exports = app;

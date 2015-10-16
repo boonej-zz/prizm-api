@@ -119,6 +119,7 @@ var userSchema = new _mongoose.Schema({
   push_enabled      : {type: Boolean, default: false},
   contact_last     : {type: String, default: null},
   contact_email         : {type: String, default: null},
+  google_devices  : {type: Array, default: []},
   parent_contact        : {
     first: {type: String},
     last: {type: String},
@@ -857,6 +858,35 @@ userSchema.statics.addToGroup = function(uid, group, next){
         next(err, user);
       } else {
         console.log(err);
+      }
+    }
+  });
+};
+
+userSchema.statics.registerDevice = function(uid, device, next){
+  var model = this.model('User');
+  model.findOne({_id: uid}, function(err, user){
+    if (user) {
+      if (!user.google_devices || ! _.isArray(user.google_devices)) {
+        user.google_devices = [device];
+        user.save(function(err, user){
+          next(err, user);
+        });
+        return;
+      }
+      var idx = -1;
+      _.each(user.google_devices, function(obj, index){
+        if (String(obj) == String(device)){
+          idx = index;
+        }
+      });
+      if (idx == -1) {
+        user.google_devices.push(device);
+        user.save(function(err, user){
+          next(err, user);
+        });
+      } else {
+        next(err, user);
       }
     }
   });
