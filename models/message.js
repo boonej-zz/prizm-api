@@ -434,12 +434,35 @@ messageSchema.statics.getTopLevelMessageCount = function(org, user, next){
 
 messageSchema.statics.fetchRead = function(mid, next){
   var model = this.model('Message');
+  var User = mongoose.model('User');
+  var select = {_id: 1, active: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1};
   model.findOne({_id: mid})
-  .populate({path: 'read', model: 'User', select: {_id: 1, active: 1, name: 1,
-    first_name: 1, last_name: 1, profilePhotoUrl: 1}})
+  .populate({path: 'read', model: 'User', select: select})
   .exec(function(err, message){
     if (message) {
-      next(err, message.read);
+      var params = {_id: {$ne: message.creator}, active: true, org_status: {$elemMatch: 
+          {organization: mObjectId(message.organization), status: 'active'}}};
+
+      if (message.group != null) {
+        params.org_status.$elemMatch.groups = mObjectId(message.group);
+      }
+      User.find(params)
+      .select(select)
+      .sort({last_name: 1})
+      .exec(function(err, users) {
+        var results = [];
+        _.each(users, function(u) {
+          u = u.toObject();
+          u.read = false;
+          _.each(message.read, function(r){
+            if (String(r._id) == String(u._id)){
+              u.read = true;
+            }
+          });
+          results.push(u);
+        });
+        next(err, results);
+      });
     } else {
       next(err, null);
     }

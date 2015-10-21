@@ -308,7 +308,7 @@ app.post("/:oid/groups/:gid/messages/:mid", gateway, function(req, res){
   });
 });
 
-app.get("/:oid/groups/:gid/messages/:mid/read", function(req, res) {
+app.get("/:oid/groups/:gid/messages/:mid/read", gateway, function(req, res) {
   var mid = req.params.mid;
   Message.fetchRead(mid, function(err, users){
     if (err) res.status(500).json(err);
