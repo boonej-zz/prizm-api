@@ -432,4 +432,18 @@ messageSchema.statics.getTopLevelMessageCount = function(org, user, next){
   });
 }
 
+messageSchema.statics.fetchRead = function(mid, next){
+  var model = this.model('Message');
+  model.findOne({_id: mid})
+  .populate({path: 'read', model: 'User', select: {_id: 1, active: 1, name: 1,
+    first_name: 1, last_name: 1, profilePhotoUrl: 1}})
+  .exec(function(err, message){
+    if (message) {
+      next(err, message.read);
+    } else {
+      next(err, null);
+    }
+  }); 
+};
+
 mongoose.model('Message', messageSchema);
