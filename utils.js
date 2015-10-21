@@ -204,8 +204,9 @@ exports.authorizeClientRequest = function(req, callback){
           }
         });
       }
+    } else {
+      callback(Error.unauthorizedClient, false, null);
     }
-    callback(Error.unauthorizedClient, false, null);
   }
 };
 
