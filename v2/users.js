@@ -8,7 +8,7 @@ var _ = require('underscore');
 
 var User = mongoose.model('User');
 
-app.get('/', function(req, res){
+app.get('/', gateway, function(req, res){
   var searchText = req.query.search || false;
   var organization = req.query.organization || false;
   var group = req.query.group || false;
@@ -35,7 +35,7 @@ app.get('/', function(req, res){
   });
 });
 
-app.get('/:uid', function(req, res){
+app.get('/:uid', gateway, function(req, res){
   var uid = req.params.uid;
   User.findOneCore(uid, function(err, user){
     if (user) {
@@ -47,7 +47,7 @@ app.get('/:uid', function(req, res){
 });
 
 // Register Device
-app.put('/:uid/devices', function(req, res){
+app.put('/:uid/devices', gateway, function(req, res){
   var uid = req.params.uid;
   var device = req.body.device;
   User.registerDevice(uid, device, function(err, user){

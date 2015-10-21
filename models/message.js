@@ -252,6 +252,7 @@ var fillMessage = function(m) {
   m.creator_subtype = m.creator.subtype;
   m.creator_active = m.creator.active;
   m.creator_name = m.creator.name;
+  m.read_count = m.read.length;
   if (m.meta) {
     if (m.meta.image && m.meta.image.url) {
       m.meta_image_url = m.meta.image.url;

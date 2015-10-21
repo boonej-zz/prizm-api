@@ -12,13 +12,13 @@ var _ = require('underscore');
 
 // Organization Endpoints
 
-app.get('/', function(req, res){
+app.get('/', gateway, function(req, res){
   Organization.find({}, function(err, orgs){
     res.status(200).json(orgs);
   });
 });
 
-app.get('/:oid', function(req, res){
+app.get('/:oid', gateway, function(req, res){
   var oid = req.params.oid;
   Organization.findOneAndFlatten(oid, function(err, org){
     if (err) res.status(500).json(err);
@@ -26,7 +26,7 @@ app.get('/:oid', function(req, res){
   });
 });
 
-app.get('/:org_id/groups', function(req, res) {
+app.get('/:org_id/groups', gateway, function(req, res) {
   console.log('in request');
   var org_id = req.params.org_id;
   if (org_id) {
@@ -51,7 +51,7 @@ app.get('/:org_id/groups', function(req, res) {
   }
 });
 
-app.get('/:oid/users/:uid/unread', function(req, res) {
+app.get('/:oid/users/:uid/unread', gateway, function(req, res) {
   var uid = req.params.uid;
   var oid = req.params.oid;
   User.findOne({_id: uid}, function(err, user){
@@ -90,7 +90,7 @@ app.get('/:oid/users/:uid/unread', function(req, res) {
   });
 });
 
-app.get('/:org_id/users/:uid/groups', function(req, res) {
+app.get('/:org_id/users/:uid/groups', gateway, function(req, res) {
   var uid = req.params.uid;
   var org_id = req.params.org_id;
   if (uid && org_id) {
@@ -128,7 +128,7 @@ var getMessages = function (criteria, requestor, limit, req, res) {
 /** GROUPS **/
 
 /** CREATE **/
-app.post('/:oid/groups', function(req, res) {
+app.post('/:oid/groups', gateway, function(req, res) {
   var oid = req.params.oid;
   var params = {
     name: req.body.name,
@@ -158,7 +158,7 @@ app.post('/:oid/groups', function(req, res) {
 });
 
 /** UPDATE **/
-app.put('/:oid/groups/:gid', function(req, res) {
+app.put('/:oid/groups/:gid', gateway, function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
   var name = req.body.name;
@@ -223,7 +223,7 @@ app.put('/:oid/groups/:gid', function(req, res) {
   });
 });
 
-app.get('/:org_id/groups/:gid/messages', function(req, res) {
+app.get('/:org_id/groups/:gid/messages', gateway, function(req, res) {
   var org_id = req.params.org_id;
   var gid = req.params.gid != "all"?req.params.gid:null;
   
@@ -273,7 +273,7 @@ app.get('/:org_id/groups/:gid/messages', function(req, res) {
 
  });
 
-app.post("/:oid/groups/:gid/messages", function(req, res){
+app.post("/:oid/groups/:gid/messages", gateway, function(req, res){
   var oid = req.params.oid;
   var gid = req.params.gid;
   if (gid == "all") {
@@ -297,7 +297,7 @@ app.post("/:oid/groups/:gid/messages", function(req, res){
   });
 })
 
-app.post("/:oid/groups/:gid/messages/:mid", function(req, res){
+app.post("/:oid/groups/:gid/messages/:mid", gateway, function(req, res){
   var mid = req.params.mid;
   var requestor = req.body.requestor;
   Message.likeMessage(mid, requestor, function(err, message){
@@ -309,7 +309,7 @@ app.post("/:oid/groups/:gid/messages/:mid", function(req, res){
 });
 
 
-app.get("/:oid/users/:uid/messages", function(req, res){
+app.get("/:oid/users/:uid/messages", gateway, function(req, res){
   var oid = req.params.oid;
   var uid = req.params.uid;
   var format = req.query.format;
@@ -341,7 +341,7 @@ app.get("/:oid/users/:uid/messages", function(req, res){
   }
 });
 
-app.post("/:oid/users/:uid/messages", function(req, res){
+app.post("/:oid/users/:uid/messages", gateway, function(req, res){
   var oid = req.params.oid;
   var uid = req.params.uid;
   var target = req.query.target;
@@ -363,7 +363,7 @@ app.post("/:oid/users/:uid/messages", function(req, res){
 
 /** MEMBERS **/
 
-app.get('/:oid/users/:uid/contacts', function(req, res) {
+app.get('/:oid/users/:uid/contacts', gateway, function(req, res) {
   var oid = req.params.oid;
   var uid = req.params.uid;
   var last = req.query.last;
@@ -392,7 +392,7 @@ app.get('/:oid/users/:uid/contacts', function(req, res) {
   });
 });
 
-app.get('/:oid/members', function(req, res){
+app.get('/:oid/members', gateway, function(req, res){
   var oid = req.params.oid;
   var last = req.query.last;
   User.findOrganizationMembers(oid, last, function(err, users){
@@ -401,7 +401,7 @@ app.get('/:oid/members', function(req, res){
   });
 });
 
-app.get('/:oid/groups/:gid/members', function(req, res) {
+app.get('/:oid/groups/:gid/members', gateway, function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
   var last = req.query.last;

@@ -29,6 +29,7 @@ module.exports = function(req, res, next){
       }else if(valid){
         next();
       }else{
+        res.status(403).send('Forbidden');
         // next();
       }
     });
@@ -48,7 +49,7 @@ var needsAuthorization = function(req_path){
   if(path && path[0] == 'oauth2' ){
     if(path.length == 2 && path[1] != 'login') return false;
   }
-  return false;
+  return true;
 };
 
 /**
@@ -63,7 +64,7 @@ var validateAuthorization = function(req, callback){
     if(err) logger.log('error','Utils authorize Client Request returned an error!',
       {error: err, is_valid: valid, for_client: client});
     if(err && !valid){
-      callback(false);
+      callback(false, err);
     }else if(valid){
       callback(true);
     }else{
