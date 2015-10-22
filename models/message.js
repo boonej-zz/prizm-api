@@ -209,8 +209,8 @@ var notifyUsers = function(message){
           });
         } else {
           params = {active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
-          if (message.group) {
-            params.org_status.$elemMatch.groups = group;
+          if (m.group) {
+            params.org_status.$elemMatch.groups = m.group;
           }
           m.prettyText(function(prettyText){
             User.find(params)
@@ -218,7 +218,7 @@ var notifyUsers = function(message){
             .exec(function(err, users){
               _.each(users, function(u){
                 var contents = {};
-                if (message.image) {
+                if (m.image) {
                   contents.body = m.creator.name + ' just posted an image.';
                 } else {
                   contents.body = prettyText;
