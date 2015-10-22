@@ -278,7 +278,7 @@ userSchema.path('type').validate(function(value){
   return /user|institution|luminary/i.test(value);
 });
 
-userSchema.post('init', function(){
+userSchema.post('init', function(user){
   var $this = this;
   if (this.org_status && this.org_status.length > 0) {
     _.each(this.org_status, function(o, i, l){
