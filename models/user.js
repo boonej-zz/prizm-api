@@ -285,6 +285,13 @@ userSchema.post('init', function(){
       o.member_id = String($this._id);
     });
   }
+  var r = new RegExp('https:/s');
+  if (user.profile_photo_url) {
+    user.profile_photo_url = user.profile_photo_url.replace(r, 'https://s');
+  }
+  if (user.cover_photo_url) {
+    user.cover_photo_url = user.cover_photo_url.replace(r, 'https://s');
+  }
 });
 
 userSchema.methods.format = function(type, add_fields, callback){
