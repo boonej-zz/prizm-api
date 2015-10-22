@@ -238,6 +238,7 @@ var androidText = function(obj, requestor, next) {
       var at = extractTags(obj, users);   
       obj = fillMessage(obj);
       obj.android_text = at;
+      messageLiked(obj, requestor);
       next(obj);
     });
 
