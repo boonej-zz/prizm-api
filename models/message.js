@@ -187,7 +187,7 @@ var notifyUsers = function(message){
   var User = mongoose.model('User');
   var params = {};
   var body = "";
-  var model = this.model('Message');
+  var model = mongoose.model('Message');
   model.populate(message, {path: 'group', model: 'Group'} ,function(err, m){
     model.populate(m, {path: 'creator', model: 'User', select: {name: 1}}, function(err, m){
       model.populate(m, {path: 'target', model: 'User', select: {first_name: 1, google_devices: 1, device_token: 1, badge_count: 1}}, function(err, m){
