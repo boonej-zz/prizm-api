@@ -3,6 +3,7 @@ var ObjectId = mongoose.Schema.Types.ObjectId;
 var mObjectId = mongoose.Types.ObjectId;
 var time       = require('../lib/helpers/date_time');
 var _ = require('underscore');
+var notify = require('../lib/helpers/notify');
 
 
 var messageSchema = new mongoose.Schema({
@@ -182,6 +183,65 @@ messageSchema.statics.readMessages = function(messages, requestor, next) {
   });
 };
 
+var notifyUsers = function(message){
+  var User = mongoose.model('User');
+  var params = {};
+  var body = "";
+  var model = this.model('Message');
+  model.populate(message, {path: 'group', model: 'Group'} ,function(err, m){
+    model.populate(m, {path: 'creator', model: 'User', select: {name: 1}}, function(err, m){
+      model.populate(m, {path: 'target', model: 'User', select: {first_name: 1, google_devices: 1, device_token: 1, badge_count: 1}}, function(err, m){
+        if (message.target) {
+          var contents = {};
+          m.prettyText(function(prettyText) {
+            contents.title = m.creator.name;
+            if (m.image) {
+              contents.body = 'just sent you an image.';
+            } else {
+              contents.body = prettyText;
+            }
+            contents.icon = 'prizmappicon';
+            contents.data = {
+              message_id: m._id,
+              message_creator: m.creator._id
+            };
+            notify.sendNote(m.target, contents);
+          });
+        } else {
+          params = {active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
+          if (message.group) {
+            params.org_status.$elemMatch.groups = group;
+          }
+          m.prettyText(function(prettyText){
+            User.find(params)
+            .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
+            .exec(function(err, users){
+              _.each(users, function(u){
+                var contents = {};
+                if (message.image) {
+                  contents.body = m.creator.name + ' just posted an image.';
+                } else {
+                  contents.body = prettyText;
+                }
+                contents.data = {
+                  message_id: m._id,
+                  message_creator: m.creator._id
+                };
+                var titleString = m.group?'#' + m.group.name + ': ':'#all: ';
+                titleString = title + m.creator.name;
+                contents.title = titleString;
+                notify.sendNote(u, contents);
+                 
+              });
+              
+            });
+          });
+        }
+      });
+    });
+  }); 
+};
+
 messageSchema.statics.createMessage = function(params, next) {
   var model = this.model('Message');
   var message = new model(params);
@@ -191,6 +251,7 @@ messageSchema.statics.createMessage = function(params, next) {
       select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
       function(err, message) {
         androidText(message, params.creator, function(m){
+          notifyUsers(message);
           next(err, m);
         });
       });
