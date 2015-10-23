@@ -187,12 +187,12 @@ var notifyUsers = function(message){
   var params = {};
   var body = "";
   var model = mongoose.model('Message');
-  model.populate(message, {path: 'group', model: 'Group'} ,function(err, m){
-    model.populate(m, {path: 'creator', model: 'User', select: {name: 1}}, function(err, m){
-      model.populate(m, {path: 'target', model: 'User', select: {first_name: 1, google_devices: 1, device_token: 1, badge_count: 1}}, function(err, m){
-        if (message.target) {
-          var contents = {};
-          m.prettyText(function(prettyText) {
+  m.prettyText(function(prettyText){
+    model.populate(message, {path: 'group', model: 'Group'} ,function(err, m){
+      model.populate(m, {path: 'creator', model: 'User', select: {name: 1}}, function(err, m){
+        model.populate(m, {path: 'target', model: 'User', select: {first_name: 1, google_devices: 1, device_token: 1, badge_count: 1}}, function(err, m){
+          if (message.target) {
+            var contents = {};
             contents.title = m.creator.name;
             if (m.image) {
               contents.body = 'just sent you an image.';
@@ -205,14 +205,12 @@ var notifyUsers = function(message){
               message_creator: m.creator._id
             };
             notify.sendNote(m.target, contents);
-          });
         } else {
           console.log('received group message');
           params = {active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
           if (m.group) {
             params.org_status.$elemMatch.groups = m.group;
           }
-          m.prettyText(function(prettyText){
             User.find(params)
             .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
             .exec(function(err, users){
@@ -236,11 +234,11 @@ var notifyUsers = function(message){
               });
               
             });
-          });
         }
       });
     });
   }); 
+  });
 };
 
 messageSchema.statics.createMessage = function(params, next) {
