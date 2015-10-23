@@ -463,7 +463,6 @@ messageSchema.statics.fetchDirectMessages = function(uid, tid, oid, before, afte
   .limit(25)
   .exec(function(err, messages){
     androidText(messages, uid, function(m) {
-      m.reverse();
       next(err, m);
     });
   });
