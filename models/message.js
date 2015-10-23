@@ -209,7 +209,7 @@ var notifyUsers = function(message){
           console.log('received group message');
           params = {active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
           if (m.group) {
-            params.org_status.$elemMatch.groups = m.group;
+            params.org_status.$elemMatch.groups = m.group._id;
           }
             User.find(params)
             .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
