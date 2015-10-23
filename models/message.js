@@ -4,7 +4,7 @@ var mObjectId = mongoose.Types.ObjectId;
 var time       = require('../lib/helpers/date_time');
 var _ = require('underscore');
 var notify = require('../lib/helpers/notify');
-
+var User = mongoose.model('User');
 
 var messageSchema = new mongoose.Schema({
   creator: {type: ObjectId, ref: 'User', required: true},
@@ -184,7 +184,6 @@ messageSchema.statics.readMessages = function(messages, requestor, next) {
 };
 
 var notifyUsers = function(message){
-  var User = mongoose.model('User');
   var params = {};
   var body = "";
   var model = mongoose.model('Message');
