@@ -206,7 +206,6 @@ var notifyUsers = function(message){
             };
             notify.sendNote(m.target, contents);
         } else {
-          console.log('received group message');
           params = {active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
           if (m.group) {
             params.org_status.$elemMatch.groups = m.group._id;
@@ -214,10 +213,8 @@ var notifyUsers = function(message){
             User.find(params)
             .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
             .exec(function(err, users){
-              console.log(params);
               if (err) console.log(err);
               _.each(users, function(u){
-                console.log('sending message to ' + u.name);
                 var contents = {};
                 if (m.image) {
                   contents.body = m.creator.name + ' just posted an image.';
