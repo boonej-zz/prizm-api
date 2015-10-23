@@ -287,6 +287,7 @@ var androidText = function(obj, requestor, next) {
         var at = extractTags(o, users);
         o = fillMessage(o);
         o.android_text = at;
+        console.log(at);
         finalArray.push(o);
         if (finalArray.length == list.length) {
           finalArray = _.sortBy(finalArray, "create_date");
