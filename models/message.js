@@ -208,6 +208,7 @@ var notifyUsers = function(message){
             notify.sendNote(m.target, contents);
           });
         } else {
+          console.log('received group message');
           params = {active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
           if (m.group) {
             params.org_status.$elemMatch.groups = m.group;
@@ -252,7 +253,8 @@ messageSchema.statics.createMessage = function(params, next) {
       select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
       function(err, message) {
         androidText(message, params.creator, function(m){
-          notifyUsers(message);
+          console.log('saved message, notifying');
+          notifyUsers(m);
           next(err, m);
         });
       });
