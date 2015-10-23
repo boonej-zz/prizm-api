@@ -214,7 +214,10 @@ var notifyUsers = function(message){
             User.find(params)
             .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
             .exec(function(err, users){
+              console.log(params);
+              console.log(users.length);
               _.each(users, function(u){
+                console.log('sending message to ' + u.name);
                 var contents = {};
                 if (m.image) {
                   contents.body = m.creator.name + ' just posted an image.';
