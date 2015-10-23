@@ -200,7 +200,7 @@ var notifyUsers = function(message){
             } else {
               contents.body = prettyText;
             }
-            contents.icon = 'prizmappicon';
+            contents.icon = 'notificationlgx_icon';
             contents.data = {
               message_id: m._id,
               message_creator: m.creator._id
@@ -223,6 +223,7 @@ var notifyUsers = function(message){
                 } else {
                   contents.body = prettyText;
                 }
+                contents.icon = 'notificationlgx_icon';
                 contents.data = {
                   message_id: m._id,
                   message_creator: m.creator._id
