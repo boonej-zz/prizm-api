@@ -215,7 +215,7 @@ var notifyUsers = function(message){
             .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
             .exec(function(err, users){
               console.log(params);
-              console.log(users.length);
+              if (err) console.log(err);
               _.each(users, function(u){
                 console.log('sending message to ' + u.name);
                 var contents = {};
