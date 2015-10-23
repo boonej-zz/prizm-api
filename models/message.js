@@ -230,7 +230,7 @@ var notifyUsers = function(message){
                   message_creator: m.creator._id
                 };
                 var titleString = m.group?'#' + m.group.name + ': ':'#all: ';
-                titleString = title + m.creator.name;
+                titleString = titleString + m.creator.name;
                 contents.title = titleString;
                 notify.sendNote(u, contents);
                  
