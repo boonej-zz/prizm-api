@@ -251,7 +251,7 @@ messageSchema.statics.createMessage = function(params, next) {
       function(err, message) {
         androidText(message, params.creator, function(m){
           console.log('saved message, notifying');
-          notifyUsers(m);
+          notifyUsers(message);
           next(err, m);
         });
       });
