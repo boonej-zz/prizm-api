@@ -38,6 +38,7 @@ app.get('/', gateway, function(req, res){
 app.get('/:uid', gateway, function(req, res){
   var uid = req.params.uid;
   User.findOneCore(uid, function(err, user){
+    if (err) console.log(err);
     if (user) {
       res.status(200).json(user);
     } else {
