@@ -13,7 +13,7 @@ var messageSchema = new mongoose.Schema({
   text: {type: String, default: null},
   group: {type: ObjectId, index: true},
   organization: {type: ObjectId, ref: 'Organization', required: true, index: true},
-  likes: {type: Array},
+  likes: [ObjectId],
   likes_count: {type: Number, default: 0},
   pretty_text: {type: String},
   image_url: {type: String},
@@ -528,6 +528,22 @@ messageSchema.statics.fetchRead = function(mid, next){
       next(err, null);
     }
   }); 
+};
+
+messageSchema.statics.fetchLikes = function(mid, next){
+  var model = this.model('Message');
+  var select = {_id: 1, active: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1};
+
+  model.findOne({_id: mid})
+  .populate({path: 'likes', model: 'User', select: select})
+  .exec(function(err, message){
+    if (message) {
+      next(err, message.likes);
+    } else {
+      next(err, []);
+    }
+  }); 
+
 };
 
 mongoose.model('Message', messageSchema);
