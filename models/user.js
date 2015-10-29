@@ -777,11 +777,14 @@ userSchema.statics.findAvailableDirectRecipients = function(user, next){
   });
 };
 
-userSchema.statics.findOrganizationMembers = function(oid, last, next){
+userSchema.statics.findOrganizationMembers = function(oid, last, next, exclude){
   var model = this.model('User');
   var params = {org_status: {$elemMatch: {organization: mObjectId(oid), status: 'active'}}, active: true};
   if (last) {
     params.name = {$gt: last};
+  }
+  if (exclude) {
+    params._id = {$ne: exclude._id};
   }
   model.find(params)
   .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1,

@@ -388,13 +388,13 @@ app.get('/:oid/users/:uid/contacts', gateway, function(req, res) {
       User.findOrganizationMembers(oid, last, function(err, users){
         if (err) res.status(500).json(err);
         else res.status(200).json(users);
-      });
+      }, user);
     } else {
       if (user.org_status && user.org_status[0].role == 'leader') {
         User.findOrganizationMembers(oid, last, function(err, users){
           if (err) res.status(500).json(err);
           else res.status(200).json(users);
-        }); 
+        }, user); 
       } else {
         User.findAvailableDirectRecipients(user, function(err, users){
           if (err) {
