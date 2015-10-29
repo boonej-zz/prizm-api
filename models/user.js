@@ -828,11 +828,7 @@ userSchema.statics.findGroupMembers = function(oid, gid, last, next){
 }
 
 userSchema.statics.addToGroup = function(uid, group, next){
-  console.log(uid + ': ' + group);
   var model = this.model('User');
-  if (group._id) {
-    group = group._id;
-  }
   model.findOne({_id: uid}, function(err, user){
     console.log(user.name + ': ' + user.org_status.length);
     if (user) {
@@ -841,13 +837,13 @@ userSchema.statics.addToGroup = function(uid, group, next){
         if (String(group.organization) == String(o.organization)) {
           var exists = false;
           _.each(o.groups, function(g){
-            if (String(g) == String(group)){
+            if (String(g) == String(group._id)){
               exists = true;
             }
           });
           console.log("Exists: " + exists);
           if (!exists) {
-            o.groups.push(group);
+            o.groups.push(group._id);
           }
           console.log(o);
         }
