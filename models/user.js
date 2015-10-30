@@ -182,7 +182,7 @@ userSchema.statics.findOneCore = function(uid, next) {
   var model = this.model('User');
   model.findOne({_id: uid})
   .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, cover_photo_url: 1,
-   email: 1, info: 1, city: 1, state: 1, active: 1, subtype: 1, type: 1, 
+   email: 1, info: 1, city: 1, state: 1, active: 1, subtype: 1, type: 1, interests: 1,  
    org_status: {$elemMatch: {status: 'active'}}})
   .exec(function(err, user){
     if (user && user.type == 'user') {
@@ -195,6 +195,7 @@ userSchema.statics.findOneCore = function(uid, next) {
                 user.primary_organization = user.org_status[0].organization._id;
                 user.theme = user.org_status[0].organization.theme.background_url;
                 user.role = user.org_status[0].role;
+                user.interest_count = _.isArray(user.interests)?user.interests.length:0;
               }
               next(err, user);
             });
