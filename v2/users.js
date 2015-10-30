@@ -95,7 +95,7 @@ app.get('/:uid/interests', gateway, function(req, res){
 
 app.put('/:uid/interests', gateway, function(req, res){
   var uid = req.params.uid;
-  var interests = req.body.interests;
+  var interests = JSON.parse(req.body.interests);
   var newArray = [];
   if (!_.isArray(interests)) interests = [interests];
   _.each(interests, function(i){
