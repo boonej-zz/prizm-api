@@ -7,6 +7,7 @@ var gateway = require('../gateway');
 var _ = require('underscore');
 
 var User = mongoose.model('User');
+var Interest = mongoose.model('Interest');
 
 app.get('/', gateway, function(req, res){
   var searchText = req.query.search || false;
@@ -57,6 +58,37 @@ app.put('/:uid/devices', gateway, function(req, res){
       res.status(500).json(err);
     } else {
       res.status(200).json(user);
+    }
+  });
+});
+
+// INTERESTS
+app.get('/:uid/interests', gateway, function(req, res){
+  var uid = req.params.uid;
+  User.findOne({_id: uid}, {_id: 1, interests: 1}, function(err, user){
+    if (err) res.status(500).send(err);
+    else {
+      Interest.find({})
+      .exec(function(err, interests){
+        var result = [];
+        if (user && _.isArray(user.interests)) {
+          _.each(interests, function(i){
+            i = i.toObject();
+            var selected = false;
+            _.each(user.interests, function(ui){
+              var comp = ui._id?String(ui._id):String(ui);
+              if (String(i._id) == String(comp)) {
+                selected = true;
+              }
+            });
+            i.selected = selected;
+            result.push(i);
+          });
+        } else {
+          result = interests;
+        }
+        res.status(200).json(result);
+      });
     }
   });
 });
