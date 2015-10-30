@@ -85,7 +85,11 @@ app.get('/:uid/interests', gateway, function(req, res){
             result.push(i);
           });
         } else {
-          result = interests;
+          _.each(interests, function(i){
+            i = i.toObject();
+            i.selected = false;
+            result.push(i);
+          });
         }
         res.status(200).json(result);
       });
