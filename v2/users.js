@@ -62,6 +62,21 @@ app.put('/:uid/devices', gateway, function(req, res){
   });
 });
 
+// Update User
+app.put('/:uid', gateway, function(req, res) {
+  var uid = req.params.uid;
+  var post = req.body;
+  User.findOneAndUpdate({_id: uid}, post, function(err, user){
+    if (err) res.status(500).json(err);
+    else {
+      User.findOneCore({_id: uid}, function(err, user){
+        if (err) res.status(500).json(err);
+        else res.status(200).json(user);
+      });
+    }
+  });
+});
+
 // INTERESTS
 app.get('/:uid/interests', gateway, function(req, res){
   var uid = req.params.uid;
