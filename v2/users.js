@@ -68,11 +68,15 @@ app.put('/:uid', gateway, function(req, res) {
   var post = req.body;
   console.log(post);
   User.findOneAndUpdate({_id: uid}, post, function(err, user){
-    if (err) res.status(500).json(err);
-    else {
+    if (err) {
+      console.log(err);
+      res.status(500).json(err);
+    } else {
       User.findOneCore({_id: uid}, function(err, user){
-        if (err) res.status(500).json(err);
-        else res.status(200).json(user);
+        if (err) {
+          res.status(500).json(err);
+          console.log(err);
+        } else res.status(200).json(user);
       });
     }
   });
