@@ -66,6 +66,7 @@ app.put('/:uid/devices', gateway, function(req, res){
 app.put('/:uid', gateway, function(req, res) {
   var uid = req.params.uid;
   var post = req.body;
+  console.log(post);
   User.findOneAndUpdate({_id: uid}, post, function(err, user){
     if (err) res.status(500).json(err);
     else {
