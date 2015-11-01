@@ -72,7 +72,8 @@ app.put('/:uid', gateway, function(req, res) {
       console.log(err);
       res.status(500).json(err);
     } else {
-      User.findOneCore({_id: uid}, function(err, user){
+      console.log('user updated');
+      User.findOneCore(uid, function(err, user){
         if (err) {
           res.status(500).json(err);
           console.log(err);
