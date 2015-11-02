@@ -5,6 +5,7 @@ var ObjectId = mongoose.Types.ObjectId;
 var config = require('config');
 var gateway = require('../gateway');
 var _ = require('underscore');
+var moment = require('moment');
 
 var User = mongoose.model('User');
 var Interest = mongoose.model('Interest');
@@ -66,7 +67,9 @@ app.put('/:uid/devices', gateway, function(req, res){
 app.put('/:uid', gateway, function(req, res) {
   var uid = req.params.uid;
   var post = req.body;
-  console.log(post);
+  if (post.date_founded) {
+    post.date_founded = moment(post.date_founded);
+  } 
   User.findOneAndUpdate({_id: uid}, post, function(err, user){
     if (err) {
       console.log(err);
