@@ -663,7 +663,7 @@ userSchema.methods.fetchGroups = function(org_id, next) {
         }
         result.push(g);
       });
-      result = _.sortBy(result, 'text');
+      result = _.sortBy(result, 'name');
       next(err, result);
 
       });      
