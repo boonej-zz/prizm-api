@@ -209,7 +209,7 @@ userSchema.statics.findOneCore = function(uid, next) {
           user.primary_organization = org._id;
           user.theme = org.theme.background_url;
           user.role = 'owner';
-          user.date_founded = user.date_founded.toString();
+          user.date_founded = moment(user.date_founded).format('MMMM Do YYYY');
         }
         next(err, user);
       });
