@@ -68,7 +68,7 @@ app.put('/:uid', gateway, function(req, res) {
   var uid = req.params.uid;
   var post = req.body;
   if (post.date_founded) {
-    post.date_founded = moment(post.date_founded);
+    post.date_founded = moment(post.date_founded, 'MMMM Do YYYY');
   } 
   User.findOneAndUpdate({_id: uid}, post, function(err, user){
     if (err) {
