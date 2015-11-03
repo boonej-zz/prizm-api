@@ -204,8 +204,8 @@ userSchema.statics.findOneCore = function(uid, next) {
       Organization.findOne({owner: user._id})
       .populate({path: 'theme', model: 'Theme'})
       .exec(function(err, org){
+        user = user.toObject();
         if (org){
-          user = user.toObject();
           user.primary_organization = org._id;
           user.theme = org.theme.background_url;
           user.role = 'owner';
@@ -216,6 +216,7 @@ userSchema.statics.findOneCore = function(uid, next) {
         next(err, user);
       });
     } else {
+      user = user.toObject();
       user.interest_count = _.isArray(user.interests)?user.interests.length:0;
      next(err, user);
     }
