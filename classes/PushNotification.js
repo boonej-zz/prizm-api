@@ -14,6 +14,7 @@ var _           = require('underscore'),
     _request    = require('request'),
     _logger     = require(process.env.PRISM_HOME + 'logs.js'),
     User        = require(process.env.PRISM_HOME + 'models/user').User;
+var Notify = require('../lib/helpers/notify');
 
 /**
  * Expose `PushNotification`
@@ -127,34 +128,16 @@ module.exports.sendMessageToUser = function(message, user, badge){
   if (user.device_token) {
     message.prettyText(function(prettyText){
       var messageString = '#';
+      var messageTitle;
       var groupName = message.group?'#' + message.group.name:'#all';
-      if (message.group){
-        messageString = messageString + message.group.name + ':';
-      } else {
-        messageString = messageString + 'all:';
-      }
+      messageTitle = groupName + ': ' + message.creator.name;
       if (message.text) {
-        messageString =  messageString + message.creator.name + '\n' + prettyText;
+        messageString =  prettyText;
       } else {
-        messageString = message.creator.name + ' just posted an image in ' + groupName + '.';
+        messageString = 'just posted an image in ' + groupName + '.';
       }
-      _request({
-        url: _config.push_server,
-        method: "POST",
-        json: true,
-        body: {
-          device: user.device_token,
-          alert: messageString,
-          payload: {_id: message._id},
-          badge: badge
-        }
-      }, function(err, result){
-        if (err) console.log(JSON.stringify(err));
-        else {
-          console.log('sent push notification');
-        }
-      });
-    });
+      Notify.sendNote(user, {title: messageTitle, body: messageString, icon: 'notificationlgx_icon'});
+         });
    
   } else {
     return false;
