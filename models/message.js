@@ -206,7 +206,7 @@ var notifyUsers = function(message){
             };
             notify.sendNote(m.target, contents);
         } else {
-          params = {active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
+          params = {_id: {$ne: m.creator._id}, active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
           if (m.group) {
             params.org_status.$elemMatch.groups = m.group._id;
           }
