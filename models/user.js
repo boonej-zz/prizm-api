@@ -215,6 +215,7 @@ userSchema.statics.findOneCore = function(uid, next) {
         next(err, user);
       });
     } else {
+      user.interest_count = _.isArray(user.interests)?user.interests.length:0;
      next(err, user);
     }
   });
