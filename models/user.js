@@ -210,6 +210,7 @@ userSchema.statics.findOneCore = function(uid, next) {
           user.theme = org.theme.background_url;
           user.role = 'owner';
           user.date_founded = moment(user.date_founded).format('MMMM Do YYYY');
+          user.interest_count = _.isArray(user.interests)?user.interests.length:0;
         }
         next(err, user);
       });
