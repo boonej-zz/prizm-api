@@ -237,7 +237,7 @@ app.put('/:oid/groups/:gid', gateway, function(req, res) {
 });
 
 // Add Mute to group
-app.post('/:org_id/groups/:gid/mutes', gateway, function(req, res) {
+app.post('/:oid/groups/:gid/mutes', gateway, function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
   var uid = req.body.user;
@@ -257,7 +257,7 @@ app.post('/:org_id/groups/:gid/mutes', gateway, function(req, res) {
 });
 
 // Remove Mute from group
-app.delete('/:org_id/groups/:gid/mutes/:uid', gateway, function(req, res){
+app.delete('/:oid/groups/:gid/mutes/:uid', gateway, function(req, res){
   var gid = req.params.gid;
   var uid = req.params.uid;
   var oid = req.params.oid;
