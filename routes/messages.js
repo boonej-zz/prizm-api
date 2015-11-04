@@ -433,10 +433,23 @@ var sendMessageWithMutes = function(user, message, mutes ){
 var notifyUsers = function(m){
   Message.findOne({_id: m._id})
   .populate({path: 'creator'})
-  .populate({path: 'organization', select: '_id name owner'})
+  .populate({path: 'organization', select: '_id name owner mutes'})
   .populate({path: 'organization.owner', select: '_id name'})
   .populate({path: 'group'})
+  .populate({path: 'creator', select: {
+    id: 1,
+    name: 1,
+    org_status: {$elemMatch: {
+      organization: m.organization,
+      status: active
+    }}
+  }
+  })
   .exec(function(err, message){
+    var role = false;
+    if (message.creator.org_status.length > 0) {
+      role = message.creator.org_status[0].role;
+    }
     var organization = message.organization;
     if (organization) {
       var criteriaa = {_id: organization.owner._id};
@@ -456,7 +469,15 @@ var notifyUsers = function(m){
         .exec(function(err, users){
           _.each(users, function(user, i, l){
               var send = true;
-              sendMessageWithMutes(user, message, organization.mutes);
+              var mutes = message.group?message.group.mutes:organization.mutes;
+              if (String(message.creator._id) == String(organization.owner._id) || 
+                role == 'leader' || role == 'ambassador' ) {
+                mutes = [];
+              }
+              if (message.target) {
+                mutes = [];
+              }
+              sendMessageWithMutes(user, message, mutes);
           });
       });
   }

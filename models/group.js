@@ -1,5 +1,7 @@
 var mongoose = require('mongoose');
 var ObjectId      = mongoose.Schema.Types.ObjectId;
+var _ = require('underscore');
+var mObjectId = mongoose.Types.ObjectId;
 
 var groupSchema = new mongoose.Schema({
   name          : {type: String, required: true, index: true},
@@ -8,7 +10,7 @@ var groupSchema = new mongoose.Schema({
   leader        : {type: ObjectId, ref: 'User', required: false},
   create_date   : {type: Date},
   status        : {type: String, default: 'active', required: true},
-  mutes         : {type: Array, default: []} 
+  mutes         : {type: [ObjectId], default: []} 
 });
 
 groupSchema.statics.selectFields = function(type){
@@ -62,5 +64,53 @@ groupSchema.statics.newGroup = function(obj, next){
     next({err: 'no organization or object name'}, false);
   }
 }
+
+groupSchema.statics.mute = function(gid, uid, next) {
+  var model = this.model('Group');
+  model.findOne({_id: group}, function(err, group) {
+    if (group) {
+      var exists = false;
+      if (!group.mutes) {
+        group.mutes = [];
+      }
+      _.each(group.mutes, function(mute){
+        if (String(mute) == String(uid)) {
+          exists = true;
+        }
+      });
+      if (!exists) {
+        group.mutes.push(uid);
+        group.save(function(err, g){
+          if (err) console.log(err);
+        });
+      }
+    }
+    next(err, group);
+  });
+}
+
+groupSchema.statics.unmute = function(gid, uid, next) {
+  var model = this.model('Group');
+  model.findOne({_id: group}, function(err, group) {
+    if (group) {
+      var idx = -1;
+      if (!group.mutes) {
+        group.mutes = [];
+      }
+      _.each(group.mutes, function(mute, i){
+        if (String(mute) == String(uid)) {
+          idx = i;
+        }
+      });
+      if (idx != -1) {
+        group.mutes.splice(idx, 1);
+        group.save(function(err, g){
+          if (err) console.log(err);
+        });
+      }
+    }
+    next(err, group);
+  });
+};
 
 mongoose.model('Group', groupSchema);

@@ -223,6 +223,26 @@ app.put('/:oid/groups/:gid', gateway, function(req, res) {
   });
 });
 
+// Add Mute to group
+app.post('/:org_id/groups/:gid/mutes', gateway, function(req, res) {
+  var gid = req.params.gid;
+  var uid = req.body.user;
+  Group.mute(gid, uid, function(err, group) {
+    if (err) res.status(500).json(err);
+    else res.status(200).json(group);
+  });
+});
+
+// Remove Mute from group
+app.delete('/:org_id/groups/:gid/mutes/:uid', gateway, function(req, res){
+  var gid = req.params.gid;
+  var uid = req.params.uid;
+  Group.unmute(gid, uid, function(err, group){
+    if (err) res.status(500).json(err);
+    else res.status(200).json(group);
+  });
+});
+
 app.get('/:org_id/groups/:gid/messages', gateway, function(req, res) {
   var org_id = req.params.org_id;
   var gid = req.params.gid != "all"?req.params.gid:null;
