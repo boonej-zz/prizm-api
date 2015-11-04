@@ -441,7 +441,7 @@ var notifyUsers = function(m){
     name: 1,
     org_status: {$elemMatch: {
       organization: m.organization,
-      status: active
+      status: 'active'
     }}
   }
   })
