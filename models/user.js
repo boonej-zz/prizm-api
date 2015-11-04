@@ -628,6 +628,7 @@ userSchema.pre('save', function(next){
 
 userSchema.methods.fetchGroups = function(org_id, next) {
   model = this.model('User');
+  var uid = this._id;
   if (this.type == 'user') {
     model.populate(this, {path: 'org_status.groups', model: 'Group'}, function(err, user){
       model.populate(user, {path: 'org_status.groups.leader', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1}}, function(err, user){
@@ -660,6 +661,13 @@ userSchema.methods.fetchGroups = function(org_id, next) {
         g = g.toObject();
         g.leader_name = g.leader.name;
         g.leader_id = g.leader._id;
+        var muted = false;
+        _.each(g.mutes, function(mute){
+          if (String(uid) == String(mute)){
+            muted = true;
+          }
+        });
+        g.muted = muted;
         var object = _.find(counts, function(obj){
           return(String(obj._id) == String(g._id));
         });
@@ -705,6 +713,13 @@ userSchema.methods.fetchGroups = function(org_id, next) {
         g = g.toObject();
         g.leader_name = g.leader.name;
         g.leader_id = g.leader._id;
+        var muted = false;
+        _.each(g.mutes, function(mute){
+          if (String(uid) == String(mute)){
+            muted = true;
+          }
+        });
+
         var object = _.find(counts, function(obj){
           return(String(obj._id) == String(g._id));
         });
