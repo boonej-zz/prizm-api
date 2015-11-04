@@ -67,7 +67,7 @@ groupSchema.statics.newGroup = function(obj, next){
 
 groupSchema.statics.mute = function(gid, uid, next) {
   var model = this.model('Group');
-  model.findOne({_id: group}, function(err, group) {
+  model.findOne({_id: gid}, function(err, group) {
     if (group) {
       var exists = false;
       if (!group.mutes) {
