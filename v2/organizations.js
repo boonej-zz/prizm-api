@@ -28,6 +28,7 @@ app.get('/:oid', gateway, function(req, res){
 
 app.get('/:org_id/groups', gateway, function(req, res) {
   console.log('in request');
+  var uid = req.query.requestor;
   var org_id = req.params.org_id;
   if (org_id) {
     Organization.findOne({_id: org_id}, function(err, org){
@@ -37,7 +38,19 @@ app.get('/:org_id/groups', gateway, function(req, res) {
             console.log(err);
             res.status(500).json(err);
           } else {
-            res.status(200).json(groups);
+            var result = [];
+            _.each(groups, function(g){
+              g = g.toObject();
+              var muted = false;
+              _.each(g.mutes, function(mute){
+                if (String(uid) == String(mute)){
+                  muted = true;
+                }
+              });
+              g.muted = muted;
+              result.push(g);
+            });
+            res.status(200).json(result);
           }
         });
       } else {
