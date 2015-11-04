@@ -85,6 +85,8 @@ groupSchema.statics.mute = function(gid, uid, next) {
         });
       }
     }
+    group = group.toObject();
+    group.muted = true;
     next(err, group);
   });
 }
@@ -109,6 +111,9 @@ groupSchema.statics.unmute = function(gid, uid, next) {
         });
       }
     }
+    group = group.toObject();
+    group.muted = false;
+
     next(err, group);
   });
 };
