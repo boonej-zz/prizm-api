@@ -91,7 +91,7 @@ groupSchema.statics.mute = function(gid, uid, next) {
 
 groupSchema.statics.unmute = function(gid, uid, next) {
   var model = this.model('Group');
-  model.findOne({_id: group}, function(err, group) {
+  model.findOne({_id: gid}, function(err, group) {
     if (group) {
       var idx = -1;
       if (!group.mutes) {
