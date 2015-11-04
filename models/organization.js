@@ -107,6 +107,61 @@ organizationSchema.statics.findOneAndFlatten = function(oid, next) {
     });
 }
 
+
+organizationSchema.statics.mute = function(oid, uid, next) {
+  var model = this.model('Organization');
+  model.findOne({_id: oid}, function(err, org) {
+    if (org) {
+      var exists = false;
+      if (!org.mutes) {
+        org.mutes = [];
+      }
+      _.each(org.mutes, function(mute){
+        if (String(mute) == String(uid)) {
+          exists = true;
+        }
+      });
+      if (!exists) {
+        org.mutes.push(uid);
+        org.save(function(err, o){
+          if (err) console.log(err);
+        });
+      }
+    }
+    org = org.toObject();
+    org.muted = true;
+    next(err, org);
+  });
+}
+
+organizationSchema.statics.unmute = function(oid, uid, next) {
+  var model = this.model('Organization');
+  model.findOne({_id: oid}, function(err, org) {
+    if (org) {
+      var idx = -1;
+      if (!org.mutes) {
+        org.mutes = [];
+      }
+      _.each(org.mutes, function(mute, i){
+        if (String(mute) == String(uid)) {
+          idx = i;
+        }
+      });
+      if (idx != -1) {
+        org.mutes.splice(idx, 1);
+        org.save(function(err, o){
+          if (err) console.log(err);
+        });
+      }
+    }
+    org = org.toObject();
+    org.muted = false;
+
+    next(err, org);
+  });
+};
+
+
 var themeSchema = new mongoose.Schema({
   background_url      : {type: String, default: null},
   dominant_color      : {type: String, default: null},

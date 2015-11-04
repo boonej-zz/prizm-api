@@ -196,6 +196,13 @@ userSchema.statics.findOneCore = function(uid, next) {
                 user.theme = user.org_status[0].organization.theme.background_url;
                 user.role = user.org_status[0].role;
                 user.interest_count = _.isArray(user.interests)?user.interests.length:0;
+                var muted = false;
+                _.each(user.org_status[0].organization.mutes, function(mute){
+                  if (String(user._id) == String(mute)) {
+                    muted = true;
+                  }
+                });
+                user.allMuted = muted;
               }
               next(err, user);
             });
@@ -210,6 +217,13 @@ userSchema.statics.findOneCore = function(uid, next) {
           user.theme = org.theme.background_url;
           user.role = 'owner';
           user.date_founded = user.date_founded?moment(user.date_founded).calendar():null;
+          _.each(org.mutes, function(mute){
+                  if (String(user._id) == String(mute)) {
+                    muted = true;
+                  }
+                });
+                user.allMuted = muted;
+
           
         }
         user.interest_count = _.isArray(user.interests)?user.interests.length:0;

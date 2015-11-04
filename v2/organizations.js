@@ -238,22 +238,42 @@ app.put('/:oid/groups/:gid', gateway, function(req, res) {
 
 // Add Mute to group
 app.post('/:org_id/groups/:gid/mutes', gateway, function(req, res) {
+  var oid = req.params.oid;
   var gid = req.params.gid;
   var uid = req.body.user;
-  Group.mute(gid, uid, function(err, group) {
-    if (err) res.status(500).json(err);
-    else res.status(200).json(group);
-  });
+  if (gid == 'all') {
+    Organization.mute(oid, uid, function(err, org){
+      User.findOneCore(uid, function(err, user) {
+        if (err) res.status(500).json(err);
+        else res.status(200).json(user);
+      });
+    });
+  } else {
+    Group.mute(gid, uid, function(err, group) {
+      if (err) res.status(500).json(err);
+      else res.status(200).json(group);
+    });
+  }
 });
 
 // Remove Mute from group
 app.delete('/:org_id/groups/:gid/mutes/:uid', gateway, function(req, res){
   var gid = req.params.gid;
   var uid = req.params.uid;
-  Group.unmute(gid, uid, function(err, group){
-    if (err) res.status(500).json(err);
-    else res.status(200).json(group);
-  });
+  var oid = req.params.oid;
+  if (gid == 'all') {
+    Organization.unmute(oid, uid, function(err, org){
+      User.findOneCore(uid, function(err, user) {
+        if (err) res.status(500).json(err);
+        else res.status(200).json(user);
+      });
+    });
+  } else {
+    Group.unmute(gid, uid, function(err, group){
+      if (err) res.status(500).json(err);
+      else res.status(200).json(group);
+    });
+  }
 });
 
 app.get('/:org_id/groups/:gid/messages', gateway, function(req, res) {
