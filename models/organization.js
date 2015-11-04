@@ -127,9 +127,10 @@ organizationSchema.statics.mute = function(oid, uid, next) {
           if (err) console.log(err);
         });
       }
+      org = org.toObject();
+      org.muted = true;
     }
-    org = org.toObject();
-    org.muted = true;
+    
     next(err, org);
   });
 }
@@ -153,10 +154,9 @@ organizationSchema.statics.unmute = function(oid, uid, next) {
           if (err) console.log(err);
         });
       }
+      org = org.toObject();
+      org.muted = false;
     }
-    org = org.toObject();
-    org.muted = false;
-
     next(err, org);
   });
 };
