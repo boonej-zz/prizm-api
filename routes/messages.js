@@ -463,21 +463,7 @@ var notifyUsers = function(m){
       if (message.target) {
         criteria = {_id: criteria.target};
       }
-      var mutes = [];
-      if (String(message.creator) != String(organization.owner._id)) {
-        if (role != 'leader' && role != 'ambassador') {
-          if (!message.target) {
-            if (message.group) {
-              mutes = message.group.mutes;
-            } else {
-              mutes = message.organization.mutes;
-            }
-          }
-        }
-      } 
-      if (mutes.length > 0) {
-        criteria._id = {$nin: mutes};
-      }
+      
       User.find(criteria)
         .populate({path: 'org_status.organization', model: 'Organization'})
         .populate({path: 'org_status.organization.groups', model: 'Group'})

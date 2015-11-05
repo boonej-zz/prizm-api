@@ -188,8 +188,13 @@ var notifyUsers = function(message){
   var body = "";
   var model = mongoose.model('Message');
   message.prettyText(function(prettyText){
-    model.populate(message, {path: 'group', model: 'Group'} ,function(err, m){
-      model.populate(m, {path: 'creator', model: 'User', select: {name: 1}}, function(err, m){
+    model.populate(message, {path: 'organization', model: 'Organization'}, function(Err, m){
+    model.populate(m, {path: 'group', model: 'Group'} ,function(err, m){
+      model.populate(m, {path: 'creator', model: 'User', select: {_id, name: 1,
+      org_status: {$elemMatch: {
+      organization: message.organization,
+      status: 'active'
+    }} }}, function(err, m){
         model.populate(m, {path: 'target', model: 'User', select: {first_name: 1, google_devices: 1, device_token: 1, badge_count: 1}}, function(err, m){
           if (message.target) {
             var contents = {};
@@ -209,6 +214,22 @@ var notifyUsers = function(message){
           params = {_id: {$ne: m.creator._id}, active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
           if (m.group) {
             params.org_status.$elemMatch.groups = m.group._id;
+          }
+          var mutes = false;
+          if (String(m.creator._id) != String(m.organization.owner)) {
+            var role = m.creator.org_status.length > 0?m.creator.org_status[0].role:'none';
+            if (role != 'leader' && role != 'ambassador') {
+              if (! m.target) {
+                if (m.group) {
+                  mutes = m.group.mutes || false;
+                } else {
+                  mutes = m.organization.mutes || false;
+                }
+              }
+            } 
+          }
+          if (mutes) {
+            params._id = {$nin: mutes};
           }
             User.find(params)
             .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
@@ -238,6 +259,7 @@ var notifyUsers = function(message){
       });
     });
   }); 
+  });
   });
 };
 
