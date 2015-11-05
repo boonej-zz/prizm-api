@@ -211,7 +211,7 @@ var notifyUsers = function(message){
             };
             notify.sendNote(m.target, contents);
         } else {
-          params = {_id: {$ne: m.creator._id}, active: true, org_status: {$elemMatch: {organization: message.organization, status: 'active'}}};
+          params = {_id: {$ne: m.creator._id}, active: true, org_status: {$elemMatch: {organization: message.organization._id, status: 'active'}}};
           if (m.group) {
             params.org_status.$elemMatch.groups = m.group._id;
           }
@@ -250,11 +250,13 @@ var notifyUsers = function(message){
                 titleString = titleString + m.creator.name;
                 contents.title = titleString;
                 var muted = false;
-                _.each(mutes, function(m){
-                  if (String(m) == u._id) {
-                    muted = true;
-                  }
-                });
+                if (mutes) {
+                  _.each(mutes, function(m){
+                    if (String(m) == u._id) {
+                      muted = true;
+                    }
+                  });
+                }
                 if (!muted) {
                   notify.sendNote(u, contents);
                 }
