@@ -228,9 +228,7 @@ var notifyUsers = function(message){
               }
             } 
           }
-          if (mutes) {
-            params._id = {$nin: mutes};
-          }
+         
           console.log(params);
             User.find(params)
             .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
@@ -251,7 +249,15 @@ var notifyUsers = function(message){
                 var titleString = m.group?'#' + m.group.name + ': ':'#all: ';
                 titleString = titleString + m.creator.name;
                 contents.title = titleString;
-                notify.sendNote(u, contents);
+                var muted = false;
+                _.each(mutes, function(m){
+                  if (String(m) == u._id) {
+                    muted = true;
+                  }
+                });
+                if (!muted) {
+                  notify.sendNote(u, contents);
+                }
                  
               });
               
