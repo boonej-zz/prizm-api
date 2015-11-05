@@ -217,6 +217,7 @@ userSchema.statics.findOneCore = function(uid, next) {
           user.theme = org.theme.background_url;
           user.role = 'owner';
           user.date_founded = user.date_founded?moment(user.date_founded).calendar():null;
+          var muted = false;
           _.each(org.mutes, function(mute){
                   if (String(user._id) == String(mute)) {
                     muted = true;
