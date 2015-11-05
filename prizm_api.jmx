@@ -174,7 +174,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/v2/users/53b42f6028e98d0523061110</stringProp>
+          <stringProp name="HTTPSampler.path">/v2/organizations/54f48e365e046bef12458dd3/groups/all/messages?requestor=53b42f6028e98d0523061110</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
