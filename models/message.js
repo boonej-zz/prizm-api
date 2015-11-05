@@ -190,7 +190,7 @@ var notifyUsers = function(message){
   message.prettyText(function(prettyText){
     model.populate(message, {path: 'organization', model: 'Organization'}, function(Err, m){
     model.populate(m, {path: 'group', model: 'Group'} ,function(err, m){
-      model.populate(m, {path: 'creator', model: 'User', select: {_id, name: 1,
+      model.populate(m, {path: 'creator', model: 'User', select: {_id: 1, name: 1,
       org_status: {$elemMatch: {
       organization: message.organization,
       status: 'active'
