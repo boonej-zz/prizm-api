@@ -231,6 +231,7 @@ var notifyUsers = function(message){
           if (mutes) {
             params._id = {$nin: mutes};
           }
+          console.log(params);
             User.find(params)
             .select({name: 1, device_token: 1, google_devices: 1, badge_count: 1})
             .exec(function(err, users){
