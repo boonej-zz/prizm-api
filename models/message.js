@@ -141,7 +141,7 @@ messageSchema.statics.findAndFlatten = function(criteria, requestor, limit, next
     if (messages && messages.length > 0) {
       model.populate(messages, {path: 'creator', 
         model: 'User', 
-        select: {name: 1, profile_photo_url: 1, active: 1, subtype: 1}}, 
+        select: {name: 1, profile_photo_url: 1, active: 1, type: 1, subtype: 1}}, 
         function(err, messages){
           androidText(messages, requestor, function(result){
             next(err, result);
@@ -344,6 +344,7 @@ var fillMessage = function(m) {
   m.creator_id = m.creator._id;
   m.creator_subtype = m.creator.subtype;
   m.creator_active = m.creator.active;
+  m.creator_type = m.creator.type;
   m.creator_name = m.creator.name;
   m.read_count = m.read.length;
   if (m.meta) {
