@@ -806,7 +806,7 @@ userSchema.statics.findAvailableDirectRecipients = function(user, next){
       ]
     };
     model.find(params)
-    .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1, type = 1})
+    .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1, type : 1})
     .sort({name: 1})
     .exec(function(err, users){
       next(err, users);
