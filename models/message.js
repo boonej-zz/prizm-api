@@ -479,7 +479,7 @@ messageSchema.statics.getMessageAggregate = function(user, oid, next) {
 };
 
 messageSchema.statics.fetchDirectMessages = function(uid, tid, oid, before, after, next){
-  var userParams = {_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1};
+  var userParams = {_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1, type: 1, subtype: 1};
   var model = this.model('Message');
   var params = {$or: [{creator: uid, target: tid, organization: oid}, {creator:tid, target: uid, organization: oid}]};
   if (before) {
