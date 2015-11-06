@@ -646,7 +646,7 @@ userSchema.methods.fetchGroups = function(org_id, next) {
   var uid = this._id;
   if (this.type == 'user') {
     model.populate(this, {path: 'org_status.groups', model: 'Group'}, function(err, user){
-      model.populate(user, {path: 'org_status.groups.leader', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1}}, function(err, user){
+      model.populate(user, {path: 'org_status.groups.leader', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, active: 1, type: 1}}, function(err, user){
         var orgs = _.filter(user.org_status, function(obj){
           return String(obj.organization) == String(org_id);
         }); 
@@ -759,7 +759,7 @@ userSchema.statics.findBasic = function(params, limit, next){
   var model = this.model('User');
   params.active = true;
   model.find(params)
-  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, type: 1, subtype: 1})
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, type: 1, subtype: 1, type: 1})
   .sort({name: 1})
   .limit(limit)
   .exec(function(err, users) {
@@ -806,7 +806,7 @@ userSchema.statics.findAvailableDirectRecipients = function(user, next){
       ]
     };
     model.find(params)
-    .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1})
+    .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1, type = 1})
     .sort({name: 1})
     .exec(function(err, users){
       next(err, users);
@@ -824,7 +824,7 @@ userSchema.statics.findOrganizationMembers = function(oid, last, next, exclude){
     params._id = {$ne: exclude._id};
   }
   model.find(params)
-  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1,
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1, type: 1,
     org_status: {$elemMatch: {organization: mObjectId(oid), status: 'active'}}})
   .sort({name: 1})
   .limit(25)
@@ -847,7 +847,7 @@ userSchema.statics.findGroupMembers = function(oid, gid, last, next){
     params.name = {$gt: last};
   }
   model.find(params)
-  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1,
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, active: 1, type: 1,
     org_status: {$elemMatch: {organization: mObjectId(oid), status: 'active'}}})
   .sort({name: 1})
   .limit(25)
