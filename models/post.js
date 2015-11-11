@@ -12,6 +12,7 @@ var _mongoose   = require('mongoose'),
     User        = require(process.env.PRISM_HOME + 'models/user').User;
 var ObjectId = _mongoose.Schema.Types.ObjectId;
 var mObjectId = _mongoose.Types.ObjectId;
+var time       = require('../lib/helpers/date_time');
 
 /**
  * Comment Model Schema
@@ -611,6 +612,8 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
   var model = this.model('Post');
   model.find(criteria)
   .select(homeFields(uid))
+  .sort({create_date: -1})
+  .limit(15)
   .exec(function(err, posts){
     model.populate(posts, {path: 'creator', model: 'User',
       select: {_id: 1, name: 1, profile_avatar_url: 1, type: 1, subtype: 1}}, 
@@ -626,6 +629,7 @@ var flatten = function(posts){
   var returnData = [];
   _.each(posts, function(p) {
     p = p.toObject();
+    p.time_since = time.timeSinceFormatter(p.create_date);
     p.creator_id = p.creator._id;
     p.creator_profile_photo_url = p.creator.profile_photo_url;
     p.creator_type = p.creator.type;
