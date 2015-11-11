@@ -10,6 +10,8 @@ var _mongoose   = require('mongoose'),
     _moment     = require('moment'),
     _utils      = require(process.env.PRISM_HOME + 'utils'),
     User        = require(process.env.PRISM_HOME + 'models/user').User;
+var ObjectId = _mongoose.Schema.Types.ObjectId;
+var mObjectId = _mongoose.Types.ObjectId;
 
 /**
  * Comment Model Schema
@@ -210,6 +212,14 @@ var postSchema = new _mongoose.Schema({
   accolade_target     : {type: String, default: null}
 }, { versionKey: false});
 
+var homeFields = function(creator){
+  return {id: 1, creator: 1, text: 1, file_path: 1, likes_count: 1, 
+    likes: {$elemMatch: {_id: creator}}, category: 1, external_provider: 1,
+    comments_count:1 , create_date: 1, location_latitude: 1, location_longitude: 1,
+    hash_tags: 1
+  };
+}
+
 postSchema.statics.canResolve = function(){
   return [
     {creator: {identifier: '_id', model: 'User'}},
@@ -282,7 +292,7 @@ postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week,
     count: {$sum :1}
   };
 
-  if(!all_time){
+  if(!all_time){G
     criteria.create_date = {
       $gt: new Date(start_week.toISOString()),
       $lt: new Date(end_week.toISOString())
@@ -503,6 +513,7 @@ postSchema.methods.format = function(type, add_fields){
   return format;
 };
 
+
 /**
  * validates category property
  * @param  {[type]} value [description]
@@ -594,6 +605,44 @@ postSchema.pre('save', function(next){
 
   next();
 });
+
+
+postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
+  var model = this.model('Post');
+  model.find(criteria)
+  .select(homeFields(uid))
+  .exec(function(err, posts){
+    model.populate(posts, {path: 'creator', model: 'User',
+      select: {_id: 1, name: 1, profile_avatar_url: 1, type: 1, subtype: 1}}, 
+      function(err, posts){
+        var returnData = flatten(posts);
+        next(err, returnData);
+      });
+    
+  });
+};
+
+var flatten = function(posts){
+  var returnData = [];
+  _.each(posts, function(p) {
+    p = p.toObject();
+    p.creator_id = p.creator._id;
+    p.creator_profile_photo_url = p.creator.profile_photo_url;
+    p.creator_type = p.creator.type;
+    p.creator_subtype = p.creator.subtype;
+    delete p.creator;
+    p.is_liked = p.likes.length > 0;
+    delete p.likes;
+    hashTags = [];
+    _.each(p.hash_tags, function(h){
+      h = '#' + h.toLowerCase();
+      hashTags.push(h);
+    }); 
+    p.hash_tags = hashTags.join(' ');
+    returnData.push(p);
+  });
+  return returnData;
+};
 
 /**
  * Pre Update Injection

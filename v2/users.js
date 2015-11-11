@@ -9,6 +9,7 @@ var moment = require('moment');
 
 var User = mongoose.model('User');
 var Interest = mongoose.model('Interest');
+var Post = mongoose.model('Post');
 
 app.get('/', gateway, function(req, res){
   var searchText = req.query.search || false;
@@ -137,5 +138,17 @@ app.put('/:uid/interests', gateway, function(req, res){
     });
   });
 });
+
+/** Home Feed **/
+app.get('/:uid/home', function(req, res) {
+  var uid = req.params.uid;
+  User.fetchHomeFeedCriteria(uid, function(err, criteria){
+    if (err) res.status(400).json(err);
+    Post.fetchHomeFeed(uid, criteria, function(err, posts){
+      if (err) res.status(500).json(err);
+      else res.status(200).json(posts);
+    });
+  });
+}); 
 
 module.exports = app;

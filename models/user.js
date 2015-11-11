@@ -81,7 +81,7 @@ var userSchema = new _mongoose.Schema({
   delete_date           : {type: Date, default: null},
   last_login_date       : {type: Date, default: null},
   posts_count           : {type: Number, default: 0},
-  following             : {type: Array, default: []},
+  following             : [{_id: ObjectId, date: Date}], 
   followers             : {type: Array, default: []},
   following_count       : {type: Number, default: 0},
   followers_count       : {type: Number, default: 0},
@@ -932,6 +932,77 @@ userSchema.statics.registerDevice = function(uid, device, next){
         next(err, user);
       }
     }
+  });
+};
+
+userSchema.statics.fetchHomeFeedCriteria = function(uid, next) {
+  var model = this.model('User');
+  console.log(uid);
+  model.findOne({_id: uid})
+  .select({_id: 1, org_status: {$elemMatch: {status: 'active'}}, following: 1})
+  .exec(function(err, user){
+    console.log(err);
+    console.log(user);
+    model.populate(user, {path: 'org_status.organization', model: 'Organization', 
+      select: {_id: 1, owner: 1}}, function(err, user){
+      if (user) {
+        Trust.find({status: 'accepted', $or: [{to: user._id}, {from: user._id}]})
+        .select({from: 1, to: 1})
+        .exec(function(err, trusts){
+          var t = [];
+          if (err) console.log(err);
+          if (_.isArray(trusts)) {
+            _.each(trusts, function(trust) {
+              if (String(trust.to) == String(uid)) {
+                t.push(trust.from);
+              } else {
+                t.push(trust.to);
+              }
+            });
+          }
+          var owners = [];
+          var orgs = [];
+          if (_.isArray(user.org_status)){
+            _.each(user.org_status, function(o){
+              orgs.push(o.organization._id);
+              owners.push(o.organization.owner);
+            });
+          }
+          var following = _.pluck(user.following, '_id');
+          var trusted = trusts.concat(owners);
+          trusted.push(user._id);
+          var orgMembers = [];
+          _.each(orgs, function(o){
+            orgMembers.push({org_status: {$elemMatch:
+              {organization: o, status: 'active'}
+            }});
+          });
+          orgMembers.push({creator: {$in: trusted}});
+          var criteria = {
+            status: 'active',
+            is_flagged: false,
+            $or: [
+              {
+                creator: {$in: following},
+                scope: 'public',
+                category: {$ne: 'personal'},
+                status: 'active'
+              },
+              {
+                $or: orgMembers,
+                scope: {$in: ['public', 'trust']},
+                status: 'active',
+                category: {$ne: 'personal'}
+              }
+            ]
+          };
+          console.log(criteria);
+          next(null, criteria);
+        }); 
+      } else {
+        next(err, null);
+      }
+    });
   });
 };
 
