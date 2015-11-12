@@ -613,7 +613,7 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
   model.find(criteria)
   .select(homeFields(uid))
   .sort({create_date: -1})
-  .limit(15)
+  .limit(2)
   .exec(function(err, posts){
     model.populate(posts, {path: 'creator', model: 'User',
       select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
