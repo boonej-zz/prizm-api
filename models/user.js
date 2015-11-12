@@ -935,7 +935,7 @@ userSchema.statics.registerDevice = function(uid, device, next){
   });
 };
 
-userSchema.statics.fetchHomeFeedCriteria = function(uid, next) {
+userSchema.statics.fetchHomeFeedCriteria = function(uid, last, next) {
   var model = this.model('User');
   console.log(uid);
   model.findOne({_id: uid})
@@ -996,6 +996,9 @@ userSchema.statics.fetchHomeFeedCriteria = function(uid, next) {
               }
             ]
           };
+          if (last) {
+            criteria.create_date = {$lt: last};
+          }
           console.log(criteria);
           next(null, criteria);
         }); 

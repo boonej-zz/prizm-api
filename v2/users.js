@@ -142,7 +142,8 @@ app.put('/:uid/interests', gateway, function(req, res){
 /** Home Feed **/
 app.get('/:uid/home', function(req, res) {
   var uid = req.params.uid;
-  User.fetchHomeFeedCriteria(uid, function(err, criteria){
+  var last = req.query.last;
+  User.fetchHomeFeedCriteria(uid, last, function(err, criteria){
     if (err) res.status(400).json(err);
     Post.fetchHomeFeed(uid, criteria, function(err, posts){
       if (err) res.status(500).json(err);
