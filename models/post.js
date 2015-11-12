@@ -616,7 +616,7 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
   .limit(15)
   .exec(function(err, posts){
     model.populate(posts, {path: 'creator', model: 'User',
-      select: {_id: 1, name: 1, profile_avatar_url: 1, type: 1, subtype: 1}}, 
+      select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
       function(err, posts){
         var returnData = flatten(posts);
         next(err, returnData);
@@ -631,6 +631,7 @@ var flatten = function(posts){
     p = p.toObject();
     p.time_since = time.timeSinceFormatter(p.create_date);
     p.creator_id = p.creator._id;
+    p.creator_name = p.creator.name;
     p.creator_profile_photo_url = p.creator.profile_photo_url;
     p.creator_type = p.creator.type;
     p.creator_subtype = p.creator.subtype;
