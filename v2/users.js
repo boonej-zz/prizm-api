@@ -172,9 +172,10 @@ app.get('/:uid/activities', function(req, res) {
 /** Trusts **/
 app.get('/:uid/trusts', function(req, res) {
   var uid = req.params.uid;
+  var last = req.query.last;
   var filter = req.query.filter;
   if (filter == 'activity') {
-    Trust.fetchTrustActivityForUser(uid, function(err, trusts){
+    Trust.fetchTrustActivityForUser(uid, last, function(err, trusts){
       if (err) res.status(400).json(err);
       else res.status(200).json(trusts);
     });

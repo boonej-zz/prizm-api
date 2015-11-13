@@ -155,11 +155,14 @@ trustSchema.pre('update', function(next){
   next();
 });
 
-trustSchema.statics.fetchTrustActivityForUser = function(uid, next){
+trustSchema.statics.fetchTrustActivityForUser = function(uid, last, next){
   var model = this.model('Trust');
   var criteria = {
     to: uid, status: 'pending'
   };
+  if (last) {
+    criteria.modify_date = {$lt: last};
+  }
   model.find(criteria)
   .select(activityFields)
   .sort({modify_date: -1})
