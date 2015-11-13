@@ -31,7 +31,7 @@ var activitySchema = new _mongoose.Schema({
 }, { versionKey: false });
 
 var baseFields = {from: 1, to: 1, create_date: 1, action: 1, post_id: 1, comment_id: 1,
-  insight_target_id: 1, has_been_viewed: 1, group_id: 1};
+  insight_target_id: 1, has_been_viewed: 1, group_id: 1, message_id: 1};
 
 var baseUserFields = {_id: 1, profile_photo_url: 1, type: 1, name: 1, subtype: 1};
 
