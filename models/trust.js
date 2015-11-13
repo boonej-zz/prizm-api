@@ -8,6 +8,7 @@ var _mongoose     = require('mongoose'),
     _             = require('underscore'),
     _utils        = require(_prism_home + 'utils'),
     User          = require(_prism_home + 'models/user').User;
+var time       = require('../lib/helpers/date_time');
 
 var trustSchema = new _mongoose.Schema({
   from                : { type: _mongoose.Schema.Types.ObjectId,
@@ -40,6 +41,23 @@ var trustSchema = new _mongoose.Schema({
   from_score          : { type: Number, default: null },
   to_score            : { type: Number, default: null }
 });
+
+var activityFields = {
+  _id: 1,
+  from: 1,
+  to: 1,
+  modify_date: 1,
+  create_date: 1,
+  status: 1
+};
+
+var userFields = {
+  _id: 1,
+  name: 1,
+  profile_photo_url: 1,
+  type: 1,
+  subtype: 1
+}
 
 trustSchema.static('findTrust', function(user1, user2, callback){
   var criteria = {
@@ -136,5 +154,39 @@ trustSchema.pre('update', function(next){
   this.calculateTrustScore();
   next();
 });
+
+trustSchema.statics.fetchTrustActivityForUser = function(uid, next){
+  var model = this.model('Trust');
+  var criteria = {
+    to: uid, status: 'pending'
+  };
+  model.find(criteria)
+  .select(activityFields)
+  .sort({modify_date: -1})
+  .limit(15)
+  .populate({path: 'from', model: 'User', select: userFields})
+  .exec(function(err, trusts){
+    next(err, flattenActivity(trusts));
+  });
+};
+
+var flattenActivity = function(trusts) {
+  if (!_.isArray(trusts)) {
+    return null;
+  }
+  var result = [];
+  _.each(trusts, function(t){
+    t = t.toObject();
+    t.from_name = t.from.name;
+    t.from_id = t.from._id;
+    t.from_profile_photo_url = t.from.profile_photo_url;
+    t.from_type = t.from.type;
+    t.from_subtype = t.from.subtype;
+    delete t.from;
+    t.time_since = time.timeSinceFormatter(t.modify_date); 
+    result.push(t);
+  });
+  return result;
+};
 
 exports.Trust = _mongoose.model('Trust', trustSchema);

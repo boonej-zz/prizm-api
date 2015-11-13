@@ -11,6 +11,7 @@ var User = mongoose.model('User');
 var Interest = mongoose.model('Interest');
 var Post = mongoose.model('Post');
 var Activity = mongoose.model('Activity');
+var Trust = mongoose.model('Trust');
 
 app.get('/', gateway, function(req, res){
   var searchText = req.query.search || false;
@@ -164,6 +165,18 @@ app.get('/:uid/activities', function(req, res) {
     Activity.fetchActivitiesForUser(uid, last, function(err, activities){
       if (err)res.json(err);
       else res.json(activities);
+    });
+  }
+});
+
+/** Trusts **/
+app.get('/:uid/trusts', function(req, res) {
+  var uid = req.params.uid;
+  var filter = req.query.filter;
+  if (filter == 'activity') {
+    Trust.fetchTrustActivityForUser(uid, function(err, trusts){
+      if (err) res.status(400).json(err);
+      else res.status(200).json(trusts);
     });
   }
 });
