@@ -115,6 +115,7 @@ var flatten = function(activities) {
       a.from_subtype = a.from.subtype;
       a.from_profile_photo_url = a.from.profile_photo_url;
       a.from_name = a.from.name;
+      a.from_type = a.from.type;
       delete a.from;
     }
     if (a.post_id) {
