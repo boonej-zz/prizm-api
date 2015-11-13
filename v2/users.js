@@ -158,9 +158,16 @@ app.get('/:uid/home', function(req, res) {
 app.get('/:uid/activities', function(req, res) {
   var uid = req.params.uid;
   var last = req.query.last;
-  var digest = req.query.digest;
-  if (digest) {
-
+  var filter = req.query.filter;
+  if (filter == 'counts') {
+    var result = {};
+    Activity.count({to: uid, has_been_viewed: false}, function(err, c){
+      result.activities = c;
+      Trust.count({to: uid, status: 'pending'}, function(err, pc){
+        result.trusts = pc;
+        res.json(result);
+      });
+    });
   } else {
     Activity.fetchActivitiesForUser(uid, last, function(err, activities){
       if (err)res.json(err);
