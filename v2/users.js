@@ -10,6 +10,7 @@ var moment = require('moment');
 var User = mongoose.model('User');
 var Interest = mongoose.model('Interest');
 var Post = mongoose.model('Post');
+var Activity = mongoose.model('Activity');
 
 app.get('/', gateway, function(req, res){
   var searchText = req.query.search || false;
@@ -151,5 +152,20 @@ app.get('/:uid/home', function(req, res) {
     });
   });
 }); 
+
+/** Activity **/
+app.get('/:uid/activities', function(req, res) {
+  var uid = req.params.uid;
+  var last = req.query.last;
+  var digest = req.query.digest;
+  if (digest) {
+
+  } else {
+    Activity.fetchActivitiesForUser(uid, last, function(err, activities){
+      if (err)res.json(err);
+      else res.json(activities);
+    });
+  }
+});
 
 module.exports = app;

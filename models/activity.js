@@ -9,6 +9,7 @@ var _mongoose     = require('mongoose'),
     Trust         = require(process.env.PRISM_HOME + 'models/user').Trust,
     Post          = require(process.env.PRISM_HOME + 'models/post').Post,
     _object_id    = _mongoose.Schema.Types.ObjectId;
+var _ = require('underscore');
 
 /**
  * Activity Model Schema
@@ -27,6 +28,14 @@ var activitySchema = new _mongoose.Schema({
   group_id:         {type: _object_id, ref: 'Group', required: false},
   message_id:       {type: _object_id, ref: 'Message', required: false}
 }, { versionKey: false });
+
+var baseFields = {from: 1, to: 1, create_date: 1, action: 1, post_id: 1, comment_id: 1,
+  insight_target_id: 1, has_been_viewed: 1, group_id: 1};
+
+var baseUserFields = {_id: 1, profile_photo_url: 1, type: 1, name: 1, subtype: 1};
+
+var basePostFields = {_id: 1, text: 1, file_path: 1};
+
 
 activitySchema.statics.selectFields = function(type){
   if(type === 'short' || type == 'basic'){
@@ -64,6 +73,71 @@ activitySchema.methods.format = function(type){
     };
   }
 };
+
+activitySchema.statics.fetchActivitiesForUser = function(uid, last, next) {
+  var model = this.model('Activity');
+  var criteria = {to: uid};
+  if (last) {
+    criteria.create_date = {$lt: last};
+  }
+  model.find(criteria)
+  .select(baseFields)
+  .sort({create_date: -1})
+  .limit(10)
+  .populate({path: 'from', model: 'User', select: baseUserFields})
+  .populate({path: 'post_id', model: 'Post', select: basePostFields})
+  .populate({path: 'insight_id', model: 'Insight', select: {_id: 1, file_path: 1}})
+  .populate({path: 'insight_target_id', model: 'InsightTarget', select: {_id: 1, insight: 1}})
+  .populate({path: 'group_id', model: 'Group', select: {_id: 1, name: 1}})
+  .exec(function(err, activities){
+    model.populate(activities, {path: 'insight_target_id.insight', model: 'Insight', select: {_id: 1, file_path: 1}}, 
+      function(err, activities){
+      next(err, flatten(activities));
+      _.each(activities, function(a){
+        model.findOneAndUpdate({_id: a._id}, {has_been_viewed: true}, function(err, r){
+          if (err) console.log(err);
+        });
+      });
+    });
+  });
+  
+};
+
+var flatten = function(activities) {
+  var result = [];
+  if (!_.isArray(activities)){
+    return null;
+  };
+  _.each(activities, function(a){
+    a = a.toObject();
+    if (a.from) {
+      a.from_id = a.from._id;
+      a.from_subtype = a.from.subtype;
+      a.from_profile_photo_url = a.from.profile_photo_url;
+      a.from_name = a.from.name;
+      delete a.from;
+    }
+    if (a.post_id) {
+      var post = a.post_id;
+      a.post_id =  post._id || null;
+      a.post_file_path = post.file_path || null;
+      a.post_text = post.text || null;
+    }
+    if (a.insight_target_id) {
+      var insight = a.insight_target_id;
+      a.insight_target_id = insight._id || null;
+      a.insight_id = insight.insight._id || null;
+      a.insight_file_path  = insight.insight.file_path || null;
+    }
+    if (a.group_id) {
+      var group = a.group_id;
+      a.group_id = group._id || null;
+      a.group_name = group.name || null;
+    }
+    result.push(a);
+  });
+  return result;
+}
 
 /**
  * Pre Save Injection/Validation
