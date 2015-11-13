@@ -10,6 +10,7 @@ var _mongoose     = require('mongoose'),
     Post          = require(process.env.PRISM_HOME + 'models/post').Post,
     _object_id    = _mongoose.Schema.Types.ObjectId;
 var _ = require('underscore');
+var time       = require('../lib/helpers/date_time');
 
 /**
  * Activity Model Schema
@@ -110,6 +111,7 @@ var flatten = function(activities) {
   };
   _.each(activities, function(a){
     a = a.toObject();
+    a.time_since = time.timeSinceFormatter(a.create_date);
     if (a.from) {
       a.from_id = a.from._id;
       a.from_subtype = a.from.subtype;
