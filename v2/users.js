@@ -147,10 +147,12 @@ app.get('/:uid/home', function(req, res) {
   var last = req.query.last;
   User.fetchHomeFeedCriteria(uid, last, function(err, criteria){
     if (err) res.status(400).json(err);
-    Post.fetchHomeFeed(uid, criteria, function(err, posts){
-      if (err) res.status(500).json(err);
-      else res.status(200).json(posts);
-    });
+    else {
+      Post.fetchHomeFeed(uid, criteria, function(err, posts){
+        if (err) res.status(500).json(err);
+        else res.status(200).json(posts);
+      });
+    }
   });
 }); 
 

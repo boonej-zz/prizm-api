@@ -217,7 +217,7 @@ var homeFields = function(creator){
   return {id: 1, creator: 1, text: 1, file_path: 1, likes_count: 1, 
     likes: {$elemMatch: {_id: creator}}, category: 1, external_provider: 1,
     comments_count:1 , create_date: 1, location_latitude: 1, location_longitude: 1,
-    hash_tags: 1
+    hash_tags: 1, status: 1
   };
 }
 
@@ -615,6 +615,7 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
   .sort({create_date: -1})
   .limit(10)
   .exec(function(err, posts){
+    if (err) console.log(err);
     model.populate(posts, {path: 'creator', model: 'User',
       select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
       function(err, posts){

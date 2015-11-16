@@ -971,37 +971,38 @@ userSchema.statics.fetchHomeFeedCriteria = function(uid, last, next) {
           var following = _.pluck(user.following, '_id');
           var trusted = trusts.concat(owners);
           trusted.push(user._id);
-          var orgMembers = [];
-          _.each(orgs, function(o){
-            orgMembers.push({org_status: {$elemMatch:
-              {organization: o, status: 'active'}
-            }});
+          model.find({org_status: {$elemMatch: {
+            organization: {$in: orgs},
+            status: 'active'
+          }}})
+          .select({_id: 1})
+          .exec(function(err, users){
+            var orgMembers = _.pluck(users, '_id');
+            following  = following.concat(orgMembers);
+            var criteria = {
+              status: 'active',
+              is_flagged: false,
+              $or: [
+                {
+                  creator: {$in: following},
+                  scope: 'public',
+                  category: {$ne: 'personal'},
+                  status: 'active'
+                },
+                {
+                  creator: {$in: trusted}, 
+                  scope: {$in: ['public', 'trust']},
+                  status: 'active',
+                  category: {$ne: 'personal'}
+                }
+              ]
+            };
+            if (last) {
+              criteria.create_date = {$lt: last};
+            }
+              next(null, criteria);
           });
-          orgMembers.push({creator: {$in: trusted}});
-          var criteria = {
-            status: 'active',
-            is_flagged: false,
-            $or: [
-              {
-                creator: {$in: following},
-                scope: 'public',
-                category: {$ne: 'personal'},
-                status: 'active'
-              },
-              {
-                $or: orgMembers,
-                scope: {$in: ['public', 'trust']},
-                status: 'active',
-                category: {$ne: 'personal'}
-              }
-            ]
-          };
-          if (last) {
-            criteria.create_date = {$lt: last};
-          }
-          console.log(criteria);
-          next(null, criteria);
-        }); 
+      });
       } else {
         next(err, null);
       }
