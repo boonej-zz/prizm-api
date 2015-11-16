@@ -293,7 +293,7 @@ postSchema.static('fetchCategoryPostCountByWeekAndYear', function(user_id, week,
     count: {$sum :1}
   };
 
-  if(!all_time){G
+  if(!all_time){
     criteria.create_date = {
       $gt: new Date(start_week.toISOString()),
       $lt: new Date(end_week.toISOString())
