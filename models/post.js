@@ -626,6 +626,32 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
   });
 };
 
+postSchema.statics.likePost = function(pid, uid, next){
+  var model = this.model('Post');
+  model.findOne({_id: pid}, function(err, post){
+    if (post) {
+      var exists = false;
+      _.each(post.likes, function(l){
+        if (String(l._id) == String(uid)) {
+          exists = true;
+        }
+      });
+      if (!exists) {
+        post.likes.push({_id: uid});
+        post.likes_count += 1;
+      }
+      post.save(function(err, post){
+        model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post){
+          next(err, flatten(post, uid));
+        });
+      });
+    } else {
+      next (err, post);
+    }
+  });
+
+};
+
 var flatten = function(posts, uid){
   var returnData = [];
   _.each(posts, function(p) {
