@@ -664,6 +664,7 @@ postSchema.statics.unlikePost = function(pid, uid, next) {
       });
       if (index != -1) {
         post.likes.splice(index, 1); 
+        post.likes_count -= 1;
       }
       post.save(function(err, post){
          model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post){
