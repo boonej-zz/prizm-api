@@ -23,7 +23,7 @@ app.get('/:pid/likes', function(req, res){
 app.put('/:pid/likes', function(req, res){
   var uid = req.body.user;
   var pid = req.params.pid;
-  Post.findPost(pid, uid, function(err, post){
+  Post.likePost(pid, uid, function(err, post){
     if (err) res.status(400).json(err);
     else res.status(201).json(post);
   });
