@@ -642,6 +642,10 @@ postSchema.statics.likePost = function(pid, uid, next){
       }
       post.save(function(err, post){
         model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post){
+        _utils.registerActivityEvent(post.creator._id,
+                                           uid,
+                                           'like',
+                                           post._id);
           next(err, flatten([post], uid)[0]);
         });
       });
