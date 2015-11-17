@@ -72,7 +72,7 @@ var notifyOwnerJoined = function(owner, user, joined){
     }, function (err, response){
       if (err) console.log(err); 
     }); 
-    var messageString = util.format(pushp, user.first_name + ' ', user.last_name);
+    var messageString = util.format(pushp, user.first_name + ' ' + user.last_name);
     iPush.sendNotification({
       device: owner.device_token,
       alert: messageString,
