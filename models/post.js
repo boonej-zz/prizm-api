@@ -619,19 +619,20 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
     model.populate(posts, {path: 'creator', model: 'User',
       select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
       function(err, posts){
-        var returnData = flatten(posts);
+        var returnData = flatten(posts, uid);
         next(err, returnData);
       });
     
   });
 };
 
-var flatten = function(posts){
+var flatten = function(posts, uid){
   var returnData = [];
   _.each(posts, function(p) {
     p = p.toObject();
     p.time_since = time.timeSinceFormatter(p.create_date);
     p.creator_id = p.creator._id;
+    p.own_post =  (String(p.creator_id) == String(uid)); 
     p.creator_name = p.creator.name;
     p.creator_profile_photo_url = p.creator.profile_photo_url;
     p.creator_type = p.creator.type;
