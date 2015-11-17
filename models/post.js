@@ -683,7 +683,8 @@ postSchema.statics.unlikePost = function(pid, uid, next) {
 var flatten = function(posts, uid){
   var returnData = [];
   _.each(posts, function(p) {
-    p = p.toObject();
+    if (typeof p.toObject != 'undefined')
+      p = p.toObject();
     p.time_since = time.timeSinceFormatter(p.create_date);
     p.creator_id = p.creator._id;
     p.own_post =  (String(p.creator_id) == String(uid)); 
