@@ -29,4 +29,15 @@ app.put('/:pid/likes', function(req, res){
   });
 });
 
+/** LIKES -DELETE **/
+app.delete('/:pid/likes/:uid', function(req, res){
+  var uid = req.params.uid;
+  var pid = req.params.pid;
+  Post.unlikePost(pid, uid, function(err, post){
+    if (err) res.status(400).json(err);
+    else res.status(200).json(post);
+  });
+});
+
+
 module.exports = app;

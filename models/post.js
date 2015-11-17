@@ -652,6 +652,34 @@ postSchema.statics.likePost = function(pid, uid, next){
 
 };
 
+postSchema.statics.unlikePost = function(pid, uid, next) {
+  var model = this.model('Post');
+  model.findOne({_id: pid}, function(err, post){
+    if (post) {
+      var index = -1;
+      _.each(post.likes, function(l){
+        if (String(l._id) == String(uid, idx)) {
+          index = idx;
+        }
+      });
+      if (index != -1) {
+        post.likes.splice(index, 1); 
+      }
+      post.save(function(err, post){
+         model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post){
+          post = post.toObject();
+          post.likes = [];
+          next(err, flatten([post], uid)[0]);
+        });
+      });
+
+    } else {
+      next(err, post);
+    }
+  });
+
+};
+
 var flatten = function(posts, uid){
   var returnData = [];
   _.each(posts, function(p) {
