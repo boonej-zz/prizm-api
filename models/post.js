@@ -657,8 +657,8 @@ postSchema.statics.unlikePost = function(pid, uid, next) {
   model.findOne({_id: pid}, function(err, post){
     if (post) {
       var index = -1;
-      _.each(post.likes, function(l){
-        if (String(l._id) == String(uid, idx)) {
+      _.each(post.likes, function(l, idx){
+        if (String(l._id) == String(uid)) {
           index = idx;
         }
       });
