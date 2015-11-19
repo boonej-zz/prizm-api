@@ -860,7 +860,7 @@ var resolveTags = function(obj, next){
 var matchUserTags = function(obj, users) {
   var at = obj.text;
   if (obj.text) {
-    var match = String(obj.text).match(/@\w{24}/g);
+    var match = String(obj.text).match(/@\S{24}/g);
     if (match && match.length > 0) {
       _.each(match, function(m){
         var uid = m.substr(1);
@@ -879,7 +879,7 @@ var matchUserTags = function(obj, users) {
 var matchTags = function(obj) {
   var at = obj.text;
   if (obj.text) {
-    var match = String(obj.text).match(/@\w{24}/g);
+    var match = String(obj.text).match(/@\S{24}/g);
     if (match && match.length > 0) {
       _.each(match, function(tag, idx, list) {
         var uid = tag.substr(1);
