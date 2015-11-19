@@ -645,8 +645,8 @@ postSchema.statics.likePost = function(pid, uid, next){
       }
       post.save(function(err, post){
         model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post){
-          model.populate(posts, {path: 'tags._id', model: 'User',
-            select: {_id: 1, name: 1}}, function(err, posts){
+          model.populate(post, {path: 'tags._id', model: 'User',
+            select: {_id: 1, name: 1}}, function(err, post){
               _utils.registerActivityEvent(post.creator._id,
                                            uid,
                                            'like',
@@ -678,8 +678,8 @@ postSchema.statics.unlikePost = function(pid, uid, next) {
       }
       post.save(function(err, post){
          model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post) {
-            model.populate(posts, {path: 'tags._id', model: 'User',
-              select: {_id: 1, name: 1}}, function(err, posts){
+            model.populate(post, {path: 'tags._id', model: 'User',
+              select: {_id: 1, name: 1}}, function(err, post){
             post = post.toObject();
             post.likes = [];
             next(err, flatten([post], uid)[0]);
