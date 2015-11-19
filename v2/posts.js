@@ -54,5 +54,35 @@ app.get('/:pid/comments', function(req, res) {
   }
 });
 
+/** LIKE COMMENT **/
+app.put('/:pid/comments/:cid/likes', function(req, res) {
+  var uid = req.body.user;
+  var pid = req.params.pid;
+  var cid = req.params.cid;
+  if (!uid || !pid || !cid) {
+    res.status(400).json({error: 'malformed request'});
+    return;
+  }
+  Post.likeComment(pid, cid, uid, function(err, comment) {
+    if (err) res.status(500).json(err);
+    else res.status(200).json(comment);
+  });
+});
+
+/** UNLIKE COMMENT **/
+app.delete('/:pid/comments/:cid/likes/:uid', function(req, res) {
+  var uid = req.body.user;
+  var pid = req.params.pid;
+  var cid = req.params.cid;
+  if (!uid || !pid || !cid) {
+    res.status(400).json({error: 'malformed request'});
+    return;
+  }
+  Post.unlikeComment(pid, cid, uid, function(err, comment) {
+    if (err) res.status(500).json(err);
+    else res.status(200).json(comment);
+  });
+});
+
 
 module.exports = app;

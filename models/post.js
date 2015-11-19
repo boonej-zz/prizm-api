@@ -721,6 +721,74 @@ postSchema.statics.fetchComments = function(pid, requestor, next) {
 
 };
 
+postSchema.statics.likeComment = function(pid, cid, uid, next){
+  var model = this.model('Post');
+  model.findOne({_id: pid})
+  .select({comments: 1})
+  .exec(function(err, post) {
+    if (post) {
+      var liked = false;
+      _.each(post.comments, function(c){
+        if (String(c._id) == String(cid)) {
+          _.each(c.likes, function(l){
+            if (String(l) == String(uid)) {
+              liked = true;
+            }
+          });
+          if (!liked) {
+            c.likes.push({_id: uid});
+          }
+        }
+      });
+      post.markModified('comments');
+      post.save(function(err, post){
+        model.populate(post, {path: 'comments.tags._id', model: 'User', 
+          select: {_id: 1, name: 1}}, function(err, post){
+            resolveTags(post, function(err, users){
+              next(err, flattenComments(post.comments, requestor, users));
+            });
+        });
+      });
+    } else {
+      next(err, post);
+    }
+  });
+};
+
+postSchema.statics.unlikeComment = function(pid, cid, uid, next) {
+  var model = this.model('Post');
+  model.findOne({_id: pid})
+  .select({comments: 1})
+  .exec(function(err, post) {
+    if (post) {
+      var index = -1;
+      _.each(post.comments, function(c){
+        if (String(c._id) == String(cid)) {
+          _.each(c.likes, function(l, idx){
+            if (String(l) == String(uid)) {
+              index = idx;
+            }
+          });
+          if (idx != -1) {
+            c.likes.splice(idx, 1);
+          }
+        }
+      });
+      post.markModified('comments');
+      post.save(function(err, post){
+        model.populate(post, {path: 'comments.tags._id', model: 'User', 
+          select: {_id: 1, name: 1}}, function(err, post){
+            resolveTags(post, function(err, users){
+              next(err, flattenComments(post.comments, requestor, users));
+            });
+        });
+      });
+    } else {
+      next(err, post);
+    }
+  });
+}
+
 var flattenComments = function(comments, uid, users) {
   var returnData = [];
   _.each(comments, function(c) {
