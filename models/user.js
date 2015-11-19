@@ -243,7 +243,7 @@ userSchema.statics.resolvePostTags = function(post, next){
   var postText = post.text || '';
   var commentText = [];
   if (post.comments) {
-    _.pluck(post.comments, 'text');
+    commentText = _.pluck(post.comments, 'text');
   }
   commentText.push(postText);
   var userArray = [];

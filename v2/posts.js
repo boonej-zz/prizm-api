@@ -39,5 +39,20 @@ app.delete('/:pid/likes/:uid', function(req, res){
   });
 });
 
+/** FETCH COMMENTS **/
+app.get('/:pid/comments', function(req, res) {
+  var pid = req.params.pid;
+  var uid = req.query.requestor;
+  if (!uid) {
+    res.status(400).json({error: 'malformed request'});
+    return;
+  } else {
+    Post.fetchComments(pid, uid, function(err, comments){
+      if (err) res.status(500).json(err);
+      else res.status(200).json(comments);
+    });
+  }
+});
+
 
 module.exports = app;

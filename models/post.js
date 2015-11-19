@@ -217,7 +217,7 @@ var homeFields = function(creator){
   return {id: 1, creator: 1, text: 1, file_path: 1, likes_count: 1, 
     likes: {$elemMatch: {_id: creator}}, category: 1, external_provider: 1,
     comments_count:1 , create_date: 1, location_latitude: 1, location_longitude: 1,
-    hash_tags: 1, status: 1
+    hash_tags: 1, status: 1, tags: 1
   };
 }
 
@@ -619,8 +619,11 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
     model.populate(posts, {path: 'creator', model: 'User',
       select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
       function(err, posts){
-        var returnData = flatten(posts, uid);
-        next(err, returnData);
+        model.populate(posts, {path: 'tags._id', model: 'User',
+         select: {_id: 1, name: 1}}, function(err, posts){ 
+          var returnData = flatten(posts, uid);
+          next(err, returnData);
+         });
       });
     
   });
@@ -642,11 +645,14 @@ postSchema.statics.likePost = function(pid, uid, next){
       }
       post.save(function(err, post){
         model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post){
-        _utils.registerActivityEvent(post.creator._id,
+          model.populate(posts, {path: 'tags._id', model: 'User',
+            select: {_id: 1, name: 1}}, function(err, posts){
+              _utils.registerActivityEvent(post.creator._id,
                                            uid,
                                            'like',
                                            post._id);
-          next(err, flatten([post], uid)[0]);
+              next(err, flatten([post], uid)[0]);
+            });
         });
       });
     } else {
@@ -671,10 +677,13 @@ postSchema.statics.unlikePost = function(pid, uid, next) {
         post.likes_count -= 1;
       }
       post.save(function(err, post){
-         model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post){
-          post = post.toObject();
-          post.likes = [];
-          next(err, flatten([post], uid)[0]);
+         model.populate(post, {path: 'creator', model: 'User', select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, function(err, post) {
+            model.populate(posts, {path: 'tags._id', model: 'User',
+              select: {_id: 1, name: 1}}, function(err, posts){
+            post = post.toObject();
+            post.likes = [];
+            next(err, flatten([post], uid)[0]);
+          });
         });
       });
 
@@ -685,7 +694,66 @@ postSchema.statics.unlikePost = function(pid, uid, next) {
 
 };
 
-var flatten = function(posts, uid){
+postSchema.statics.fetchComments = function(pid, requestor, next) {
+  var model = this.model('Post');
+  model.findOne({_id: pid})
+  .select({
+    comments: 1 
+   
+  })
+  .exec(function(err, post){
+    if (post) {
+      model.populate(post, {path: 'comments.creator', model: 'User',
+        select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}
+      }, 
+        function(err, post){
+        model.populate(post, {path: 'comments.tags._id', model: 'User', 
+          select: {_id: 1, name: 1}}, function(err, post){
+            resolveTags(post, function(err, users){
+              next(err, flattenComments(post.comments, requestor, users));
+            });
+        });
+      });
+    } else {
+      next(err, post);
+    }
+  });
+
+};
+
+var flattenComments = function(comments, uid, users) {
+  var returnData = [];
+  _.each(comments, function(c) {
+    if (typeof c.toObject != 'undefined')
+      c = c.toObject();
+    c.time_since = time.timeSinceFormatter(c.create_date);
+    c.creator_id = c.creator._id;
+    c.own_comment = (String(c.creator_id) == String(uid));
+    if (c.creator) {
+      c.creator_name = c.creator.name;
+      c.creator_profile_photo_url = c.creator.profile_photo_url;
+      c.creator_type = c.creator.type;
+      c.creator_subtype = c.creator.subtype;
+    }
+    delete c.creator;
+    matchUserTags(c, users);
+    delete c.tags;
+    delete c.hash_tags;
+    delete c.hash_tags_count;
+    delete c.tags_count;
+    c.comment_liked = false;
+    _.each(c.likes, function(l){
+      if (String(l._id) == String(uid)) {
+        c.comment_liked = true;
+      }
+    });
+    delete c.likes;
+    returnData.push(c);
+  });
+  return returnData;
+};
+
+var flatten = function(posts, uid ){
   var returnData = [];
   _.each(posts, function(p) {
     if (typeof p.toObject != 'undefined')
@@ -706,10 +774,58 @@ var flatten = function(posts, uid){
       hashTags.push(h);
     }); 
     p.hash_tags = hashTags.join(' ');
+    matchTags(p);
     returnData.push(p);
   });
   return returnData;
 };
+
+var resolveTags = function(obj, next){
+  var User = _mongoose.model('User');
+  User.resolvePostTags(obj, function(err, users){
+    next(err, users);  
+  });
+}
+
+var matchUserTags = function(obj, users) {
+  var at = obj.text;
+  if (obj.text) {
+    var match = String(obj.text).match(/@\w{24}/g);
+    if (match && match.length > 0) {
+      _.each(match, function(m){
+        var uid = m.substr(1);
+        var mu = _.find(users, function(u){
+          return (String(u._id) == String(uid));
+        });
+        if (mu) {
+          at = at.replace(m, '@(' + mu.name + '|' + mu._id + ')');
+        }
+        obj.text = at;
+      });
+    }
+  }
+};
+
+var matchTags = function(obj) {
+  var at = obj.text;
+  if (obj.text) {
+    var match = String(obj.text).match(/@\w{24}/g);
+    if (match && match.length > 0) {
+      _.each(match, function(tag, idx, list) {
+        var uid = tag.substr(1);
+        var mu = _.find(obj.tags, function(o){
+          return (String(o._id._id) == String(uid));
+        });
+        if (mu) {
+          at = at.replace(tag, '@(' + mu._id.name + '|' + mu._id._id + ')');
+        }
+        obj.text = at;
+      });
+    }
+  }
+  delete obj.tags;
+}
+
 
 /**
  * Pre Update Injection
