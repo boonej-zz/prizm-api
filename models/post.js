@@ -745,7 +745,7 @@ postSchema.statics.likeComment = function(pid, cid, uid, next){
         model.populate(post, {path: 'comments.tags._id', model: 'User', 
           select: {_id: 1, name: 1}}, function(err, post){
             resolveTags(post, function(err, users){
-              next(err, flattenComments(post.comments, requestor, users));
+              next(err, flattenComments(post.comments, uid, users));
             });
         });
       });
@@ -779,7 +779,7 @@ postSchema.statics.unlikeComment = function(pid, cid, uid, next) {
         model.populate(post, {path: 'comments.tags._id', model: 'User', 
           select: {_id: 1, name: 1}}, function(err, post){
             resolveTags(post, function(err, users){
-              next(err, flattenComments(post.comments, requestor, users));
+              next(err, flattenComments(post.comments, uid, users));
             });
         });
       });
