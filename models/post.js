@@ -737,6 +737,7 @@ postSchema.statics.likeComment = function(pid, cid, uid, next){
           });
           if (!liked) {
             c.likes.push({_id: uid});
+            c.likes_count += 1;
           }
         }
       });
@@ -771,6 +772,7 @@ postSchema.statics.unlikeComment = function(pid, cid, uid, next) {
           });
           if (idx != -1) {
             c.likes.splice(idx, 1);
+            c.likes_count -= 1;
           }
         }
       });

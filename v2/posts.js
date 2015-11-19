@@ -71,7 +71,7 @@ app.put('/:pid/comments/:cid/likes', function(req, res) {
 
 /** UNLIKE COMMENT **/
 app.delete('/:pid/comments/:cid/likes/:uid', function(req, res) {
-  var uid = req.body.user;
+  var uid = req.params.uid;
   var pid = req.params.pid;
   var cid = req.params.cid;
   if (!uid || !pid || !cid) {
