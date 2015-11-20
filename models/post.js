@@ -826,7 +826,7 @@ postSchema.statics.unlikeComment = function(pid, cid, uid, next) {
             }
           });
           if (index != -1) {
-            c.likes.splice(idx, 1);
+            c.likes.splice(index, 1);
             c.likes_count -= 1;
           }
         }
