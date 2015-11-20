@@ -768,6 +768,31 @@ userSchema.statics.findBasic = function(params, limit, next){
   
 };
 
+userSchema.statics.fetchAvailableTags = function(uid, tag, next){
+  var model = this.model('User');
+  model.findOne({_id: uid})
+  .select({following: 1, followers: 1})
+  .exec(function(err, user){
+    if (user) {
+      model.populate(user, {path: 'following._id', model: 'User', 
+        select: {name: 1, _id: 1}}, function(err, user){
+        model.populate(user, {path: 'followers._id', model: 'User',
+          select: {name: 1, _id: 1}}, function(err, user) {
+            var users = _.pluck(user.followers, '_id');
+            users.concat(_.pluck(user.following, '_id'));
+            var reg = new RegExp(tag, 'i');
+            var result = _.filter(users, function(u){
+              return reg.exec(u.name);
+            });
+            next(err, result);
+          });
+      });
+    } else {
+      next(err, []);
+    }
+  });
+};
+
 userSchema.statics.findOrganizationUser = function(uid, oid, next){
   var model = this.model('User');
   var params = {_id: uid};

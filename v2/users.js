@@ -12,14 +12,21 @@ var Interest = mongoose.model('Interest');
 var Post = mongoose.model('Post');
 var Activity = mongoose.model('Activity');
 var Trust = mongoose.model('Trust');
+var Error = require('../lib/error');
 
 /**
  * @apiDefine UserShortSuccess
- * @apiSuccess {String} _id Unique ID of User
- * @apiSuccess {String} subtype Subtype of User
- * @apiSuccess {String} type Type of User
- * @apiSuccess {String} profile_photo_url Path to User avatar
- * @apiSuccess {String} user Friendly User name
+ * @apiSuccess {String} _id Unique ID of user
+ * @apiSuccess {String} subtype Subtype of user
+ * @apiSuccess {String} type Type of user
+ * @apiSuccess {String} profile_photo_url path to user avatar
+ * @apiSuccess {String} user Friendly user name
+ **/
+
+/**
+ * @apiDefine UserMinimal
+ * @apiSuccess {String} _id Unique ID of user
+ * @apiSuccess {String} name Name of user
  **/
 
 app.get('/', gateway, function(req, res){
@@ -197,6 +204,29 @@ app.get('/:uid/trusts', function(req, res) {
       if (err) res.status(400).json(err);
       else res.status(200).json(trusts);
     });
+  }
+});
+
+/** Tags **/
+/**
+ * @api {get} /users/:uid/tags Get Available Tags
+ * @apiName GetAvailableTags
+ * @apiGroup Users
+ * @apiParam {String} uid Unique ID for user
+ * @apiParam (Query) {String} tag Tag to search for 
+ * @apiUse UserMinimal
+ * @apiUse Error
+ **/
+app.get('/:uid/tags', function(req, res) {
+  var uid = req.params.uid;
+  var text = req.query.tag;
+  if (uid) {
+    User.fetchAvailableTags(uid, text, function(err, users){
+      if (err) Error.serverError(res);
+      else res.status(200).json(users);
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id. ');
   }
 });
 

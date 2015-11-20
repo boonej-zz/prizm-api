@@ -31,8 +31,7 @@ var User = mongoose.model('User');
  * @apiParam (Query) {String} requestor Unique ID for requestor
  *
  * @apiUse UserShortSuccess
- * @apiUse ErrorInvalid
- * @apiUse ErrorServer
+ * @apiUse Error
  **/
 app.get('/:pid/likes', gateway, function(req, res){
   var pid = req.params.pid;
