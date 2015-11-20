@@ -3,5 +3,5 @@
   "version": "2.0",
   "description": "API for internal Prizm communication. ",
   "title": "Prizm API 2.0",
-  "url": "https://api.prizmapp.com/docs"
+  "url": "https://api.prizmapp.com/v2"
 }
