@@ -135,7 +135,7 @@ app.post('/:pid/comments', gateway, function(req, res) {
  * @apiUse ErrorInvalid
  * @apiUse ErrorServer
  **/
-app.get('/:pid/comments', gateway, function(req, res) {
+app.get('/:pid/comments', function(req, res) {
   var pid = req.params.pid;
   var uid = req.query.requestor;
   if (!uid || !pid) {
@@ -159,7 +159,7 @@ app.get('/:pid/comments', gateway, function(req, res) {
  * @apiUse ErrorInvalid
  * @apiUse ErrorServer
  **/
-app.get('/:pid/comments/:cid/likes', gateway, function(req, res) {
+app.get('/:pid/comments/:cid/likes', function(req, res) {
   var pid = req.params.pid;
   var cid = req.params.cid;
   if (pid && cid) {

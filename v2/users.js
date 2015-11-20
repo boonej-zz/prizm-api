@@ -57,17 +57,28 @@ app.get('/', gateway, function(req, res){
   });
 });
 
+/**
+ * @api {get} /users/:uid Fetch user core details
+ * @apiName FetchUserCore
+ * @apiParam {String} uid Unique ID for user
+ * @apiGroup Users
+ * @apiUse Error
+ **/
 app.get('/:uid', gateway, function(req, res){
   var uid = req.params.uid;
-  uid = uid.replace(" ", "");
-  User.findOneCore(uid, function(err, user){
-    if (err) console.log(err);
-    if (user) {
-      res.status(200).json(user);
-    } else {
-      res.status(400).json(err);
-    }
-  });
+  if (uid) {
+    uid = uid.replace(" ", "");
+    User.findOneCore(uid, function(err, user){
+      if (err) console.log(err);
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        Error.serverError(res); 
+      }
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id.');
+  }
 });
 
 // Register Device
