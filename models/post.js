@@ -762,7 +762,7 @@ postSchema.statics.fetchCommentLikes = function(pid, cid, next){
         });
         var likes = [];
         if (comment) {
-          likes = comment.likes; 
+          likes = _.pluck(comment.likes, '_id'); 
         }
         next(err, likes);
       } else {
