@@ -694,6 +694,32 @@ postSchema.statics.unlikePost = function(pid, uid, next) {
 
 };
 
+postSchema.statics.createComment = function(pid, creator, text, next){
+  var model = this.model('Post');
+  var Comment = this.model('Comment');
+  model.findOne({_id: pid})
+  .exec(function(err, post){
+    if (post) {
+      var comment = new Comment({creator: creator, text: text});
+      post.comments.push(comment);
+      post.save(function(err, post){
+        model.populate(post, {path: 'comments.creator', model: 'User', 
+         select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}
+        }, function(err, post){
+          model.populate(post, {path: 'comments.tags._id', model: 'User',
+            select: {_id: 1, name: 1}}, function(err, post){
+              resolveTags(post, function(err, users){
+                next(err, flattenComments(post.comments, creator, users));
+              });
+            });
+        }); 
+      });
+    } else {
+      next(err, post);
+    }
+  });
+};
+
 postSchema.statics.fetchComments = function(pid, requestor, next) {
   var model = this.model('Post');
   model.findOne({_id: pid})
@@ -719,6 +745,30 @@ postSchema.statics.fetchComments = function(pid, requestor, next) {
     }
   });
 
+};
+
+postSchema.statics.fetchCommentLikes = function(pid, cid, next){
+  var model = this.model('Post');
+  model.findOne({_id: pid})
+  .select({comments: 1})
+  .exec(function(err, post){
+    model.populate(post, {path: 'comments.likes._id', model: 'User', 
+      select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}},
+      function(err, post){
+      if (post) {
+        var comment = _.find(post.comments, function(c){
+          return String(c._id) == String(cid);
+        });
+        var likes = [];
+        if (comment) {
+          likes = comment.likes; 
+        }
+        next(err, likes);
+      } else {
+        next(err, post);
+      }
+    });
+  });
 };
 
 postSchema.statics.likeComment = function(pid, cid, uid, next){

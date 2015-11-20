@@ -44,6 +44,7 @@ var _express        = require('express'),
     _message        = require(_prism_home + 'routes/messages'),
     _survey         = require(_prism_home + 'routes/surveys');
 var v2 = require(_prism_home + 'v2');
+var path = require('path');
     
     new ActivityListener();
 
@@ -53,6 +54,7 @@ var _httpserver     = _express();
 //general settings */
 _app.use(_express.bodyParser());
 _app.use(_express.methodOverride());
+_app.use('/docs', _express.static(path.join(__dirname, 'public/doc')));
 
 /* environment specific settings */
   errorTransports = [

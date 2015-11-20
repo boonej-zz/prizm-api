@@ -5,6 +5,18 @@ var users = require('./users');
 var interests = require('./interests');
 var posts = require('./posts');
 
+/**
+ * @apiDefine ErrorInvalid
+ * @apiError (Error 400) error Short description of error.
+ * @apiError (Error 400) description Descriptive error text.
+**/
+
+/**
+ * @apiDefine ErrorServer
+ * @apiError (Error 500) error Short description of error.
+ * @apiError (Error 500) description Descriptive error text.
+**/
+
 app.use('/organizations/', organizations); 
 app.use('/users/', users);
 app.use('/interests/', interests);

@@ -13,6 +13,15 @@ var Post = mongoose.model('Post');
 var Activity = mongoose.model('Activity');
 var Trust = mongoose.model('Trust');
 
+/**
+ * @apiDefine UserShortSuccess
+ * @apiSuccess {String} _id Unique ID of User
+ * @apiSuccess {String} subtype Subtype of User
+ * @apiSuccess {String} type Type of User
+ * @apiSuccess {String} profile_photo_url Path to User avatar
+ * @apiSuccess {String} user Friendly User name
+ **/
+
 app.get('/', gateway, function(req, res){
   var searchText = req.query.search || false;
   var organization = req.query.organization || false;
@@ -142,7 +151,7 @@ app.put('/:uid/interests', gateway, function(req, res){
 });
 
 /** Home Feed **/
-app.get('/:uid/home', function(req, res) {
+app.get('/:uid/home', gateway, function(req, res) {
   var uid = req.params.uid;
   var last = req.query.last;
   User.fetchHomeFeedCriteria(uid, last, function(err, criteria){
@@ -157,7 +166,7 @@ app.get('/:uid/home', function(req, res) {
 }); 
 
 /** Activity **/
-app.get('/:uid/activities', function(req, res) {
+app.get('/:uid/activities', gateway, function(req, res) {
   var uid = req.params.uid;
   var last = req.query.last;
   var filter = req.query.filter;
