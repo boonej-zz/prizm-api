@@ -18,6 +18,14 @@ app.get('/', gateway, function(req, res){
   });
 });
 
+/**
+ * @api {get} /organizations/:oid Get Organization
+ * @apiName GetOrganization
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiUse Error
+ **/
 app.get('/:oid', gateway, function(req, res){
   var oid = req.params.oid;
   Organization.findOneAndFlatten(oid, function(err, org){
@@ -26,6 +34,15 @@ app.get('/:oid', gateway, function(req, res){
   });
 });
 
+/**
+ * @api {get} /organizations/:oid/groups Get Groups
+ * @apiName GetGroups
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam (Query) {String} [requestor] Unique id for requestor
+ * @apiUse Error
+ **/
 app.get('/:org_id/groups', gateway, function(req, res) {
   console.log('in request');
   var uid = req.query.requestor;
@@ -64,6 +81,16 @@ app.get('/:org_id/groups', gateway, function(req, res) {
   }
 });
 
+/**
+ * @api {get} /organizations/:oid/users/:uid/unread Get Unread Counts
+ * @apiName GetGroups
+ * @apiDescription Get a top level message count for a user in the organization.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} uid Unique ID for user
+ * @apiUse Error
+ **/
 app.get('/:oid/users/:uid/unread', gateway, function(req, res) {
   var uid = req.params.uid;
   var oid = req.params.oid;
@@ -103,6 +130,17 @@ app.get('/:oid/users/:uid/unread', gateway, function(req, res) {
   });
 });
 
+/**
+ * @api {get} /organizations/:oid/users/:uid/groups Get Groups For User
+ * @apiName GetGroupsForUser
+ * @apiDescription Get a list of all groups that a user belongs to in the 
+ *  context of a single organization.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} uid Unique ID for user
+ * @apiUse Error
+ **/
 app.get('/:org_id/users/:uid/groups', gateway, function(req, res) {
   var uid = req.params.uid;
   var org_id = req.params.org_id;
@@ -126,6 +164,7 @@ app.get('/:org_id/users/:uid/groups', gateway, function(req, res) {
   }
 });
 
+
 var getMessages = function (criteria, requestor, limit, req, res) {
  Message.findAndFlatten(criteria, requestor, limit, function(err, messages){
    console.log('completed request');
@@ -141,6 +180,19 @@ var getMessages = function (criteria, requestor, limit, req, res) {
 /** GROUPS **/
 
 /** CREATE **/
+/**
+ * @api {post} /organizations/:oid/groups Create Group
+ * @apiName CreateGroup
+ * @apiDescription Creates a group within an organization.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam (Body) {String} name Name of group
+ * @apiParam (Body) {String} description Description of group
+ * @apiParam (Body) {String} organization Unique id for organization
+ * @apiParam (Body) {String} [leader] Unique id for group leader (user)
+ * @apiUse Error
+ **/
 app.post('/:oid/groups', gateway, function(req, res) {
   var oid = req.params.oid;
   var params = {
@@ -171,6 +223,21 @@ app.post('/:oid/groups', gateway, function(req, res) {
 });
 
 /** UPDATE **/
+/**
+ * @api {put} /organizations/:oid/groups/:gid Update Group
+ * @apiName UpdateGroup
+ * @apiDescription Update a group's information
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam (Body) {String} name Name of group
+ * @apiParam (Body) {String} description Description of group
+ * @apiParam (Body) {String} organization Unique id for organization
+ * @apiParam (Body) {String} leader Unique id for group leader (user)
+ * @apiParam (Body) {String[]} members A list of user ids that belong to the group
+ * @apiUse Error
+ **/
 app.put('/:oid/groups/:gid', gateway, function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
@@ -237,6 +304,18 @@ app.put('/:oid/groups/:gid', gateway, function(req, res) {
 });
 
 // Add Mute to group
+/**
+ * @api {post} /organizations/:oid/groups/:gid/mutes Create Mute
+ * @apiName Create Mute
+ * @apiDescription Allows a user to opt out of push notifications within a 
+ *  group.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam (Body) {String} user Unique ID for user
+ * @apiUse Error
+ **/
 app.post('/:oid/groups/:gid/mutes', gateway, function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;
@@ -257,6 +336,18 @@ app.post('/:oid/groups/:gid/mutes', gateway, function(req, res) {
 });
 
 // Remove Mute from group
+/**
+ * @api {delete} /organizations/:oid/groups/:gid/mutes/:uid Create Mute
+ * @apiName Create Mute
+ * @apiDescription Allows a user to resume push notifications within a 
+ *  group.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam {String} uid Unique ID for user
+ * @apiUse Error
+ **/
 app.delete('/:oid/groups/:gid/mutes/:uid', gateway, function(req, res){
   var gid = req.params.gid;
   var uid = req.params.uid;
@@ -276,6 +367,20 @@ app.delete('/:oid/groups/:gid/mutes/:uid', gateway, function(req, res){
   }
 });
 
+/**
+ * @api {get} /organizations/:oid/groups/:gid/messages Get Messages
+ * @apiName GetMessages
+ * @apiDescription Fetches messages within the specified group.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam (Query) {String} requestor Unique ID for user requesting
+ * @apiParam (Query) {Date} [before] Get messages that came before specified date
+ * @apiParam (Query) {Date} [after] Get messages that came after specified date
+ * @apiParam (Query) {Integer} [limit=15] Limit results to the count
+ * @apiUse Error
+ **/
 app.get('/:org_id/groups/:gid/messages', gateway, function(req, res) {
   var org_id = req.params.org_id;
   var gid = req.params.gid != "all"?req.params.gid:null;
@@ -326,6 +431,19 @@ app.get('/:org_id/groups/:gid/messages', gateway, function(req, res) {
 
  });
 
+/**
+ * @api {post} /organizations/:oid/groups/:gid/messages Create Message
+ * @apiName GetMessages
+ * @apiDescription Creates a message within the specified group.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam (Body) {String} creator Unique ID for message creator
+ * @apiParam (Body) {String} [image_url] Path to message image url
+ * @apiParam (Body) {String} [text] Text content of message
+ * @apiUse Error
+ **/
 app.post("/:oid/groups/:gid/messages", gateway, function(req, res){
   var oid = req.params.oid;
   var gid = req.params.gid;
@@ -350,6 +468,18 @@ app.post("/:oid/groups/:gid/messages", gateway, function(req, res){
   });
 })
 
+/**
+ * @api {post} /organizations/:oid/groups/:gid/messages/:mid Like Message
+ * @apiName Like Message
+ * @apiDescription Creates a message within the specified group.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam {String} mid Unique ID for message
+ * @apiParam (Body) {String} requestor Unique ID for like requestor
+ * @apiUse Error
+ **/
 app.post("/:oid/groups/:gid/messages/:mid", gateway, function(req, res){
   var mid = req.params.mid;
   var requestor = req.body.requestor;
@@ -361,6 +491,17 @@ app.post("/:oid/groups/:gid/messages/:mid", gateway, function(req, res){
   });
 });
 
+/**
+ * @api {get} /organizations/:oid/groups/:gid/messages/:mid/read Get Message Readers
+ * @apiName GetMessageReaders
+ * @apiDescription Gets a list of users who have read a message.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam {String} mid Unique ID for message
+ * @apiUse Error
+ **/
 app.get("/:oid/groups/:gid/messages/:mid/read", gateway, function(req, res) {
   var mid = req.params.mid;
   Message.fetchRead(mid, function(err, users){
@@ -369,6 +510,17 @@ app.get("/:oid/groups/:gid/messages/:mid/read", gateway, function(req, res) {
   });
 });
 
+/**
+ * @api {get} /organizations/:oid/groups/:gid/messages/:mid/likes Get Message Likes
+ * @apiName GetMessageLikes
+ * @apiDescription Gets a list of users who have liked a message.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam {String} mid Unique ID for message
+ * @apiUse Error
+ **/
 app.get("/:oid/groups/:gid/messages/:mid/likes", gateway, function(req, res) {
   var mid = req.params.mid;
   Message.fetchLikes(mid, function(err, users){
@@ -377,7 +529,21 @@ app.get("/:oid/groups/:gid/messages/:mid/likes", gateway, function(req, res) {
   });
 });
 
-
+/**
+ * @api {get} /organizations/:oid/users/:uid/messages Get Direct Messages
+ * @apiName GetDirectMessages
+ * @apiDescription Gets a list of messages passed directly beteween organization
+ *  users.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} uid Unique ID for user
+ * @apiParam (Query) {String="digest"} [format] Digest format returns user and counts only
+ * @apiParam (Query) {String} [target] Unique id for targeted user - required if format is missing
+ * @apiParam (Query) {Date} [before] Fetch all messages before this date
+ * @apiParam (Query) {Date} [after] Fetch all messages after this date
+ * @apiUse Error
+ **/
 app.get("/:oid/users/:uid/messages", gateway, function(req, res){
   var oid = req.params.oid;
   var uid = req.params.uid;
@@ -410,6 +576,19 @@ app.get("/:oid/users/:uid/messages", gateway, function(req, res){
   }
 });
 
+/**
+ * @api {post} /organizations/:oid/users/:uid/messages Create Direct Message
+ * @apiName CreateDirectMessage
+ * @apiDescription Creates a targeted message to another organization member.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} uid Unique ID for user sending message
+ * @apiParam (Body) {String} target Unique id for targeted user
+ * @apiParam (Body) {String} [text] Text content of message
+ * @apiParam (Body) {String} [image_url] Path to image content of message
+ * @apiUse Error
+ **/
 app.post("/:oid/users/:uid/messages", gateway, function(req, res){
   var oid = req.params.oid;
   var uid = req.params.uid;
@@ -431,7 +610,17 @@ app.post("/:oid/users/:uid/messages", gateway, function(req, res){
 });
 
 /** MEMBERS **/
-
+/**
+ * @api {get} /organizations/:oid/users/:uid/contacts Get Contacts
+ * @apiName Get Contacts
+ * @apiDescription Gets a list of all users that the requestor has permission to contact.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} uid Unique ID for user sending message
+ * @apiParam (Query) {String} [last] Name of last user pulled
+ * @apiUse Error
+ **/
 app.get('/:oid/users/:uid/contacts', gateway, function(req, res) {
   var oid = req.params.oid;
   var uid = req.params.uid;
@@ -461,6 +650,16 @@ app.get('/:oid/users/:uid/contacts', gateway, function(req, res) {
   });
 });
 
+/**
+ * @api {get} /organizations/:oid/members Get Organization Members
+ * @apiName GetMembers
+ * @apiDescription Gets a list of all users in an organization.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam (Query) {String} [last] Name of last user pulled
+ * @apiUse Error
+ **/
 app.get('/:oid/members', gateway, function(req, res){
   var oid = req.params.oid;
   var last = req.query.last;
@@ -470,6 +669,20 @@ app.get('/:oid/members', gateway, function(req, res){
   });
 });
 
+
+/**
+ * @api {get} /organizations/:oid/groups/:gid/members Get Group Members
+ * @apiName GetGroupMembers
+ * @apiDescription Gets a list of all users in a group.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} gid Unique ID for group
+ * @apiParam (Query) {String} [last] Name of last user pulled
+ * @apiParam (Query) {Boolean} [show_all] Directs the API to return all organization
+ *  members along with a status message on whether they belong to the group.
+ * @apiUse Error
+ **/
 app.get('/:oid/groups/:gid/members', gateway, function(req, res) {
   var oid = req.params.oid;
   var gid = req.params.gid;

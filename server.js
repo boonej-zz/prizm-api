@@ -54,6 +54,10 @@ var _httpserver     = _express();
 //general settings */
 _app.use(_express.bodyParser());
 _app.use(_express.methodOverride());
+var basicAuth = _express.basicAuth(function(user, pass){
+  return 'higheraltitude' === user && '@pple4life' === pass;
+});
+_app.use('/docs', basicAuth);
 _app.use('/docs', _express.static(path.join(__dirname, 'public/doc')));
 
 /* environment specific settings */

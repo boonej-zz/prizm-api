@@ -28,7 +28,6 @@ var User = mongoose.model('User');
  * @apiGroup Posts
  *
  * @apiParam {String} pid Unique ID for post
- * @apiParam (Query) {String} requestor Unique ID for requestor
  *
  * @apiUse UserShortSuccess
  * @apiUse Error
@@ -100,7 +99,7 @@ app.delete('/:pid/likes/:uid', gateway, function(req, res){
 /** COMMENTS**/
 // CREATE
 /**
- * @api {post} /posts/:pid/comments Create Post Comment
+ * @api {post} /posts/:pid/comments Create Comment
  * @apiName CreatePostComments
  * @apiGroup Posts
  * @apiParam {String} pid Unique ID for post
@@ -127,7 +126,7 @@ app.post('/:pid/comments', gateway, function(req, res) {
 
 // READ
 /**
- * @api {get} /posts/:pid/comments Get Post Comments
+ * @api {get} /posts/:pid/comments Get Comments
  * @apiName GetPostComments
  * @apiGroup Posts
  * @apiParam {String} pid Unique ID for post
@@ -150,7 +149,7 @@ app.get('/:pid/comments', function(req, res) {
 });
 
 /**
- * @api {get} /posts/:pid/comments/:cid/likes Get Post Comment Likes
+ * @api {get} /posts/:pid/comments/:cid/likes Get Comment Likes
  * @apiName GetPostCommentLikes
  * @apiGroup Posts
  * @apiParam {String} pid Unique ID for post
@@ -175,7 +174,7 @@ app.get('/:pid/comments/:cid/likes', function(req, res) {
 // UPDATE
 /** LIKE COMMENT **/
 /**
- * @api {put} /posts/:pid/comments/:cid/likes Add Post Comment Like
+ * @api {put} /posts/:pid/comments/:cid/likes Like Comment
  * @apiName AddPostCommentLike
  * @apiGroup Posts
  * @apiParam {String} pid Unique ID for post
@@ -202,7 +201,7 @@ app.put('/:pid/comments/:cid/likes', gateway, function(req, res) {
 // DELETE
 /** UNLIKE COMMENT **/
 /**
- * @api {delete} /posts/:pid/comments/:cid/likes/:uid Delete Post Comment Like
+ * @api {delete} /posts/:pid/comments/:cid/likes/:uid Unlike Comment
  * @apiName DeletePostCommentLike
  * @apiGroup Posts
  * @apiParam {String} pid Unique ID for post
