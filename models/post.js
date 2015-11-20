@@ -782,7 +782,7 @@ postSchema.statics.likeComment = function(pid, cid, uid, next){
       _.each(post.comments, function(c){
         if (String(c._id) == String(cid)) {
           _.each(c.likes, function(l){
-            if (String(l) == String(uid)) {
+            if (String(l._id) == String(uid)) {
               liked = true;
             }
           });
@@ -821,7 +821,7 @@ postSchema.statics.unlikeComment = function(pid, cid, uid, next) {
       _.each(post.comments, function(c){
         if (String(c._id) == String(cid)) {
           _.each(c.likes, function(l, idx){
-            if (String(l) == String(uid)) {
+            if (String(l._id) == String(uid)) {
               index = idx;
             }
           });
