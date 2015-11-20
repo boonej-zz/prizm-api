@@ -825,7 +825,7 @@ postSchema.statics.unlikeComment = function(pid, cid, uid, next) {
               index = idx;
             }
           });
-          if (idx != -1) {
+          if (index != -1) {
             c.likes.splice(idx, 1);
             c.likes_count -= 1;
           }
