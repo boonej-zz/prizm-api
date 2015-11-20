@@ -218,7 +218,7 @@ app.get('/:uid/trusts', function(req, res) {
  * @apiUse UserMinimal
  * @apiUse Error
  **/
-app.get('/:uid/tags', function(req, gateway, res) {
+app.get('/:uid/tags', gateway, function(req, res) {
   var uid = req.params.uid;
   var text = req.query.tag;
   if (uid) {
