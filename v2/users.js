@@ -19,7 +19,7 @@ var Error = require('../lib/error');
  * @apiSuccess {String} _id Unique ID of user
  * @apiSuccess {String} subtype Subtype of user
  * @apiSuccess {String} type Type of user
- * @apiSuccess {String} profile_photo_url path to user avatar
+ * @apiSuccess {String} profile_photo_url Path to user avatar
  * @apiSuccess {String} user Friendly user name
  **/
 
@@ -27,6 +27,7 @@ var Error = require('../lib/error');
  * @apiDefine UserMinimal
  * @apiSuccess {String} _id Unique ID of user
  * @apiSuccess {String} name Name of user
+ * @apiSuccess {String} profile_photo_url Path to user avatar
  **/
 
 app.get('/', gateway, function(req, res){

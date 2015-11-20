@@ -775,9 +775,9 @@ userSchema.statics.fetchAvailableTags = function(uid, tag, next){
   .exec(function(err, user){
     if (user) {
       model.populate(user, {path: 'following._id', model: 'User', 
-        select: {name: 1, _id: 1}}, function(err, user){
+        select: {name: 1, _id: 1, profile_photo_url: 1}}, function(err, user){
         model.populate(user, {path: 'followers._id', model: 'User',
-          select: {name: 1, _id: 1}}, function(err, user) {
+          select: {name: 1, _id: 1, profile_photo_url: 1}}, function(err, user) {
             var users = _.pluck(user.followers, '_id');
             users.concat(_.pluck(user.following, '_id'));
             var reg = new RegExp(tag, 'i');
