@@ -57,8 +57,7 @@ app.get('/:pid/likes', gateway, function(req, res){
  * @apiParam {String} pid Unique ID for post
  * @apiParam (Body) {String} user Unique ID for user
  * @apiUse UserShortSuccess
- * @apiUse ErrorInvalid
- * @apiUse ErrorServer
+ * @apiUse Error
  **/
 app.put('/:pid/likes', gateway, function(req, res){
   var uid = req.body.user;
@@ -80,8 +79,7 @@ app.put('/:pid/likes', gateway, function(req, res){
  * @apiParam {String} pid Unique ID for post
  * @apiParam {String} uid Unique ID for user
  * @apiUse UserShortSuccess
- * @apiUse ErrorInvalid
- * @apiUse ErrorServer
+ * @apiUse Error
  **/
 app.delete('/:pid/likes/:uid', gateway, function(req, res){
   var uid = req.params.uid;
@@ -106,8 +104,7 @@ app.delete('/:pid/likes/:uid', gateway, function(req, res){
  * @apiParam (Body) {String} creator Unique ID for comment creator
  * @apiParam (Body) {String} text Comment text
  * @apiUse CommentSuccess
- * @apiUse ErrorInvalid
- * @apiUse ErrorServer
+ * @apiUse Error
 **/
 app.post('/:pid/comments', gateway, function(req, res) {
   var pid = req.params.pid;
@@ -131,8 +128,7 @@ app.post('/:pid/comments', gateway, function(req, res) {
  * @apiGroup Posts
  * @apiParam {String} pid Unique ID for post
  * @apiUse CommentSuccess
- * @apiUse ErrorInvalid
- * @apiUse ErrorServer
+ * @apiUse Error
  **/
 app.get('/:pid/comments', function(req, res) {
   var pid = req.params.pid;
@@ -155,8 +151,7 @@ app.get('/:pid/comments', function(req, res) {
  * @apiParam {String} pid Unique ID for post
  * @apiParam {String} cid Unique ID for coment
  * @apiUse UserShortSuccess
- * @apiUse ErrorInvalid
- * @apiUse ErrorServer
+ * @apiUse Error
  **/
 app.get('/:pid/comments/:cid/likes', function(req, res) {
   var pid = req.params.pid;
@@ -181,8 +176,7 @@ app.get('/:pid/comments/:cid/likes', function(req, res) {
  * @apiParam {String} cid Unique ID for comment
  * @apiParam (Body) user Unique ID for user
  * @apiUse UserShortSuccess
- * @apiUse ErrorInvalid
- * @apiUse ErrorServer
+ * @apiUse Error
  **/
 app.put('/:pid/comments/:cid/likes', gateway, function(req, res) {
   var uid = req.body.user;
@@ -208,8 +202,7 @@ app.put('/:pid/comments/:cid/likes', gateway, function(req, res) {
  * @apiParam {String} cid Unique ID for comment
  * @apiParam {String} uid Unique ID for user
  * @apiUse UserShortSuccess
- * @apiUse ErrorInvalid
- * @apiUse ErrorServer
+ * @apiUse Error
  **/
 app.delete('/:pid/comments/:cid/likes/:uid', gateway, function(req, res) {
   var uid = req.params.uid;
