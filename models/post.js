@@ -700,7 +700,8 @@ postSchema.statics.createComment = function(pid, creator, text, next){
   model.findOne({_id: pid})
   .exec(function(err, post){
     if (post) {
-      var comment = new Comment({creator: creator, text: text});
+      var comment = new Comment({creator: creator, text: text, 
+        createDate: Date.now()});
       post.comments.push(comment);
       post.save(function(err, post){
         model.populate(post, {path: 'comments.creator', model: 'User', 
