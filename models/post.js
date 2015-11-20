@@ -794,12 +794,16 @@ postSchema.statics.likeComment = function(pid, cid, uid, next){
       });
       post.markModified('comments');
       post.save(function(err, post){
+        model.populate(post, {path: 'comments.creator', model: 'User',
+          select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}},
+          function(err, post){
         model.populate(post, {path: 'comments.tags._id', model: 'User', 
           select: {_id: 1, name: 1}}, function(err, post){
             resolveTags(post, function(err, users){
               next(err, flattenComments(post.comments, uid, users));
             });
         });
+      });
       });
     } else {
       next(err, post);
@@ -829,11 +833,16 @@ postSchema.statics.unlikeComment = function(pid, cid, uid, next) {
       });
       post.markModified('comments');
       post.save(function(err, post){
+         model.populate(post, {path: 'comments.creator', model: 'User',
+          select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}},
+          function(err, post){
+
         model.populate(post, {path: 'comments.tags._id', model: 'User', 
           select: {_id: 1, name: 1}}, function(err, post){
             resolveTags(post, function(err, users){
               next(err, flattenComments(post.comments, uid, users));
             });
+        });
         });
       });
     } else {
