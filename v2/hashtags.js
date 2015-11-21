@@ -8,7 +8,7 @@ var Error = require('../lib/error');
 
 // GET AVAILABLE HASHTAGS
 /**
- * @api {get} / Get Available Hashtags
+ * @api {get} /hashtags Get Available Hashtags
  * @apiName GetAvailableHashtags
  * @apiVersion 2.0.0
  * @apiGroup Hashtags
