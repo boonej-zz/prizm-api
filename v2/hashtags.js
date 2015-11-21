@@ -11,6 +11,7 @@ var Error = require('../lib/error');
  * @api {get} / Get Available Hashtags
  * @apiName GetAvailableHashtags
  * @apiVersion 2.0.0
+ * @apiGroup Hashtags
  * @apiDescription Gets a list of all hashtags published in Prizm posts with an
  *  optional filter and limit.
  * @apiParam (Query) {String} [filter] An optional filter to determine which 
