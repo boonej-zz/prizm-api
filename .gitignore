@@ -2,3 +2,4 @@
 ./config/runtime.json
 *.log
 *.logs
+*.swp

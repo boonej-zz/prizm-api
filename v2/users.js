@@ -14,57 +14,7 @@ var Activity = mongoose.model('Activity');
 var Trust = mongoose.model('Trust');
 var Error = require('../lib/error');
 
-/**
- * @apiDefine UserShortSuccess
- * @apiSuccess {String} _id Unique ID of user
- * @apiSuccess {String} subtype Subtype of user
- * @apiSuccess {String} type Type of user
- * @apiSuccess {String} profile_photo_url Path to user avatar
- * @apiSuccess {String} user Friendly user name
- **/
 
-/**
- * @apiDefine UserMinimal
- * @apiSuccess {String} _id Unique ID of user
- * @apiSuccess {String} name Name of user
- * @apiSuccess {String} profile_photo_url Path to user avatar
- **/
-
-/**
- * @apiDefine UserCoreSuccess
- * @apiSuccess {String} _id Unique ID of user
- * @apiSuccess {String} first_name First name of user
- * @apiSuccess {String} last_name Last name of user
- * @apiSuccess {String} name Full name of user
- * @apiSuccess {String} email Email address of user
- * @apiSuccess {String} contact_first Organization primary contact first name
- * @apiSuccess {String} contact_last Organization primary contact last name
- * @apiSuccess {String} contact_email Organization primary contact email
- * @apiSuccess {Date} create_date Date user account inititally created
- * @apiSuccess {String} program_code Current program code assigned to the user
- * @apiSuccess {Boolean} active True if user is an active account
- * @apiSuccess {String} type Type for user 
- * @apiSuccess {String} subtype Subtype for user
- * @apiSuccess {Number} enrollment User defined number of members
- * @apiSuccess {String} profile_photo_url Path to user's avatar
- * @apiSuccess {String} cover_photo_url Path to user's cover photo
- * @apiSuccess {String} mascot Mascot for institution
- * @apiSuccess {String} zip_postal Zip code for user
- * @apiSuccess {String} state Geographical state for user
- * @apiSuccess {String} city Geographical city for user
- * @apiSuccess {String} birthday Birthday for user (mm-dd-yyyy)
- * @apiSuccess {String} gender Gender of user
- * @apiSuccess {String} phone_number Phone number for user
- * @apiSuccess {String} religion Religion for user
- * @apiSuccess {String} ethnicity Ethnicity for user
- * @apiSuccess {String} website Website for user
- * @apiSuccess {String} info Biographical info for user
- * @apiSuccess {String} primary_organization Default organization for user
- * @apiSuccess {String} theme Current user theme
- * @apiSuccess {String} role Role for user in primary organization
- * @apiSuccess {Number} interest_count Total number of interests for user
- * @apiSuccess {Boolean} allMuted True if user has muted the primary organization.
- **/
 
 app.get('/', gateway, function(req, res){
   var searchText = req.query.search || false;
@@ -341,7 +291,7 @@ app.get('/:uid/trusts', function(req, res) {
  * @apiGroup Users
  * @apiParam {String} uid Unique ID for user
  * @apiParam (Query) {String} tag Tag to search for 
- * @apiUse UserMinimal
+ * @apiUse UserMinimalArray
  * @apiUse Error
  **/
 app.get('/:uid/tags', gateway, function(req, res) {
