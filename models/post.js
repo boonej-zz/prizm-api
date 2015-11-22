@@ -970,24 +970,38 @@ postSchema.pre('update', function(next){
   next();
 });
 
-postSchema.statics.readHashTags = function(filter, limit, next) {
+postSchema.statics.readHashTags = function(filter, limit, skip, format, next) {
   var model = this.model('Post');
   var expression = new RegExp(filter, 'i'); 
   var match = {
-    hash_tags: expression,
     status: 'active'
   };
+  var secondMatch = {};
+  if (filter) {
+    match.hash_tags = expression;
+    secondMatch = {_id: expression};
+  }
   model.aggregate([
     {$match: match},
     {$project: {hash_tags: 1}},
     {$unwind: '$hash_tags'},
-    {$group: {_id: '$hash_tags', total: { $sum: 1}}},
-    {$match: {_id: expression}},
+    {$group: {_id: '$hash_tags', count: { $sum: 1}}},
+    {$match: secondMatch},
     {$sort: {count: -1}},
+    {$skip: skip},
     {$limit: limit}
   ])
   .exec(function(err, tags) {
-    var results = _.pluck(tags, '_id');
+    var results;
+    if (format == 'tags_only') {
+      results = _.pluck(tags, '_id');
+    } else if (format == 'counts') {
+      _.each(tags, function(tag){
+        tag.tag = tag._id;
+        delete tag._id;
+      });
+      results = tags;
+    }
     next(err, results);
   });
 };
