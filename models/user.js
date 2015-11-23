@@ -782,7 +782,11 @@ userSchema.statics.fetchAvailableTags = function(uid, tag, next){
             users.concat(_.pluck(user.following, '_id'));
             var reg = new RegExp(tag, 'i');
             var result = _.filter(users, function(u){
-              return reg.exec(u.name);
+              if (u) {
+                return reg.exec(u.name);
+              } else {
+                return false;
+              }
             });
             next(err, result);
           });
