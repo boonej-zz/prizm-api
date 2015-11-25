@@ -231,6 +231,35 @@ postSchema.statics.canResolve = function(){
   ];
 };
 
+var postFields = function(requestor) {
+  return {
+    _id: 1,
+    category: 1,
+    creator: 1,
+    create_date: 1,
+    external_link: 1,
+    external_provider: 1,
+    file_path: 1,
+    tags: 1,
+    hash_tags: 1,
+    is_flagged: 1,
+    is_repost: 1,
+    likes_count: 1,
+    likes: {$elemMatch: {_id: requestor}},
+    modify_date: 1,
+    origin_post_id: 1,
+    text: 1
+  };
+};
+
+var userFields = {
+  _id: 1,
+  profile_photo_url: 1,
+  type: 1,
+  subtype: 1,
+  name: 1
+};
+
 postSchema.statics.selectFields = function(type){
   if(type === 'short'){
     return ['_id','text','category','create_date','file_path',
@@ -694,6 +723,23 @@ postSchema.statics.unlikePost = function(pid, uid, next) {
 
 };
 
+postSchema.statics.fetchPost = function(pid, requestor, next){
+  var model = this.model('Post');
+  model.findOne({_id: pid})
+  .select(postFields(requestor))
+  .exec(function(err, post){
+    if (post) {
+      model.populate(post, {path: 'creator', model: 'User', select: userFields}, function(err, post){
+        model.populate(post, {path: 'tags._id', model: 'User', select: {_id: 1, name: 1}}, function(err, post){
+        next(err, flatten([post], requestor)[0]);
+        });
+      }); 
+    } else {
+      next(err, post);
+    }
+  });
+};
+
 postSchema.statics.createComment = function(pid, creator, text, next){
   var model = this.model('Post');
   var Comment = this.model('Comment');
@@ -1005,6 +1051,7 @@ postSchema.statics.readHashTags = function(filter, limit, skip, format, next) {
     next(err, results);
   });
 };
+
 
 exports.Post    = _mongoose.model('Post', postSchema);
 exports.Comment = _mongoose.model('Comment', commentSchema);

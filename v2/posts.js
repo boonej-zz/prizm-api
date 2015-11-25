@@ -23,12 +23,82 @@ var User = mongoose.model('User');
  **/
 
 /**
+ * @apiDefine SinglePostSuccess
+ * @apiSuccess {String} _id Unique identifier for post
+ * @apiSuccess {String=achievement,aspiration,experience,inspiration,passion,personal} category Category for post
+ * @apiSuccess {Date} create_date Date post was created
+ * @apiSuccess {String} external_link Link to externally referenced page
+ * @apiSuccess {String} external_provider Host of external content
+ * @apiSuccess {String} file_path Path to Prizm image content
+ * @apiSuccess {String} hash_tags Concatenated list of hash tags
+ * @apiSuccess {Boolean} is_flagged Is the post flagged inappropriate?
+ * @apiSuccess {Boolean} is_repost Has the post been reposted?
+ * @apiSuccess {Number} likes_count Number of likes for post
+ * @apiSuccess {Boolean} is_liked Does the requesting user like the post?
+ * @apiSuccess {Date} modify_date Date the post was last modified
+ * @apiSuccess {String} origin_post_id Original post if the post was reposted
+ * @apiSuccess {String} text Text to print in post comments
+ * @apiSuccess {String} creator_id Unique identifier of creator
+ * @apiSuccess {String=user,institution,institution_verified} creator_type User type of creator
+ * @apiSuccess {String} creator_subtype Subtype of creator
+ * @apiSuccess {String} creator_profile_url Path to creator's avatar
+ * @apiSuccess {String} creator_name Friendly name of creator
+ * @apiSuccessExample Single Post:
+ *  HTTP/1.1 200 OK
+ *  {
+ *    "_id": "537a5b3cea72039701295c3e",
+ *    "category": "inspiration",
+ *    "comments_count": 1,
+ *    "create_date": "537a5b3cea72039701295c3e",
+ *    "external_link": "http://instagram.com/p/oMKuEwy3tE/",
+ *    "external_provider": "instagram",
+ *    "file_path": "https:/s3.amazonaws.com/higheraltitude.prism/536aaa3cba551f8541b99ee8/20140519032746_5CDF5DB4-D5CC-4C49-8513-23B91C06AA92.jpg",
+ *    "hash_tags": "#beprizmatic #prizm",
+ *    "is_flagged": false,
+ *    "is_repost": false,
+ *    "likes_count": 1,
+ *    "is_liked": false,
+ *    "modify_date": "https:/s3.amazonaws.com/higheraltitude.prism/536aaa3cba551f8541b99ee8/20140519032746_5CDF5DB4-D5CC-4C49-8513-23B91C06AA92.jpg"
+ *    "origin_post_id": null,
+ *    "text": "#prizm #beprizmatic",
+ *    "creator_id": "536aaa3cba551f8541b99ee8",
+ *    "creator_type": "user",
+ *    "creator_subtype: "luminary",
+ *    "creator_profile_photo_url": "https://somepath.com/image.jpg",
+ *    "creator_name": "John Smith"
+ *  } 
+ **/
+
+/**
+ * @api {get} /posts/:pid Get Post
+ * @apiName GetPost
+ * @apiGroup Posts
+ * @apiParam {String} pid Unique ID for post
+ * @apiUse SinglePostSuccess
+ * @apiUse Error
+ **/
+app.get('/:pid', function(req, res){
+  var pid = req.params.pid;
+  var uid = req.query.requestor;
+  if (pid && uid) {
+    Post.fetchPost(pid, uid, function(err, post){
+      if (err) {
+        Error.serverError(res);
+      } else {
+        res.status(200).json(post);
+      }
+    });
+  } else {
+    Error.invalidRequest(res, 'You must specify a user id and post id.');
+  }
+});
+
+/**
  * @api {get} /posts/:pid/likes Get Post Likes
  * @apiName GetPostLikes
  * @apiGroup Posts
  *
  * @apiParam {String} pid Unique ID for post
- *
  * @apiUse UserShortSuccess
  * @apiUse Error
  **/
