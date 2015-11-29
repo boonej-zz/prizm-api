@@ -96,13 +96,18 @@ activitySchema.statics.fetchActivitiesForUser = function(uid, last, next) {
       function(err, activities){
       model.populate(activities, {path: 'message_id', model: 'Message', 
         select: {_id: 1, organization: 1, group: 1, target: 1}}, function(err, activities){
-
+      model.populate(activities, {path: 'message_id.group', model: 'Group',
+        select: {_id: 1, name: 1}}, function(err, activities){
+      model.populate(activities, {path: 'message_id.target', model: 'User',
+        select: {_id: 1, name: 1}}, function(err, activities){
 
       next(err, flatten(activities));
       _.each(activities, function(a){
         model.findOneAndUpdate({_id: a._id}, {has_been_viewed: true}, function(err, r){
           if (err) console.log(err);
         });
+      });
+      });
       });
       });
     });
@@ -141,13 +146,23 @@ var flatten = function(activities) {
     if (a.group_id) {
       var group = a.group_id;
       a.group_id = group._id || null;
-      a.group_name = group.name || null;
+      a.group_name = group.name ;
     }
     if (a.message_id) {
-      a.group_id = a.message_id.group || null;
+      if (a.message_id.group) {
+        a.group_id = a.message_id.group._id;
+        a.group_name = a.message_id.group.name;
+      } else {
+        a.group_id = null;
+        if (!a.message_id.target){
+          a.group_name = 'all';
+        } else {
+          a.target_id = a.message_id.target._id;
+          a.target_name = a.message_id.target.name;
+        }
+      }
       a.organization_id = a.message_id.organization;
       a.message_id = a.message_id._id;
-      a.target_id = a.message_id.target || null;
     }
     result.push(a);
   });
