@@ -27,7 +27,8 @@ var activitySchema = new _mongoose.Schema({
   insight_target_id: {type: String, default: null, required: false},
   has_been_viewed:  {type: Boolean, default: false, required: false},
   group_id:         {type: _object_id, ref: 'Group', required: false},
-  message_id:       {type: _object_id, ref: 'Message', required: false}
+  message_id:       {type: _object_id, ref: 'Message', required: false},
+  organization_id:  {type: _object_id, ref: 'Organization', required: false}
 }, { versionKey: false });
 
 var baseFields = {from: 1, to: 1, create_date: 1, action: 1, post_id: 1, comment_id: 1,
@@ -93,11 +94,16 @@ activitySchema.statics.fetchActivitiesForUser = function(uid, last, next) {
   .exec(function(err, activities){
     model.populate(activities, {path: 'insight_target_id.insight', model: 'Insight', select: {_id: 1, file_path: 1}}, 
       function(err, activities){
+      model.populate(activities, {path: 'message_id', model: 'Message', 
+        select: {_id: 1, organization: 1, group: 1, target: 1}}, function(err, activities){
+
+
       next(err, flatten(activities));
       _.each(activities, function(a){
         model.findOneAndUpdate({_id: a._id}, {has_been_viewed: true}, function(err, r){
           if (err) console.log(err);
         });
+      });
       });
     });
   });
@@ -136,6 +142,12 @@ var flatten = function(activities) {
       var group = a.group_id;
       a.group_id = group._id || null;
       a.group_name = group.name || null;
+    }
+    if (a.message_id) {
+      a.group_id = a.message_id.group || null;
+      a.organization_id = a.message_id.organization;
+      a.message_id = a.message_id._id;
+      a.target_id = a.message_id.target || null;
     }
     result.push(a);
   });

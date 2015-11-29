@@ -74,6 +74,7 @@ var User = mongoose.model('User');
  * @apiName GetPost
  * @apiGroup Posts
  * @apiParam {String} pid Unique ID for post
+ * @apiParam (Query) {String} [requestor] Unique Id for requesting user
  * @apiUse SinglePostSuccess
  * @apiUse Error
  **/
