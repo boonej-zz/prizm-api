@@ -181,8 +181,13 @@ userSchema.statics.findOneCore = function(uid, next) {
   var primaryOrg = false;
   var model = this.model('User');
   model.findOne({_id: uid})
-  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, cover_photo_url: 1, zip_postal: 1, info: 1, website: 1, gender: 1, birthday: 1, phone_number: 1, program_code: 1, ethnicity: 1, religion: 1, date_founded: 1, mascot: 1, enrollment: 1, contact_first: 1, contact_last:1 , contact_email: 1, 
-   email: 1, info: 1, city: 1, state: 1, active: 1, subtype: 1, type: 1, interests: 1,  
+  .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, 
+    cover_photo_url: 1, zip_postal: 1, info: 1, website: 1, gender: 1,
+    birthday: 1, phone_number: 1, program_code: 1, ethnicity: 1, religion: 1, 
+    date_founded: 1, mascot: 1, enrollment: 1, contact_first: 1, 
+    contact_last:1 , contact_email: 1, email: 1, info: 1, city: 1, state: 1, 
+    active: 1, subtype: 1, type: 1, interests: 1, posts_count: 1, 
+    followers_count: 1, following_count: 1,
    org_status: {$elemMatch: {status: 'active'}}})
   .exec(function(err, user){
     if (user && user.type == 'user') {

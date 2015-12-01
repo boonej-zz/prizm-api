@@ -52,7 +52,7 @@ app.get('/', gateway, function(req, res){
  * @apiUse UserCoreSuccess
  * @apiUse Error
  **/
-app.get('/:uid',  function(req, res){
+app.get('/:uid',  gateway, function(req, res){
   var uid = req.params.uid;
   if (uid) {
     uid = uid.replace(" ", "");
