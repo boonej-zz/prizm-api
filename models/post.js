@@ -636,6 +636,12 @@ postSchema.pre('save', function(next){
   next();
 });
 
+postSchema.post('init', function(post){
+  var r = new RegExp('https:/s');
+  if (post.file_path) {
+    post.file_path = post.file_path.replace(r, 'https://s');
+  }
+});
 
 postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
   var model = this.model('Post');
