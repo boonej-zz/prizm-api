@@ -1052,6 +1052,50 @@ postSchema.statics.readHashTags = function(filter, limit, skip, format, next) {
   });
 };
 
+postSchema.statics.fetchUserPosts = function(user, trusted, requestor, limit, 
+    before, after, next) {
+  var model = this.model('Post');
+  var criteria = {creator: user, status: 'active'};
+  limit = limit || 15;
+  if (String(user) != String(requestor)) {
+    criteria.is_flagged = false;
+    criteria.category =  {$ne: 'personal'};
+  } else {
+    if (trusted) {
+      criteria.$or = [{scope: 'public'}, {scope: 'trust'}];
+    } else {
+      criteria.scope = 'public';
+    }
+  }
+  if (before && after) {
+    criteria.create_date = {$and: [{create_date: {$lt: before}}, 
+      {create_date: {$gt: after}}]};
+  } else {
+    if (before) {
+      criteria.create_date = {$lt: before};
+    } else if (after) {
+      criteria.create_date = {$gt: after};
+    }
+  }
+  model.find(criteria)
+  .select(homeFields(requestor))
+  .sort({create_date: -1})
+  .limit(10)
+  .exec(function(err, posts){
+    if (err) console.log(err);
+    model.populate(posts, {path: 'creator', model: 'User',
+      select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
+      function(err, posts){
+        model.populate(posts, {path: 'tags._id', model: 'User',
+         select: {_id: 1, name: 1}}, function(err, posts){ 
+          var returnData = flatten(posts, requestor);
+          next(err, returnData);
+         });
+      });
+    
+  });
+};
+
 
 exports.Post    = _mongoose.model('Post', postSchema);
 exports.Comment = _mongoose.model('Comment', commentSchema);

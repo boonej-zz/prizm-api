@@ -307,4 +307,39 @@ app.get('/:uid/tags', gateway, function(req, res) {
   }
 });
 
+/** POSTS **/
+/**
+ * @api {get} /users/:uid/posts Get User Posts
+ * @apiName GetUserPosts
+ * @apiVersion 2.0.0
+ * @apiGroup Users
+ * @apiParam {String} uid Unique id for user
+ * @apiParam (Query) {String} requestor Requesting user
+ * @apiParam (Query) {Number} [limit=15] Return a specified number of results
+ * @apiParam (Query) {Date} [before] Return only results created before date
+ * @apiParam (Query) {Date} [after] Return only results created after date
+ * @apiUse Error
+ **/
+
+app.get('/:uid/posts', gateway, function(req, res) {
+  var uid = req.params.uid;
+  var requestor = req.query.requestor;
+  var limit = req.query.limit || false;
+  var before = req.query.before || false;
+  var after = req.query.after || false;
+  if (uid && requestor) {
+    Trust.count({$or: [{from: uid, to: requestor, status: 'accepted'}, 
+      {from: requestor, to: uid, status: 'accepted'}]}, function(err, count){
+      var trusted = count > 0;
+      Post.fetchUserPosts(uid, trusted, requestor, limit, before, after, 
+        function(err, posts){
+        if (err) Error.ServerError(res);
+        else res.status(200).json(posts);
+      });
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id and requestor.');
+  }
+});
+
 module.exports = app;
