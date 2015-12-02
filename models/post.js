@@ -1086,7 +1086,7 @@ postSchema.statics.fetchUserPosts = function(user, trusted, requestor, limit,
   model.find(criteria)
   .select(homeFields(requestor))
   .sort({create_date: -1})
-  .limit(10)
+  .limit(limit)
   .exec(function(err, posts){
     if (err) console.log(err);
     model.populate(posts, {path: 'creator', model: 'User',
