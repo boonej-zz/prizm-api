@@ -1061,14 +1061,17 @@ postSchema.statics.readHashTags = function(filter, limit, skip, format, next) {
 postSchema.statics.fetchUserPosts = function(user, trusted, requestor, limit, 
     before, after, next) {
   var model = this.model('Post');
-  var criteria = {creator: user, status: 'active'};
+  var criteria = {status: 'active', $or: [
+    {creator: user},
+    {'tags._id': user}
+    ]};
   limit = limit || 15;
   if (String(user) != String(requestor)) {
     criteria.is_flagged = false;
     criteria.category =  {$ne: 'personal'};
   } else {
     if (trusted) {
-      criteria.$or = [{scope: 'public'}, {scope: 'trust'}];
+      criteria.scope = {$in: ['public', 'trust']};
     } else {
       criteria.scope = 'public';
     }

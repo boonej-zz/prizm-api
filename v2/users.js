@@ -321,7 +321,7 @@ app.get('/:uid/tags', gateway, function(req, res) {
  * @apiUse Error
  **/
 
-app.get('/:uid/posts', gateway, function(req, res) {
+app.get('/:uid/posts',  gateway, function(req, res) {
   var uid = req.params.uid;
   var requestor = req.query.requestor;
   var limit = req.query.limit || false;
