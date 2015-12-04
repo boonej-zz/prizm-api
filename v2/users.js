@@ -342,4 +342,62 @@ app.get('/:uid/posts',  gateway, function(req, res) {
   }
 });
 
+/** FOLLOWING **/
+/**
+ * @api {get} /users/:uid/following Get User Following
+ * @apiName GetUserFollowing
+ * @apiDescription Fetches a list of user objects that the user follows.
+ * @apiGroup Users
+ * @apiParam {String} uid Unique id for user
+ * @apiParam (Query) {String} requestor Unique id for requestor
+ * @apiParam (Query) {Number} [skip] Number of records to skip
+ * @apiParam (Query) {Number} [limit] Return a specified number of results
+ * @apiUse Error
+ */
+
+app.get('/:uid/following', function(req, res) {
+  var uid = req.params.uid;
+  var requestor = req.query.requestor;
+  var limit = req.query.limit || 15;
+  var skip = req.query.skip || 0;
+  if (uid && requestor) {
+    User.fetchFollowing(uid, requestor, skip, limit, function(err, users){
+      if (err) Error.serverError(res);
+      else res.status(200).json(users); 
+    });
+  } else {
+    Error.invalidRequest(res, "You must provide a user id and requestor.");
+  }
+});
+
+/** FOLLOWERS **/
+/**
+ * @api {get} /users/:uid/followers Get User Followers
+ * @apiName GetUserFollowers
+ * @apiDescription Fetches a list of user objects that the follow the user.
+ * @apiGroup Users
+ * @apiParam {String} uid Unique id for user
+ * @apiParam (Query) {String} requestor Unique id for requestor
+ * @apiParam (Query) {String} [last] Return only names after a given name
+ * @apiParam (Query) {Number} [limit] Return a specified number of results
+ * @apiUse Error
+ */
+
+app.get('/:uid/followers', function(req, res) {
+  var uid = req.params.uid;
+  var requestor = req.query.requestor;
+  var limit = req.query.limit || 15;
+  var skip = req.query.skip || 0;
+  if (uid && requestor) {
+    User.fetchFollowers(uid, requestor, skip, limit, function(err, users){
+      if (err) Error.serverError(res);
+      else res.status(200).json(users); 
+    });
+  } else {
+    Error.invalidRequest(res, "You must provide a user id and requestor.");
+  }
+});
+
+
+
 module.exports = app;

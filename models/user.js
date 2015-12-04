@@ -1044,6 +1044,85 @@ userSchema.statics.fetchHomeFeedCriteria = function(uid, last, next) {
   });
 };
 
+userSchema.statics.fetchFollowing = function(uid, requestor, skip, limit, next){
+  var model = this.model('User');
+  model.findOne({_id: uid})
+  .select({following: 1})
+  .exec(function(err, user) {
+    if (user) {
+      model.populate(user, {path: 'following._id', model: 'User', select: {_id: 1, 
+        name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, type: 1, 
+        subtype: 1, type: 1, followers: {$elemMatch: {_id: requestor}}}}, 
+        function(err, user){
+          var users = _.pluck(user.following, '_id');
+          users = limitUsers(users, limit, skip);
+          users = flattenShortUsers(users, requestor);
+          next(err, users); 
+        });
+    } else {
+      next(err, []);
+    }
+  });
+};
+
+userSchema.statics.fetchFollowers = function(uid, requestor, skip, limit, next){
+  var model = this.model('User');
+  model.findOne({_id: uid})
+  .select({followers: 1})
+  .exec(function(err, user) {
+    if (user) {
+      model.populate(user, {path: 'followers._id', model: 'User', select: {_id: 1, 
+        name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, type: 1, 
+        subtype: 1, type: 1, followers: {$elemMatch: {_id: requestor}}}}, 
+        function(err, user){
+          var users = _.pluck(user.followers, '_id');
+          users = limitUsers(users, limit, skip);
+          users = flattenShortUsers(users, requestor);
+          next(err, users); 
+        });
+    } else {
+      next(err, []);
+    }
+  });
+};
+
+var limitUsers = function(users, limit, skip) {
+  users = _.reject(users, function(user){return user?false:true;});
+  users = _.sortBy(users, 'name');
+  var uArr = [];
+  var start = -1;
+  var max = Number(limit) + Number(skip);
+  _.each(users, function(u, i){
+    if (skip > 0){
+      if (i >= skip) {
+        if (i < max) {
+          uArr.push(u);
+        } 
+      }
+    } else {
+      if (i < max) {
+        uArr.push(u);
+      }
+    }
+  });
+  return uArr;
+};
+
+var flattenShortUsers = function(users, requestor){
+  var returnData = [];
+  _.each(users, function(u){
+    if (u) {
+      u = u.toObject();
+      if (u.followers) {
+        u.is_following = u.followers.length > 0;
+        delete u.followers;
+      }
+      u.is_self = String(u._id) == String(requestor);
+      returnData.push(u);
+    }
+  });
+  return returnData;
+}
 
 exports.User = _mongoose.model('User', userSchema);
 _mongoose.model('OrgStatus', orgStatusSchema);
