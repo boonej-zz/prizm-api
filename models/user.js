@@ -1115,7 +1115,7 @@ userSchema.statics.followUser = function(uid, requestor, next){
             }
           });
           user = user.toObject();
-          user.isFollowing = true;
+          user.is_following = true;
           next(err, user);
         });
       } else {
