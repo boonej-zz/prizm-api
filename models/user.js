@@ -1088,6 +1088,7 @@ userSchema.statics.fetchFollowers = function(uid, requestor, skip, limit, next){
 
 userSchema.statics.followUser = function(uid, requestor, next){
   var model = this.model('User');
+  var Activity = _mongoose.model('Activity');
   model.findOne({_id: uid}, function(err, user){
     if (user) {
       var following = false;
