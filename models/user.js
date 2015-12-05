@@ -1086,7 +1086,7 @@ userSchema.statics.fetchFollowers = function(uid, requestor, skip, limit, next){
   });
 };
 
-userSchema.statics.followUser = function(uid, requestor, format, next){
+userSchema.statics.followUser = function(uid, requestor, next){
   User.findOne({_id: uid}, function(err, user){
     if (user) {
       var following = false;
@@ -1125,7 +1125,7 @@ userSchema.statics.followUser = function(uid, requestor, format, next){
   });
 };
 
-userSchema.statics.unfollowUser = function(uid, requestor, format, next){
+userSchema.statics.unfollowUser = function(uid, requestor, next){
  User.findOne({_id: uid}, function(err, user){
     if (user) {
       var index = -1;

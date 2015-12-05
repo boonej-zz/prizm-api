@@ -410,9 +410,8 @@ app.get('/:uid/followers', gateway, function(req, res) {
 app.post('/:uid/followers', gateway, function(req, res){
   var uid = req.params.uid;
   var requestor = req.body.requestor;
-  var format = req.body.format || 'basic';
   if (requestor && uid) {
-    User.followUser(uid, requestor, format, function(err, user){
+    User.followUser(uid, requestor, function(err, user){
       if (err) Error.serverError(res);
       else res.status(200).json(user);
     });
@@ -434,7 +433,7 @@ app.delete('/:uid/followers/:requestor', gateway, function(req, res){
   var uid = req.params.uid;
   var requestor = req.params.requestor;
   if (requestor && uid) {
-    User.unfollowUser(uid, requestor, format, function(err, user){
+    User.unfollowUser(uid, requestor, function(err, user){
       if (err) Error.serverError(res);
       else res.status(200).json(user);
     });
