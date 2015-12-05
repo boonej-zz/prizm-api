@@ -240,11 +240,15 @@ userSchema.statics.findOneCore = function(uid, requestor, next) {
           
         }
         user.interest_count = _.isArray(user.interests)?user.interests.length:0;
+        user.is_following = user.followers.length > 0;
+        delete user.followers;
         next(err, user);
       });
     } else {
       user = user.toObject();
       user.interest_count = _.isArray(user.interests)?user.interests.length:0;
+      user.is_following = user.followers.length > 0;
+              delete user.followers;
      next(err, user);
     }
   });
