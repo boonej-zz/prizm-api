@@ -54,9 +54,10 @@ app.get('/', gateway, function(req, res){
  **/
 app.get('/:uid',  gateway, function(req, res){
   var uid = req.params.uid;
+  var requestor = req.query.requestor || "";
   if (uid) {
     uid = uid.replace(" ", "");
-    User.findOneCore(uid, function(err, user){
+    User.findOneCore(uid, requestor, function(err, user){
       if (err) console.log(err);
       if (user) {
         res.status(200).json(user);
@@ -118,7 +119,7 @@ app.put('/:uid', gateway, function(req, res) {
       res.status(500).json(err);
     } else {
       console.log('user updated');
-      User.findOneCore(uid, function(err, user){
+      User.findOneCore(uid, "", function(err, user){
         if (err) {
           res.status(500).json(err);
           console.log(err);

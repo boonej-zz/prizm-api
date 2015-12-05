@@ -176,7 +176,7 @@ userSchema.statics.selectFields = function(type){
   }
 };
 
-userSchema.statics.findOneCore = function(uid, next) {
+userSchema.statics.findOneCore = function(uid, requestor, next) {
   var Organization = _mongoose.model('Organization');
   var primaryOrg = false;
   var model = this.model('User');
@@ -187,7 +187,8 @@ userSchema.statics.findOneCore = function(uid, next) {
     date_founded: 1, mascot: 1, enrollment: 1, contact_first: 1, 
     contact_last:1 , contact_email: 1, email: 1, info: 1, city: 1, state: 1, 
     active: 1, subtype: 1, type: 1, interests: 1, posts_count: 1, 
-    followers_count: 1, following_count: 1,
+    followers_count: 1, following_count: 1, 
+    followers: {$elemMatch: {_id: requestor}},
    org_status: {$elemMatch: {status: 'active'}}})
   .exec(function(err, user){
     if (user && user.type == 'user') {
@@ -200,15 +201,21 @@ userSchema.statics.findOneCore = function(uid, next) {
                 user.primary_organization = user.org_status[0].organization._id;
                 user.theme = user.org_status[0].organization.theme.background_url;
                 user.role = user.org_status[0].role;
-                user.interest_count = _.isArray(user.interests)?user.interests.length:0;
                 var muted = false;
                 _.each(user.org_status[0].organization.mutes, function(mute){
                   if (String(user._id) == String(mute)) {
                     muted = true;
                   }
                 });
+                delete user.org_status;
+
                 user.allMuted = muted;
               }
+              user.is_following = user.followers.length > 0;
+              delete user.followers;
+              user.interest_count = _.isArray(user.interests)?user.interests.length:0;
+              delete user.interests;
+
               next(err, user);
             });
       });
