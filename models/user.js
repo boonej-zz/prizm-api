@@ -1087,7 +1087,8 @@ userSchema.statics.fetchFollowers = function(uid, requestor, skip, limit, next){
 };
 
 userSchema.statics.followUser = function(uid, requestor, next){
-  User.findOne({_id: uid}, function(err, user){
+  var model = this.model('User');
+  model.findOne({_id: uid}, function(err, user){
     if (user) {
       var following = false;
       _.each(user.followers, function(f){
@@ -1098,7 +1099,7 @@ userSchema.statics.followUser = function(uid, requestor, next){
       if (!following) {
         user.followers.push({_id: requestor});
         user.save(function(err, user){
-          User.findOne({_id: requestor}, function(err, r){
+          model.findOne({_id: requestor}, function(err, r){
             if (r) {
               r.following.push({_id: uid});
               r.save(function(err, r){
@@ -1126,7 +1127,9 @@ userSchema.statics.followUser = function(uid, requestor, next){
 };
 
 userSchema.statics.unfollowUser = function(uid, requestor, next){
- User.findOne({_id: uid}, function(err, user){
+ var model = this.model('User');
+
+ model.findOne({_id: uid}, function(err, user){
     if (user) {
       var index = -1;
       _.each(user.followers, function(f, idx){
@@ -1137,7 +1140,7 @@ userSchema.statics.unfollowUser = function(uid, requestor, next){
       if (index != -1) {
         user.followers.splice(index, 1);
         user.save(function(err, user){
-          User.findOne({_id: requestor}, function(err, r){
+          model.findOne({_id: requestor}, function(err, r){
             if (r) {
               var index = -1;
               _.each(r.following, function(f, idx){
