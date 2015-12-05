@@ -1086,6 +1086,86 @@ userSchema.statics.fetchFollowers = function(uid, requestor, skip, limit, next){
   });
 };
 
+userSchema.statics.followUser = function(uid, requestor, format, next){
+  User.findOne({_id: uid}, function(err, user){
+    if (user) {
+      var following = false;
+      _.each(user.followers, function(f){
+        if (String(requestor) == String(f._id)) {
+          following = true;
+        }
+      });
+      if (!following) {
+        user.followers.push({_id: requestor});
+        user.save(function(err, user){
+          User.findOne({_id: requestor}, function(err, r){
+            if (r) {
+              r.following.push({_id: uid});
+              r.save(function(err, r){
+                 new Activity({
+                  action: 'follow',
+                  to: uid,
+                  from: requestor
+                }).save(function(err, activity){
+
+                });
+              });
+            }
+          });
+          user = user.toObject();
+          user.isFollowing = true;
+          next(err, user);
+        });
+      } else {
+        next(err, user);
+      }
+    } else {
+      next(err, user);
+    }
+  });
+};
+
+userSchema.statics.unfollowUser = function(uid, requestor, format, next){
+ User.findOne({_id: uid}, function(err, user){
+    if (user) {
+      var index = -1;
+      _.each(user.followers, function(f, idx){
+        if (String(requestor) == String(f._id)) {
+          index = idx;
+        }
+      });
+      if (index != -1) {
+        user.followers.splice(index, 1);
+        user.save(function(err, user){
+          User.findOne({_id: requestor}, function(err, r){
+            if (r) {
+              var index = -1;
+              _.each(r.following, function(f, idx){
+                if (String(uid) == String(f._id)) {
+                  index = idx;
+                }
+              });
+              if (index != -1) {
+                r.following.splice(index, 1);
+              }
+              r.save(function(err, r){
+              });
+            }
+          });
+          user = user.toObject();
+          user.isFollowing = false;
+          next(err, user);
+        });
+      } else {
+        next(err, user);
+      }
+    } else {
+      next(err, user);
+    }
+  });
+
+};
+
 var limitUsers = function(users, limit, skip) {
   users = _.reject(users, function(user){return user?false:true;});
   users = _.sortBy(users, 'name');

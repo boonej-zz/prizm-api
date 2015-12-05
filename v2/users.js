@@ -355,7 +355,7 @@ app.get('/:uid/posts',  gateway, function(req, res) {
  * @apiUse Error
  */
 
-app.get('/:uid/following', function(req, res) {
+app.get('/:uid/following', gateway, function(req, res) {
   var uid = req.params.uid;
   var requestor = req.query.requestor;
   var limit = req.query.limit || 15;
@@ -383,7 +383,7 @@ app.get('/:uid/following', function(req, res) {
  * @apiUse Error
  */
 
-app.get('/:uid/followers', function(req, res) {
+app.get('/:uid/followers', gateway, function(req, res) {
   var uid = req.params.uid;
   var requestor = req.query.requestor;
   var limit = req.query.limit || 15;
@@ -396,6 +396,52 @@ app.get('/:uid/followers', function(req, res) {
   } else {
     Error.invalidRequest(res, "You must provide a user id and requestor.");
   }
+});
+
+/**
+ * @api {post} /users/:uid/followers Follow User
+ * @apiName FollowUser
+ * @apiDescription Add a users content to the requestor's home feed.
+ * @apiGroup Users
+ * @apiParam {String} uid Unique id for user to be followed
+ * @apiParam (Body) {String} requestor Requesting user unique id
+ * @apiUse Error
+ */
+app.post('/:uid/followers', gateway, function(req, res){
+  var uid = req.params.uid;
+  var requestor = req.body.requestor;
+  var format = req.body.format || 'basic';
+  if (requestor && uid) {
+    User.followUser(uid, requestor, format, function(err, user){
+      if (err) Error.serverError(res);
+      else res.status(200).json(user);
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id and requestor.');
+  }
+});
+
+/**
+ * @api {delete} /users/:uid/followers/:requestor Follow User
+ * @apiName FollowUser
+ * @apiDescription Add a users content to the requestor's home feed.
+ * @apiGroup Users
+ * @apiParam {String} uid Unique id for user to be followed
+ * @apiParam {String} requestor Requesting user unique id
+ * @apiUse Error
+ */
+app.delete('/:uid/followers/:requestor', gateway, function(req, res){
+  var uid = req.params.uid;
+  var requestor = req.params.requestor;
+  if (requestor && uid) {
+    User.unfollowUser(uid, requestor, format, function(err, user){
+      if (err) Error.serverError(res);
+      else res.status(200).json(user);
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id and requestor.');
+  }
+
 });
 
 
