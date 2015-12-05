@@ -1183,7 +1183,6 @@ userSchema.statics.unfollowUser = function(uid, requestor, next){
 
 var limitUsers = function(users, limit, skip) {
   users = _.reject(users, function(user){return user?false:true;});
-  users = _.sortBy(users, 'name');
   var uArr = [];
   var start = -1;
   var max = Number(limit) + Number(skip);
