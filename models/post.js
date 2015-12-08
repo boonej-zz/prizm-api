@@ -1069,12 +1069,12 @@ postSchema.statics.fetchUserPosts = function(user, trusted, requestor, limit,
   if (String(user) != String(requestor)) {
     criteria.is_flagged = false;
     criteria.category =  {$ne: 'personal'};
-  } else {
     if (trusted) {
       criteria.scope = {$in: ['public', 'trust']};
     } else {
       criteria.scope = 'public';
     }
+
   }
   if (before && after) {
     criteria.create_date = {$and: [{create_date: {$lt: before}}, 
