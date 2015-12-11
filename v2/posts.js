@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var mongoose = require('mongoose');
 var gateway = require('../gateway');
+var image = require('../lib/helpers/image');
 var _ = require('underscore');
 var Post = mongoose.model('Post');
 var Error = require('../lib/error');
@@ -287,6 +288,60 @@ app.delete('/:pid/comments/:cid/likes/:uid', gateway, function(req, res) {
     if (err) Error.serverError(res);
     else res.status(200).json(comment);
   });
+});
+
+// CREATE
+/**
+ * @api {post} / Create Post
+ * @apiName CreatePost
+ * @apiGroup Posts
+ * @apiParam (Body) {String=aspiration,inspiration,passion,experience, achievement,personal} category Category for post
+ * @apiParam (Body) {String=public,trust,private} scope Visibility scope for 
+ *  post
+ * @apiParam (Body) {String} creator Unique id for post's creator
+ * @apiParam (Body) {String} [file_path] Path to image representing post
+ * @apiParam (Body) {String} [text] Text content for post
+ * @apiParam (Body) {Number} [location_latitude] Latitude associated with post
+ * @apiParam (Body) {Number} [location_longitude] Longitude associated with post
+ * @apiUse Error
+ **/
+app.post('/', function(req, res) {
+  var creator = req.body.creator;
+  var scope = req.body.scope;
+  var category = req.body.category;
+  var text = req.body.text;
+  var file_path = req.body.file_path;
+  var location_latitude = req.body.location_latitude;
+  var location_longitude = req.body.location_longitude;
+
+  if (creator && scope && category) {
+    var post = new Post({creator: creator, scope: scope, category: category, 
+      text: text, file_path: file_path, location_latitude: location_latitude,
+      location_longitude: location_longitude});
+    if (!file_path) {
+      image.saveTextImage(post, function(err, path){
+        post.file_path = path;
+        post.save(function(err, result){
+          if (err) {
+            Error.serverError(res);
+          } else {
+            res.status(200).json(result);
+          }
+        });
+      }); 
+    } else {
+      post.save(function(err, result){
+        if (err) {
+          Error.serverError(res);
+        } else {
+          res.status(200).json(result);
+        }
+      });
+    }
+    
+  } else {
+    Error.invalidRequest(res, 'You must include a creator, scope, and category.');
+  }
 });
 
 
