@@ -63,14 +63,14 @@ _app.use('/docs', _express.static(path.join(__dirname, 'public/doc')));
 /* environment specific settings */
   errorTransports = [
     new _winston.transports.File({
-      filename: 'logs/prism_errors.log',
+      filename: '/mnt/extended/prism_errors.log',
       json: true,
       colorize: true
     })
   ];
   standardTransports = [
     new _winston.transports.File({
-      filename: 'logs/prism_requests.log',
+      filename: '/mnt/extended/prism_requests.log',
       json: true,
       colorize: true,
       prettyPrint: true

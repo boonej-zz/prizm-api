@@ -303,6 +303,7 @@ app.delete('/:pid/comments/:cid/likes/:uid', gateway, function(req, res) {
  * @apiParam (Body) {String} [text] Text content for post
  * @apiParam (Body) {Number} [location_latitude] Latitude associated with post
  * @apiParam (Body) {Number} [location_longitude] Longitude associated with post
+ * @apiParam (Body) {Array} [hash_tags] A JSON array of hash_tags
  * @apiUse Error
  **/
 app.post('/', function(req, res) {
@@ -313,22 +314,41 @@ app.post('/', function(req, res) {
   var file_path = req.body.file_path;
   var location_latitude = req.body.location_latitude;
   var location_longitude = req.body.location_longitude;
+  var hash_tags = req.body.hash_tags || [];
 
   if (creator && scope && category) {
     var post = new Post({creator: creator, scope: scope, category: category, 
       text: text, file_path: file_path, location_latitude: location_latitude,
-      location_longitude: location_longitude});
+      location_longitude: location_longitude, hash_tags: hash_tags, 
+      hash_tags_count: hash_tags.length});
     if (!file_path) {
-      image.saveTextImage(post, function(err, path){
-        post.file_path = path;
-        post.save(function(err, result){
-          if (err) {
-            Error.serverError(res);
-          } else {
-            res.status(200).json(result);
-          }
-        });
-      }); 
+      var at = post.text;
+      User.resolvePostTags(post, function(err, users) {
+        var match = String(post.text).match(/@\S{24}/g);
+        if (match && match.length > 0) {
+          _.each(match, function(m){
+            var uid = m.substr(1);
+            var mu = _.find(users, function(u){
+              return (String(u._id) == String(uid));
+            });
+            if (mu) {
+              at = at.replace(m, '@' + mu.name);
+            }
+          });
+          
+        }
+        image.saveTextImage(post, at, function(err, path){
+            post.file_path = path;
+            post.save(function(err, result){
+              if (err) {
+                Error.serverError(res);
+              } else {
+                res.status(200).json(result);
+              }
+            });
+          }); 
+        
+      });
     } else {
       post.save(function(err, result){
         if (err) {
