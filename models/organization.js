@@ -19,7 +19,19 @@ var organizationSchema = new mongoose.Schema({
   namespace           : {type: String, required: false},
   stripe_id           : {type: String, default: null},
   groups              : {type: Array, default: []},
-  mutes               : {type: Array, default: []}
+  mutes               : {type: Array, default: []},
+  who_to_follow       : {
+    luminaries: {type: Boolean, default: true},
+    org_luminaries: {type: Boolean, default: false},
+    leaders: {type: Boolean, default: false},
+    ambassadors: {type: Boolean, default: false}
+  },
+  featured            : {
+    partners: {type: Boolean, default: false},
+    ambassadors: {type: Boolean, default: false},
+    luminaries: {type: Boolean, default: false},
+    leaders: {type: Boolean, default: false}
+  }
 });
 
 organizationSchema.pre('save', function(next){

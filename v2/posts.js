@@ -71,6 +71,45 @@ var User = mongoose.model('User');
  **/
 
 /**
+ * @api {get} / Get Posts
+ * @apiName GetPosts
+ * @apiGroup Posts
+ * @apiDescription Returns an array of posts from all users based on the 
+ *  requestor's trusts, group membership, and other parameters passed. 
+ *  This is the basis for the Explore feed and logic.
+ * @apiParam (Query) {String} requestor Unique id for requesting user
+ * @apiParam (Query) {String} [hashtag] Hashtag to filter based on
+ * @apiParam (Query) {String=featured,popular} [mode] Use a tabbed search mode
+ * @apiParam (Query) {Date} [before] Search for posts before a given date
+ * @apiParam (Query) {Date} [after] Search for posts after a given date
+ * @apiParam (Query) {Number} [limit] Limit the return to the number of posts
+ * @apiUse Error
+ **/
+app.get('/', function(req, res) {
+  var requestor = req.query.requestor;
+  var hashtag = req.query.hashtag || false;
+  var mode = req.query.mode || false;
+  var before = req.query.before || false;
+  var after = req.query.after || false;
+  var limit = req.query.limit || false;
+  if (!requestor) {
+    Error.invalidRequest(res, 'You must include a requestor with this request.');
+  } else {
+    Post.fetchExplore({
+      requestor: requestor,
+      hashtag: hashtag,
+      mode: mode,
+      before: before,
+      after: after,
+      limit: limit
+    }, function(err, posts) {
+      if (err) Error.serverError(res);
+      else res.status(200).json(posts);
+    });
+  }
+});
+
+/**
  * @api {get} /posts/:pid Get Post
  * @apiName GetPost
  * @apiGroup Posts

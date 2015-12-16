@@ -1105,6 +1105,96 @@ postSchema.statics.fetchUserPosts = function(user, trusted, requestor, limit,
   });
 };
 
+postSchema.statics.fetchExplore = function(params, next){
+  var model = this.model('Post'); 
+  var criteria = {
+    status: 'active',
+    scope: 'public',
+    category: {$ne: 'personal'},
+    is_flagged: false
+  };
+  var sort;
+  if (params.mode == 'popular') sort = {likes_count: -1};
+  else sort = {create_date: -1};
+  if (params.before) criteria.create_date = {$lt: params.before};
+  if (params.after) criteria.create_date = {$gt: params.after};
+  if (params.mode == 'featured') {
+    var User = _mongoose.model('User');
+    User.findOne({_id: params.requestor})
+    .select({_id: 1, org_status: {$elemMatch: {status: 'active'}}})
+    .exec(function(err, user){
+      if (user) {
+        User.populate(user, {path: 'org_status.organization', model: 'Organization'}, 
+          function(err, user){
+          var ol = [];
+          _.each(user.org_status, function(os){
+            var o = os.organization;
+            if (o) {
+            if (o.featured.partners) {
+              ol.push({type: 'insititution_verified'});
+            }
+            if (o.featured.ambassadors) ol.push({
+              org_status: {
+                $elemMatch: {
+                  organization: o._id,
+                  status: 'active',
+                  role: 'ambassador'    
+                }
+              }});
+            if (o.featured.leaders) ol.push({
+              $elemMatch: {
+                organization: o._id,
+                status: 'active',
+                role: 'leader'
+              }
+            });
+            if (o.featured.luminaries) ol.push({subtype: 'luminary'});
+            }
+          });
+          if (ol.length > 0) {
+            User.find({$or: ol})
+            .select({_id: 1})
+            .exec(function(err, users){
+              criteria.creator = {$in: _.pluck(users, '_id')};
+              doExplore(model, criteria, sort, params.limit, params.requestor, next);
+            });
+          } else {
+            criteria.type = 'institution_verified';
+            sort = {create_date: -1, _id: -1};
+            doExplore(model, criteria, sort, params.limit, params.requestor, next);
+          }
+        });
+      } else {
+        next(err, null);
+      }
+    }); 
+  } else {
+    doExplore(model, criteria, sort, params.limit, params.requestor, next);
+  }
+ 
+  
+  
+};
+
+var doExplore = function(model, criteria, sort, limit, requestor, next){
+  model.find(criteria)
+  .select(homeFields(requestor))
+  .sort(sort)
+  .limit(limit || 20)
+  .exec(function(err, posts){
+    model.populate(posts, {path: 'creator', model: 'User',
+      select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
+      function(err, posts){
+        model.populate(posts, {path: 'tags._id', model: 'User',
+         select: {_id: 1, name: 1}}, function(err, posts){ 
+          var returnData = flatten(posts, requestor);
+          next(err, returnData);
+         });
+      });
+  });
+
+}
+
 
 exports.Post    = _mongoose.model('Post', postSchema);
 exports.Comment = _mongoose.model('Comment', commentSchema);
