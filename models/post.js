@@ -998,7 +998,11 @@ var matchTags = function(obj) {
         var mu = false;
         if (obj.tags && obj.tags.length > 0) {
           mu = _.find(obj.tags, function(o){
-            return (String(o._id._id) == String(uid));
+            if (o._id) {
+              return (String(o._id._id) == String(uid));
+            } else {
+              return false;
+            }
           });
         }
         if (mu) {
