@@ -995,13 +995,12 @@ var matchTags = function(obj) {
     if (match && match.length > 0) {
       _.each(match, function(tag, idx, list) {
         var uid = tag.substr(1);
-        var mu = _.find(obj.tags, function(o){
-          if (o._id._id) {
+        var mu = false;
+        if (obj.tags && obj.tags.length > 0) {
+          mu = _.find(obj.tags, function(o){
             return (String(o._id._id) == String(uid));
-          } else {
-            return (String(o._id) == String(uid));
-          }
-        });
+          });
+        }
         if (mu) {
           at = at.replace(tag, '@(' + mu._id.name + '|' + mu._id._id + ')');
         }
