@@ -996,7 +996,11 @@ var matchTags = function(obj) {
       _.each(match, function(tag, idx, list) {
         var uid = tag.substr(1);
         var mu = _.find(obj.tags, function(o){
-          return (String(o._id._id) == String(uid));
+          if (o._id._id) {
+            return (String(o._id._id) == String(uid));
+          } else {
+            return (String(o._id) == String(uid));
+          }
         });
         if (mu) {
           at = at.replace(tag, '@(' + mu._id.name + '|' + mu._id._id + ')');
