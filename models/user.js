@@ -771,13 +771,14 @@ userSchema.methods.fetchGroups = function(org_id, next) {
   }
 }
 
-userSchema.statics.findBasic = function(params, limit, next){
+userSchema.statics.findBasic = function(params, limit, skip, next){
   var model = this.model('User');
   params.active = true;
   model.find(params)
   .select({_id: 1, name: 1, first_name: 1, last_name: 1, profile_photo_url: 1, type: 1, subtype: 1, type: 1})
   .sort({name: 1})
   .limit(limit)
+  .skip(skip)
   .exec(function(err, users) {
     next(err, users);
   });

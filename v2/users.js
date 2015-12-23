@@ -21,6 +21,7 @@ app.get('/', gateway, function(req, res){
   var organization = req.query.organization || false;
   var group = req.query.group || false;
   var limit = req.params.limit || false;
+  var skip = req.params.skip || 0;
   var params = {};
   if (searchText) {
     var r = new RegExp(searchText, 'i');
@@ -34,7 +35,7 @@ app.get('/', gateway, function(req, res){
     params.org_status = {$elemMatch: orgStatus};
   }
   console.log(params);
-  User.findBasic(params, limit, function(err, users){
+  User.findBasic(params, limit, skip, function(err, users){
     if (err) {
       res.status(500).json(err);
     } else {
