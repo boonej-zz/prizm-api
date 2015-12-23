@@ -1125,6 +1125,7 @@ postSchema.statics.fetchExplore = function(params, next){
   else sort = {create_date: -1};
   if (params.before) criteria.create_date = {$lt: params.before};
   if (params.after) criteria.create_date = {$gt: params.after};
+  if (params.hashtag) criteria.hash_tags = params.hashtag;
   if (params.mode == 'featured') {
     var User = _mongoose.model('User');
     User.findOne({_id: params.requestor})
