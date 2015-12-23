@@ -20,8 +20,8 @@ app.get('/', function(req, res){
   var searchText = req.query.search || false;
   var organization = req.query.organization || false;
   var group = req.query.group || false;
-  var limit = req.params.limit || false;
-  var skip = req.params.skip || 0;
+  var limit = req.query.limit || false;
+  var skip = req.query.skip || 0;
   var params = {};
   if (searchText) {
     var r = new RegExp(searchText, 'i');
