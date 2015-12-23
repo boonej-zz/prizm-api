@@ -16,7 +16,7 @@ var Error = require('../lib/error');
 
 
 
-app.get('/', gateway, function(req, res){
+app.get('/', function(req, res){
   var searchText = req.query.search || false;
   var organization = req.query.organization || false;
   var group = req.query.group || false;
