@@ -213,7 +213,7 @@ var flattenInsights = function(insights) {
     i = i.toObject();
     insight = {
       _id: i.insight._id,
-      hash_tags: i.insight.tags.join(','),
+      hash_tags: i.insight.hash_tags.join(','),
       hash_tags_count: i.insight.hash_tags_count,
       link_title: i.insight.link_title,
       link: i.insight.link,
