@@ -478,6 +478,59 @@ app.get('/:uid/insights', function(req, res) {
   }
 });
 
+/**
+ * @api {put} /users/:uid/insights/:iid Like Insight
+ * @apiName LikeInsight
+ * @apiDescription Marks an insight as liked and moves it to the archive
+ * @apiGroup Users
+ * @apiParam (Body) {String} uid Unique id for user
+ * @apiParam (Body) {String} iid Unique id for insight
+ * @apiUse Error
+ */
 
+app.put('/:uid/insights/:iid', function(req, res){
+  var uid = req.params.uid;
+  var iid = req.params.iid;
+  if (uid && iid) {
+    InsightTarget.likeInsight(uid, iid, 
+      function(err, insight){
+      if (err) {
+        Error.serverError(res);
+      } else {
+        res.status(200).json(insight);
+      }
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id and insight id.');
+  }
+
+
+});
+
+/**
+ * @api {delete} /users/:uid/insights/:iid Dislike Insight
+ * @apiName DislikeInsight
+ * @apiDescription Marks an insight as disliked and removes it from the feed.
+ * @apiGroup Users
+ * @apiParam (Body) {String} uid Unique id for user
+ * @apiParam (Body) {String} iid Unique id for insight
+ * @apiUse Error
+ */
+app.delete('/:uid/insights/:iid', function(req, res){
+  var uid = req.params.uid;
+  var iid = req.params.iid;
+  if (uid && iid) {
+    InsightTarget.dislikeInsight(uid, iid, 
+      function(err, insight){
+      if (err) {
+        Error.serverError(res);
+      } else {
+        res.status(200).json(insight);
+      }
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id and insight id.');
+  }
+});
 
 module.exports = app;

@@ -122,6 +122,63 @@ insightTargetSchema.statics.fetchInsightsForUser = function(uid, type, limit, sk
   });
 };
 
+insightTargetSchema.statics.likeInsight = function(uid, iid, next){
+  var model = this.model('InsightTarget');
+  var Insight = mongoose.model('Insight');
+  model.findOne({target: uid, insight: iid})
+  .exec(function(err, insightTarget){
+    if (err) {
+      next(err, null);
+    } else {
+      var decrement = false;
+      if (insightTarget.disliked) decrement = true;
+      insightTarget.liked = true;
+      insightTarget.disliked = false;
+      insightTarget.save(function(err, insightTarget){
+        Insight.findOne({_id: iid}, function(err, insight){
+          if (decrement) {
+            insight.disliked_count -=1;
+          }
+          insight.liked_count += 1;
+          insight.save(function(err, insight){
+            if (err) console.log(err);
+          });
+          next(err, insightTarget);
+        });
+      });
+    }
+  });
+};
+
+insightTargetSchema.statics.dislikeInsight = function(uid, iid, next){
+  var model = this.model('InsightTarget');
+  var Insight = mongoose.model('Insight');
+  model.findOne({target: uid, insight: iid})
+  .exec(function(err, insightTarget){
+    if (err) {
+      next(err, null);
+    } else {
+      var decrement = false;
+      if (insightTarget.liked) decrement = true;
+      insightTarget.liked = false;
+      insightTarget.disliked = true;
+      insightTarget.save(function(err, insightTarget){
+        Insight.findOne({_id: iid}, function(err, insight){
+          if (decrement) {
+            insight.liked_count -=1;
+          }
+          insight.disliked_count += 1;
+          insight.save(function(err, insight){
+            if (err) console.log(err);
+          });
+          next(err, insightTarget);
+        });
+      });
+    }
+  });
+};
+
+
 
 insightSchema.methods.format = function(type, add_fields){
   var format;
