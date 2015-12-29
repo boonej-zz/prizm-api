@@ -14,6 +14,8 @@ var Activity = mongoose.model('Activity');
 var Trust = mongoose.model('Trust');
 var Error = require('../lib/error');
 
+var InsightTarget = mongoose.model('InsightTarget');
+
 
 
 app.get('/', function(req, res){
@@ -423,9 +425,9 @@ app.post('/:uid/followers', gateway, function(req, res){
 });
 
 /**
- * @api {delete} /users/:uid/followers/:requestor Follow User
- * @apiName FollowUser
- * @apiDescription Add a users content to the requestor's home feed.
+ * @api {delete} /users/:uid/followers/:requestor Unfollow User
+ * @apiName UnfollowUser
+ * @apiDescription Remove a users content to the requestor's home feed.
  * @apiGroup Users
  * @apiParam {String} uid Unique id for user to be followed
  * @apiParam {String} requestor Requesting user unique id
@@ -443,6 +445,37 @@ app.delete('/:uid/followers/:requestor', gateway, function(req, res){
     Error.invalidRequest(res, 'You must provide a user id and requestor.');
   }
 
+});
+
+/**
+ * @api {get} /users/:uid/insights Get User Insights
+ * @apiName GetUserInsights
+ * @apiDescription Gets a list of user insights
+ * @apiGroup Users
+ * @apiParam {String} uid Unique id for user
+ * @apiParam (Query) {String=inbox,archive} [type=inbox] Type of request
+ * @apiParam (Query) {Number} [limit=10] Limit records
+ * @apiParam (Query) {Number} [skip=0] Number of records to skip
+ * @apiUse Error
+ */
+
+app.get('/:uid/insights', function(req, res) {
+  var uid = req.params.uid;
+  var type = req.query.type || 'inbox';
+  var limit = req.query.limit || 10;
+  var skip = req.query.skip || 0;
+  if (uid) {
+    InsightTarget.fetchInsightsForUser(uid, type, limit, skip, 
+      function(err, insights){
+      if (err) {
+        Error.serverError(res);
+      } else {
+        res.status(200).json(insights);
+      }
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id.');
+  }
 });
 
 

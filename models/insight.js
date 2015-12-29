@@ -9,6 +9,7 @@ var mongoose     = require('mongoose'),
     Trust         = require(process.env.PRISM_HOME + 'models/user').Trust,
     Post          = require(process.env.PRISM_HOME + 'models/post').Post,
     ObjectId    = mongoose.Schema.Types.ObjectId;
+var _ = require('underscore');
 
 var insightSchema = new mongoose.Schema({
   creator         : {type: ObjectId, ref: 'User', required: true},
@@ -97,6 +98,30 @@ insightTargetSchema.statics.canResolve = function(){
   ];
 };
 
+insightTargetSchema.statics.fetchInsightsForUser = function(uid, type, limit, skip, next) {
+  var model = this.model('InsightTarget');
+  var criteria = {target: uid};
+  if (type == 'inbox') {
+    criteria.liked = false;
+    criteria.disliked = false;
+  } else if (type == 'archive') {
+    criteria.liked = true;
+    criteria.disliked = false;
+  }
+  model.find(criteria)
+  .sort({create_date: -1})
+  .limit(limit)
+  .skip(skip)
+  .exec(function(err, insights){
+    model.populate(insights, {path: 'insight', model: 'Insight'}, function(err, insights){
+      model.populate(insights, {path: 'creator', model: 'User', select: {_id: 1, name: 1, type: 1, 
+        subtype: 1, profile_photo_url: 1}}, function(err, insights){
+          next(err, flattenInsights(insights));
+        });
+    });
+  });
+};
+
 
 insightSchema.methods.format = function(type, add_fields){
   var format;
@@ -122,6 +147,32 @@ insightSchema.methods.format = function(type, add_fields){
     }
   }
   return format;
+};
+
+var flattenInsights = function(insights) {
+  var data = [];
+  _.each(insights, function(i){
+    var insight = {};
+    i = i.toObject();
+    insight = {
+      _id: i.insight._id,
+      hash_tags: i.insight.tags.join(','),
+      hash_tags_count: i.insight.hash_tags_count,
+      link_title: i.insight.link_title,
+      link: i.insight.link,
+      file_path: i.insight.file_path,
+      text: i.insight.text,
+      title: i.insight.title,
+      create_date: i.insight.create_date,
+      creator_id: i.creator._id,
+      creator_name: i.creator.name,
+      creator_type: i.creator.type,
+      creator_subtype: i.creator.subtype,
+      creator_profile_photo_url: i.creator.profile_photo_url
+    };
+    data.push(insight);
+  });
+  return data;
 };
 
 mongoose.model('Insight', insightSchema);
