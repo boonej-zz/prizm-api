@@ -79,6 +79,20 @@ insightSchema.pre('save', function(next){
   next();
 });
 
+insightSchema.statics.fetchInsight = function(iid, next){
+  var model = this.model('Insight');
+  model.findOne({_id: iid})
+  .populate({path: 'creator', model: 'User', select: {_id: 1, name: 1, type: 1, 
+        subtype: 1, profile_photo_url: 1}})
+  .exec(function(err, insight){
+    if (err) {
+      next(err, insight);
+    } else {
+      next(err, flattenInsight(insight));
+    }
+  });
+}
+
 insightTargetSchema.pre('save', function(next){
   this.create_date = Date.now();
   next();
@@ -205,6 +219,28 @@ insightSchema.methods.format = function(type, add_fields){
   }
   return format;
 };
+
+var flattenInsight = function(insight) {
+  var data = {};
+  insight = insight.toObject();
+  data = {
+    _id: insight._id,
+    hash_tags: insight.hash_tags.join(','),
+    hash_tags_count: insight.hash_tags_count,
+    link_title: insight.link_title,
+    link: insight.link,
+    file_path: insight.file_path,
+    text: insight.text,
+    title: insight.title,
+    create_date: insight.create_date,
+    creator_id: insight.creator._id,
+    creator_name: insight.creator.name,
+    creator_type: insight.creator.type,
+    creator_subtype: insight.creator.subtype,
+    creator_profile_photo_url: insight.creator.profile_photo_url
+  }
+  return data;
+}
 
 var flattenInsights = function(insights) {
   var data = [];

@@ -5,6 +5,7 @@ var users = require('./users');
 var interests = require('./interests');
 var posts = require('./posts');
 var hashtags = require('./hashtags');
+var insights = require('./insights');
 
 /**
  * @apiDefine Error
@@ -134,6 +135,7 @@ app.use('/users/', users);
 app.use('/interests/', interests);
 app.use('/posts/', posts);
 app.use('/hashtags/', hashtags);
+app.use('/insights/', insights);
 app.get('/', function(req, res){
   res.send('Welcome to the V2 API');
 });
