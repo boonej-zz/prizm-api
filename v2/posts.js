@@ -403,5 +403,79 @@ app.post('/', function(req, res) {
   }
 });
 
+/**
+ * @api {put} /posts/:pid Update Post
+ * @apiName ModifyPost
+ * @apiDesc Modifies a posts contents.
+ * @apiGroup Posts
+ * @apiVersion 2.0.0
+ * @apiParam {String} pid Unique identifier for post
+ * @apiParam (Body) {String=achievement,aspiration,experience,inspiration,passion,personal} [category] Category of post
+ * @apiParam (Body) {String=public,private,trust} [scope] Scope of post
+ * @apiParam (Body) {String} [text] Text to display
+ **/
+app.put('/:pid', gateway, function(req, res) {
+  var pid = req.params.pid;
+  var category = req.body.category || null;
+  var scope = req.body.scope || null;
+  var text = req.body.text || null;
+  if (pid) {
+    Post.findOne({_id: pid}, function(err, post) {
+      if (err) {
+        Error.serverError(res);
+      } else {
+        if (category) {
+          post.category = category;
+        }
+        if (scope) {
+          post.scope = scope;
+        }
+        if (text) {
+          post.text = text;
+        }
+        post.save(function(err, result){
+          if (err) {
+            Error.ServerError(res);
+          } else {
+            res.status(200).json(result);
+          }
+        });
+      }
+    });
+  } else {
+    Error.invalidRequest(res, "You must include a post id.");
+  }
+});
+
+/**
+ * @api {delete} /posts/:pid Delete Post
+ * @apiName DeletePost
+ * @apiDesc Deletes a post.
+ * @apiGroup Posts
+ * @apiVersion 2.0.0
+ * @apiParam {String} pid Unique identifier for post
+ **/
+app.delete('/:pid', gateway, function(req, res) {
+  var pid = req.params.pid;
+  if (pid) {
+    Post.findOne({_id: pid}, function(err, post) {
+      if (post) {
+        post.active = false;
+        post.save(function(err, result) {
+          if (err) {
+            Error.serverError(res);
+          } else {
+            res.status(200).send();
+          }
+        });
+      } else {
+        Error.serverError(res);
+      }
+    });
+  } else {
+    Error.invalidRequest(res, "You must include a post id.");
+  }
+});
+
 
 module.exports = app;
