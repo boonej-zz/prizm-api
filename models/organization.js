@@ -4,6 +4,7 @@ var mongoose          = require('mongoose'),
     ObjectId          = mongoose.Schema.Types.ObjectId;
 var mObjectId         = mongoose.Types.ObjectId;
 var _ = require('underscore');
+var moment = require('moment');
 
 var organizationSchema = new mongoose.Schema({
   code                : {type: String, default: null, required: true, 
@@ -171,6 +172,87 @@ organizationSchema.statics.unmute = function(oid, uid, next) {
     }
     next(err, org);
   });
+};
+
+var userProps = {_id: 1, first_name: 1, last_name: 1, name: 1, profile_photo_url: 1, active: 1, type: 1, subtype: 1};
+
+organizationSchema.statics.fetchLeaderboard = function(oid, limit, skip, next){
+  var model = this.model('Organization');
+  var User = mongoose.model('User');
+  var Survey = mongoose.model('Survey');
+  var surveyPoints = {};
+  User.find({active: true, org_status: {$elemMatch: {status: 'active', organization: mObjectId(oid)}}})
+  .select({_id: 1})
+  .exec(function(err, users){
+    console.log(users);
+    var u = _.pluck(users, '_id');
+    Survey.find({completed: {$in: u}, organization: oid})
+    .populate({path: 'questions', model: 'Question'})
+    .populate({path: 'completed', model: 'User', select: userProps})
+    .exec(function(err, surveys){
+      Survey.populate(surveys, {path: 'questions.answers', model: 'Answer'}, function(err, surveys){
+        _.each(surveys, function(survey){
+          _.each(survey.completed, function(u){
+            if (! surveyPoints[String(u._id)]) {
+              var key = String(u._id);
+              surveyPoints[key] = {user: u, points: (survey.number_of_questions * 10), surveys: 1};
+
+            } else {
+              surveyPoints[String(u._id)].points += (survey.number_of_questions) * 10;
+              surveyPoints[String(u._id)].surveys += 1;
+            }
+          });
+          _.each(survey.questions[0].answers, function(a){
+            if (surveyPoints[String(a.user)]) {
+              surveyPoints[String(a.user)].startTime = a.create_date;
+            }
+          });
+          _.each(survey.questions[survey.questions.length -1].answers, function(a){
+            var q = survey.questions[survey.questions.length - 1];
+            if (surveyPoints[String(a.user)]) {
+              surveyPoints[String(a.user)].endTime = a.create_date;
+              var take_diff = moment.duration(new moment(a.create_date).diff(surveyPoints[String(a.user)].startTime));
+              var take_hours = Math.round(take_diff.asHours()/6);
+              var speed_points = (25 - (take_hours * 5));
+              speed_points = speed_points > 0?speed_points:0;
+              var respond_diff = moment.duration(new moment(a.create_date).diff(q.create_date));
+              var respond_hours = respond_diff.asMinutes();
+              response_points = (25 - (respond_hours *5));
+              response_points = response_points > 0?response_points:0;
+              surveyPoints[String(a.user)].points += (speed_points + response_points);
+            }
+          });
+        });
+        model.findOne({_id: oid})
+        .select({namespace: 1})
+        .exec(function(err, org){
+          var response = [];
+          for (key in surveyPoints) {
+            var item = surveyPoints[key];
+            var obj = {
+              user_id: item.user._id,
+              user_first_name: item.user.first_name,
+              user_last_name: item.user.last_name,
+              user_name: item.user.name,
+              user_type: item.user.type,
+              user_subtype: item.user.subtype,
+              user_active: item.user.active,
+              user_profile_photo_url: item.user.profile_photo_url,
+              organization_namespace: org.namespace,
+              points: Math.round(item.points)
+            };
+            response.push(obj);
+          }
+          response = _.sortBy(response, function(item){
+            return -item.points;
+          });
+          next(err, response);
+
+        });
+      });
+    }); 
+  });
+
 };
 
 

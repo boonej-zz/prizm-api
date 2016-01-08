@@ -716,4 +716,34 @@ app.get('/:oid/groups/:gid/members', gateway, function(req, res) {
   
 });
 
+/**
+ * @api {get} /organizations/:oid/leaderboard Get Organization Leaderboard
+ * @apiName GetLeaderboard
+ * @apiDescription Gets a sorted list of the point leaders in an organization.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam (Query) {Number} [limit] Limit the results to this number
+ * @apiParam (Query) {Number} [skip] Skip this number of records
+ * @apiUse Error
+ **/
+app.get('/:oid/leaderboard', function(req, res){
+  
+  var oid = req.params.oid;
+  var limit = req.query.limit || false;
+  var skip = req.query.skip || false;
+
+  if (oid) {
+    Organization.fetchLeaderboard(oid, limit, skip, function(err, leaders){
+      if (err) {
+        Error.serverError(res);
+      } else {
+        res.status(200).json(leaders);
+      }
+    });
+  } else {
+    Error.invalidRequest(res, 'You must provide an organization id');
+  }
+});
+
 module.exports = app;
