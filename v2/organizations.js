@@ -730,8 +730,8 @@ app.get('/:oid/groups/:gid/members', gateway, function(req, res) {
 app.get('/:oid/leaderboard', function(req, res){
   
   var oid = req.params.oid;
-  var limit = req.query.limit || false;
-  var skip = req.query.skip || false;
+  var limit = req.query.limit || 15;
+  var skip = req.query.skip || 0;
 
   if (oid) {
     Organization.fetchLeaderboard(oid, limit, skip, function(err, leaders){

@@ -246,6 +246,7 @@ organizationSchema.statics.fetchLeaderboard = function(oid, limit, skip, next){
           response = _.sortBy(response, function(item){
             return -item.points;
           });
+          response = _.range(response, skip, limit - 1);
           next(err, response);
 
         });
