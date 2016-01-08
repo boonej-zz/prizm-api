@@ -246,7 +246,12 @@ organizationSchema.statics.fetchLeaderboard = function(oid, limit, skip, next){
           response = _.sortBy(response, function(item){
             return -item.points;
           });
-          response = _.range(response, skip, limit - 1);
+          console.log(response.length);
+          console.log(limit);
+          console.log(skip);
+          if (limit - skip < response.length) {
+            response = response.slice(skip, limit); 
+          }
           next(err, response);
 
         });
