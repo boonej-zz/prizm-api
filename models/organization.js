@@ -238,6 +238,7 @@ organizationSchema.statics.fetchLeaderboard = function(oid, limit, skip, next){
               user_subtype: item.user.subtype,
               user_active: item.user.active,
               user_profile_photo_url: item.user.profile_photo_url,
+              survey_count: item.surveys,
               organization_namespace: org.namespace,
               points: Math.round(item.points)
             };
