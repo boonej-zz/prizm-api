@@ -746,4 +746,33 @@ app.get('/:oid/leaderboard', function(req, res){
   }
 });
 
+/**
+ * @api {get} /organizations/:oid/leaderboard Get individual score
+ * @apiName GetIndividualScore
+ * @apiDescription Gets a users individual leaderboard score.
+ * @apiVersion 2.0.0
+ * @apiGroup Organizations
+ * @apiParam {String} oid Unique ID for organization
+ * @apiParam {String} uid Unique ID for user
+ * @apiUse Error
+ **/
+app.get('/:oid/leaderboard/:uid', function(req, res) {
+  
+  var oid = req.params.oid;
+  var uid = req.params.uid;
+
+  if (oid && uid) {
+    Organization.fetchIndividualScore(oid, uid, function(err, score) {
+      if (err) {
+        Error.serverError(res);
+      } else {
+        res.status(200).json(score);
+      }
+    });
+  } else {
+    Error.invalidRequest(res, 'You must include a user id and an organization id.');
+  }
+
+});
+
 module.exports = app;

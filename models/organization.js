@@ -246,11 +246,27 @@ organizationSchema.statics.fetchLeaderboard = function(oid, limit, skip, next){
           response = _.sortBy(response, function(item){
             return -item.points;
           });
-          console.log(response.length);
-          console.log(limit);
-          console.log(skip);
-          if (limit - skip < response.length) {
-            response = response.slice(skip, limit); 
+          _.each(response, function(item, idx){
+            var position = skip + idx;
+            switch (position) {
+              case 0:
+                item.rank = '1st';
+                break;
+              case 1:
+                item.rank = '2nd';
+                break;
+              case 2:
+                item.rank = '3rd';
+                break;
+              default:
+                item.rank = idx + 'th';
+                break;
+            }
+          });
+          if (limit && skip) {
+            if (limit - skip < response.length) {
+              response = response.slice(skip, limit); 
+            }
           }
           next(err, response);
 
@@ -259,6 +275,21 @@ organizationSchema.statics.fetchLeaderboard = function(oid, limit, skip, next){
     }); 
   });
 
+};
+
+organizationSchema.statics.fetchIndividualScore = function(oid, uid, next) {
+  var model = this.model('Organization');
+  model.fetchLeaderboard(oid, false, false, function(err, users) {
+    var user;
+    if (users) {
+      _.each(users, function(u, idx){
+        if (String(u.user_id) == String(uid)) {
+          user = u;
+        }
+      });
+    }
+    next(err, user);
+  });
 };
 
 
