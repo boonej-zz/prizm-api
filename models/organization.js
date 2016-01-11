@@ -293,6 +293,73 @@ organizationSchema.statics.fetchIndividualScore = function(oid, uid, next) {
   });
 };
 
+organizationSchema.statics.fetchUserSurveys = function(uid, oid, limit, skip, next){
+  var model = this.model('Organization');
+  var Survey = mongoose.model('Survey');
+  var params = {completed: uid};
+  if (oid)
+    params.organization = oid;
+  Survey.find(params)
+  .populate({path: 'questions', model: 'Question'})
+  .exec(function(err, surveys){
+    Survey.populate(surveys, {path: 'questions.answers', model: 'Answer', 
+      select: {create_date: 1, user: 1}}, function(err, surveys){
+      if (err) {
+        next(err, surveys);
+        return;
+      } else {
+        var returnSurveys = [];
+        _.each(surveys, function(survey){
+          var s = {_id: survey._id, name: survey.name};
+          s.points = (survey.number_of_questions * 10);
+          var points = {};
+          _.each(survey.completed, function(user) {
+            points[String(user)] = {user: user, points: s.points};
+          });
+          _.each(survey.questions[0].answers, function(a) {
+            if (points[String(a.user)]) {
+              points[String(a.user)].startTime = a.create_date;
+            }
+          });
+          _.each(survey.questions[survey.questions.length - 1].answers, function(a) {
+            var take_diff = moment.duration(new moment(a.create_date).diff(points[String(a.user)].startTime));
+            var take_hours = Math.round(take_diff.asHours()/6);
+            var speed_points = (25 - (take_hours * 5));
+            speed_points = speed_points > 0?speed_points:0;
+            var respond_diff = moment.duration(new moment(a.create_date).diff(survey.create_date));
+            var respond_hours = respond_diff.asMinutes();
+            var response_points = (25 - (respond_hours *5));
+            response_points = response_points > 0?response_points:0;
+            points[String(a.user)].points += (speed_points + response_points);
+            var duration = moment.utc(moment.duration(moment(a.create_date).subtract(points[String(a.user)].startTime)).asMilliseconds()).format('HH:mm:ss');
+            points[String(a.user)].duration = duration;
+          });
+          var pointsArray = [];
+          for (key in points) {
+            pointsArray.push(points[key]);
+          }
+          pointsArray = _.sortBy(pointsArray, function(item) {
+            return -item.points;
+          });
+          for (var i = 0; i != pointsArray.length; ++i) {
+            var item = pointsArray[i];
+            if (String(item.user) == String(uid)) {
+              s.rank = i + 1;
+              s.points = item.points;
+              s.duration = item.duration;
+            }
+          }
+          returnSurveys.push(s);
+        });
+        if (returnSurveys.count - skip > limit) {
+          returnSurveys = returnSurveys.splice(skip, limit);
+        }
+        next(err, returnSurveys);
+      }
+    }); 
+  });
+};
+
 
 var themeSchema = new mongoose.Schema({
   background_url      : {type: String, default: null},

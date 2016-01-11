@@ -727,7 +727,7 @@ app.get('/:oid/groups/:gid/members', gateway, function(req, res) {
  * @apiParam (Query) {Number} [skip] Skip this number of records
  * @apiUse Error
  **/
-app.get('/:oid/leaderboard', function(req, res){
+app.get('/:oid/leaderboard', gateway, function(req, res){
   
   var oid = req.params.oid;
   var limit = req.query.limit || 15;
@@ -756,7 +756,7 @@ app.get('/:oid/leaderboard', function(req, res){
  * @apiParam {String} uid Unique ID for user
  * @apiUse Error
  **/
-app.get('/:oid/leaderboard/:uid', function(req, res) {
+app.get('/:oid/leaderboard/:uid', gateway, function(req, res) {
   
   var oid = req.params.oid;
   var uid = req.params.uid;
@@ -773,6 +773,22 @@ app.get('/:oid/leaderboard/:uid', function(req, res) {
     Error.invalidRequest(res, 'You must include a user id and an organization id.');
   }
 
+});
+
+app.get('/:oid/users/:uid/surveys', gateway, function(req, res) {
+  
+  var oid = req.params.oid;
+  var uid = req.params.uid;
+  var skip = req.query.skip || 0;
+  var limit = req.query.limit || 15;
+
+  Organization.fetchUserSurveys(uid, oid, limit, skip, function(err, surveys){
+    if (err) {
+      Error.serverError(res);
+    } else {
+      res.status(200).json(surveys);
+    }
+  });
 });
 
 module.exports = app;
