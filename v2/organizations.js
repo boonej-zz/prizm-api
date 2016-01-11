@@ -775,7 +775,7 @@ app.get('/:oid/leaderboard/:uid', gateway, function(req, res) {
 
 });
 
-app.get('/:oid/users/:uid/surveys', gateway, function(req, res) {
+app.get('/:oid/users/:uid/surveys',  function(req, res) {
   
   var oid = req.params.oid;
   var uid = req.params.uid;
