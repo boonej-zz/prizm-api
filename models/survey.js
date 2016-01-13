@@ -125,6 +125,49 @@ surveySchema.statics.findOneAndNotify = function(params, users, next){
   });
 }
 
+surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
+
+  var model = this.model('Survey');
+
+  model.findOne({organization: oid, status: 'active', targeted_users: {$ne: []}})
+  .sort({create_date: -1})
+  .populate({path: 'questions', model: 'Question'})
+  .exec(function(err, survey){
+    model.populate(survey, {path: 'questions.answers', model: 'Answer'}, 
+      function(err, survey){
+        var answers = survey.questions[survey.questions.length - 1].answers;
+        var results = [];
+        if (answers.length > 0) {
+          answers = _.sortBy(answers, function(answer) {
+            return -answer.create_date;
+          });
+
+          var startDate = answers[0].create_date;
+          var startDay = answers[0].create_date.getDate();
+          var startMonth = answers[0].create_date.getMonth() + 1;
+
+          for (var i = 0; i != 3; ++i) {
+            var compDate = new Date();
+            compDate.setDate(startDate.getDate() - i);
+            var dateString = compDate.getDate();
+            var monthString = compDate.getMonth() + 1;
+            var key = monthString + '/' + dateString;
+            var item = {date: key, count: 0};
+            results.push(item); 
+            _.each(answers, function(answer) {
+              if (answer.create_date.getDate() == compDate.getDate() &&
+                answer.create_date.getMonth() == compDate.getMonth()){
+                results[i].count += 1;  
+              } 
+            });
+          }
+          
+        }
+        next(err, results);
+      });
+  });
+}
+
 mongoose.model('Answer', answerSchema);
 mongoose.model('Question', questionSchema);
 mongoose.model('Survey', surveySchema);

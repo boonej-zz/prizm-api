@@ -8,6 +8,7 @@ var User = mongoose.model('User');
 var Message = mongoose.model('Message');
 var Group = mongoose.model('Group');
 var ObjectId = mongoose.Types.ObjectId;
+var Survey = mongoose.model('Survey');
 var _ = require('underscore');
 
 // Organization Endpoints
@@ -789,6 +790,20 @@ app.get('/:oid/users/:uid/surveys',  function(req, res) {
       res.status(200).json(surveys);
     }
   });
+});
+
+app.get('/:oid/surveys/latest', function(req, res){
+  
+  var oid = req.params.oid;
+
+  Survey.fetchLatestSurveyCompletionData(oid, function(err, result){
+    if (err) {
+      Error.serverError(res);
+    } else {
+      res.status(200).json(result);
+    }
+  });
+
 });
 
 module.exports = app;
