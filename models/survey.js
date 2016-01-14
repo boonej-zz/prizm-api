@@ -147,12 +147,10 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
           var startMonth = answers[0].create_date.getMonth() + 1;
 
           for (var i = 0; i != 3; ++i) {
-            var compDate = startDate;
+            var compDate = new Date(startDate.getTime());
             compDate.setDate(startDate.getDate() - i);
             var dateString = compDate.getDate();
             var monthString = compDate.getMonth() + 1;
-            console.log(monthString);
-            console.log(dateString);
             var key = monthString + '/' + dateString;
             var item = {date: key, count: 0};
             results.push(item); 
@@ -165,6 +163,7 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
           }
           
         }
+        results.reverse();
         next(err, results);
       });
   });
