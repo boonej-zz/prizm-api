@@ -143,6 +143,7 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
           });
 
           var startDate = answers[0].create_date;
+          console.log(startDate);
           var startDay = answers[0].create_date.getDate();
           var startMonth = answers[0].create_date.getMonth() + 1;
 
