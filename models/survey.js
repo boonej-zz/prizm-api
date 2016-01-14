@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Schema.Types.ObjectId;
 var _ = require('underscore');
 var iPush = require('../classes/i_push');
+var moment = require('moment');
 
 var answerSchema = new mongoose.Schema({
   user: {type: ObjectId, ref: 'User', required: true},
@@ -159,7 +160,7 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
                 answer.create_date.getMonth() == compDate.getMonth()){
                 results[i].count += 1;  
               } 
-            });
+            }); 
           }
           
         }
@@ -168,6 +169,59 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
       });
   });
 }
+
+var userParams = {_id: 1, first_name: 1, last_name: 1, name: 1, type: 1, 
+  subtype: 1, profile_photo_url: 1};
+
+surveySchema.statics.fetchRespondants = function(oid, sid, next){
+  
+  var model = this.model('Survey');
+  var User = mongoose.model('User');
+
+  model.findOne({_id: sid})
+  .populate({path: 'questions', model: 'Question'})
+  .exec(function(err, survey){
+    model.populate(survey, {path: 'questions.answers', model: 'Answer'}, 
+      function(err, survey){
+      model.populate(survey, {path: 'targeted_users.user', model: 'User', 
+        select: userParams}, function(err, survey){
+         var users = [];
+         _.each(survey.targeted_users, function(u){
+            u = u.toObject();
+            var uObj = u.user;
+            uObj.invite_date = u.create_date;
+            uObj.completed = false;
+            for (var i = 0; i != survey.completed.length; ++i) {
+              var item = String(survey.completed[i]);
+              if (String(uObj._id) == item) {
+                uObj.completed = true;
+                break;
+              }
+            }
+            if (uObj.completed) {
+              var startTime;
+              var endTime;
+              _.each(survey.questions[0].answers, function(a){
+                if (String(a.user) == String(uObj._id)) {
+                  startTime = a.create_date;
+                }
+              });
+              _.each(survey.questions[survey.questions.length - 1].answers, function(a){
+                if (String(a.user) == String(uObj._id)) {
+                  endTime = a.create_date;
+                }
+              });
+              uObj.duration = moment.utc(moment.duration(moment(endTime).subtract(startTime)).asMilliseconds()).format('HH:mm:ss');
+            } else {
+              uObj.duration = "";
+            }
+            users.push(uObj);
+         });
+         next(err, users);
+      }); 
+    });
+  });
+};
 
 mongoose.model('Answer', answerSchema);
 mongoose.model('Question', questionSchema);

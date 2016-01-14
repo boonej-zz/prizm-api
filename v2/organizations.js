@@ -806,4 +806,19 @@ app.get('/:oid/surveys/latest', function(req, res){
 
 });
 
+app.get('/:oid/surveys/:sid/users', function(req, res){
+
+  var oid = req.params.oid;
+  var sid = req.params.sid;
+
+  Survey.fetchRespondants(oid, sid, function(err, users){
+    if (err) {
+      Error.serverError(res);
+    } else {
+      res.status(200).json(users);
+    }
+  });
+
+});
+
 module.exports = app;
