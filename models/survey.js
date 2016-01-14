@@ -173,14 +173,18 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
 var userParams = {_id: 1, first_name: 1, last_name: 1, name: 1, type: 1, 
   subtype: 1, profile_photo_url: 1};
 
-surveySchema.statics.fetchRespondants = function(oid, sid, next){
+surveySchema.statics.fetchRespondants = function(oid, next){
   
   var model = this.model('Survey');
   var User = mongoose.model('User');
 
-  model.findOne({_id: sid})
+  model.find({organization: oid })
+  .sort({create_date: -1})
+  .limit(1)
   .populate({path: 'questions', model: 'Question'})
-  .exec(function(err, survey){
+  .exec(function(err, surveys){
+    if (surveys && surveys.length > 0) {
+    var survey = surveys[0];
     model.populate(survey, {path: 'questions.answers', model: 'Answer'}, 
       function(err, survey){
       model.populate(survey, {path: 'targeted_users.user', model: 'User', 
@@ -220,6 +224,9 @@ surveySchema.statics.fetchRespondants = function(oid, sid, next){
          next(err, users);
       }); 
     });
+    } else {
+      next(err, []);
+    }
   });
 };
 

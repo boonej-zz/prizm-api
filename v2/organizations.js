@@ -811,7 +811,7 @@ app.get('/:oid/surveys/:sid/users', function(req, res){
   var oid = req.params.oid;
   var sid = req.params.sid;
 
-  Survey.fetchRespondants(oid, sid, function(err, users){
+  Survey.fetchRespondants(oid, function(err, users){
     if (err) {
       Error.serverError(res);
     } else {
