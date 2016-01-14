@@ -146,6 +146,7 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
           console.log(startDate);
           var startDay = answers[0].create_date.getDate();
           var startMonth = answers[0].create_date.getMonth() + 1;
+          console.log(startMonth);
 
           for (var i = 0; i != 3; ++i) {
             var compDate = new Date();
