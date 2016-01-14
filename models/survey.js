@@ -158,6 +158,7 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
               if (answer.create_date.getDate() == compDate.getDate() &&
                 answer.create_date.getMonth() == compDate.getMonth()){
                 results[i].count += 1;  
+                console.log('incremented');
               } 
             });
           }
