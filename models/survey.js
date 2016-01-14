@@ -143,16 +143,16 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
           });
 
           var startDate = answers[0].create_date;
-          console.log(startDate);
           var startDay = answers[0].create_date.getDate();
           var startMonth = answers[0].create_date.getMonth() + 1;
-          console.log(startMonth);
 
           for (var i = 0; i != 3; ++i) {
-            var compDate = new Date();
+            var compDate = startDate;
             compDate.setDate(startDate.getDate() - i);
             var dateString = compDate.getDate();
             var monthString = compDate.getMonth() + 1;
+            console.log(monthString);
+            console.log(dateString);
             var key = monthString + '/' + dateString;
             var item = {date: key, count: 0};
             results.push(item); 
@@ -160,7 +160,6 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
               if (answer.create_date.getDate() == compDate.getDate() &&
                 answer.create_date.getMonth() == compDate.getMonth()){
                 results[i].count += 1;  
-                console.log('incremented');
               } 
             });
           }
