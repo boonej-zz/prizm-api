@@ -193,7 +193,6 @@ surveySchema.statics.fetchRespondants = function(oid, next){
          _.each(survey.targeted_users, function(u){
             u = u.toObject();
             var uObj = u.user;
-            uObj.invite_date = u.create_date;
             uObj.completed = false;
             for (var i = 0; i != survey.completed.length; ++i) {
               var item = String(survey.completed[i]);
@@ -213,6 +212,8 @@ surveySchema.statics.fetchRespondants = function(oid, next){
               _.each(survey.questions[survey.questions.length - 1].answers, function(a){
                 if (String(a.user) == String(uObj._id)) {
                   endTime = a.create_date;
+
+                  uObj.invite_date = a.create_date;
                 }
               });
               uObj.duration = moment.utc(moment.duration(moment(endTime).subtract(startTime)).asMilliseconds()).format('HH:mm:ss');
