@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Schema.Types.ObjectId;
+var mObjectId = mongoose.Types.ObjectId;
 var _ = require('underscore');
 var iPush = require('../classes/i_push');
 var moment = require('moment');
@@ -61,6 +62,54 @@ surveySchema.pre('save', function(next){
   this.modify_date = Date.now();
   next();
 });
+
+surveySchema.statics.fetchLatestSurveyForUser = function(uid, next){
+
+  var model = this.model('Survey');
+  model.findOne({targeted_users: {$elemMatch: {user: mObjectId(uid)}}, 
+    completed: {$ne: mObjectId(uid)}, status: 'active'})
+  .populate({path: 'creator', model: 'User', select: {name: 1}})
+  .populate({path: 'questions', model: 'Question'})
+  .populate({path: 'organization', model: 'Organization', select: {name: 1}})
+  .exec(function(err, survey){
+    if (survey) {
+      survey = flattenSurvey(survey, 1);
+    }
+    next(err, survey);
+  });
+
+};
+
+surveySchema.statics.fetchSurveyQuestion = function(sid, q, next){
+
+  var model = this.model('Survey');
+  model.findOne({_id: sid})
+  .populate({path: 'creator', model: 'User', select: {name: 1}})
+  .populate({path: 'questions', model: 'Question'})
+  .populate({path: 'organization', model: 'Organization', select: {name: 1}})
+  .exec(function(err, survey){
+    if (survey) {
+      survey = flattenSurvey(survey, q);
+    }
+    next(err, survey);
+  });
+
+};
+
+var flattenSurvey = function(survey, q){
+  var s = {};
+  s._id = survey._id;
+  s.name = survey.name;
+  s.creator_name = survey.creator.name;
+  s.organization_name = survey.organization.name;
+  s.number_of_questions = survey.number_of_questions;
+  if (survey.questions.length > q - 1) {
+    s.question_id = survey.questions[q - 1]._id;
+    s.question_text = survey.questions[q - 1].text;
+    s.question_type = survey.questions[q - 1].type;
+  }
+  return s;
+}
 
 surveySchema.methods.notifyUsers = function(users, next){
   var model = this.model('Survey');

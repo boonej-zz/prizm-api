@@ -13,6 +13,7 @@ var Post = mongoose.model('Post');
 var Activity = mongoose.model('Activity');
 var Trust = mongoose.model('Trust');
 var Error = require('../lib/error');
+var Survey = mongoose.model('Survey');
 
 var InsightTarget = mongoose.model('InsightTarget');
 
@@ -531,6 +532,16 @@ app.delete('/:uid/insights/:iid', function(req, res){
   } else {
     Error.invalidRequest(res, 'You must provide a user id and insight id.');
   }
+});
+
+app.get('/:uid/surveys', function(req, res){
+  
+  var uid = req.params.uid;
+  Survey.fetchLatestSurveyForUser(uid, function(err, survey){
+    if (err) Server.serverError(res);
+    else res.status(200).json(survey);
+  });
+
 });
 
 module.exports = app;
