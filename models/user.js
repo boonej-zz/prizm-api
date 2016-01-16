@@ -15,6 +15,17 @@ var _mongoose   = require('mongoose'),
 
 var moment = require('moment');
 var _ = require('underscore');
+var path = require('path');
+var fs = require('fs');
+var config = require('config');
+var welcomeMail = fs.readFileSync(path.join(__dirname + 
+      '/../views/welcome.jade'), 'utf8');
+var consentMail = path.join(__dirname + '/../views/consent.jade');
+var nonOrgConsentMail = path.join(__dirname + '/../views/non_org_consent.jade');
+var mandrill = require('node-mandrill')(config.mandrill.client_secret);
+var mandrillEndpointSend = '/messages/send';
+var util = require('util');
+var baseMail = path.join(__dirname, '/../views/base.jade');
 
 
 var orgStatusSchema = new _mongoose.Schema({
@@ -1181,6 +1192,69 @@ userSchema.statics.unfollowUser = function(uid, requestor, next){
   });
 
 };
+
+userSchema.methods.checkAndUpdateOrg = function(next) {
+  var Organization = mongoose.model(Organization);
+  var model = this.model('User');
+  if (this.program_code) {
+    Organization.findOne({code: user.program_code})
+    .populate({path: 'owner', model: 'User'})
+    .exec(function(err, organization) {
+      if (!err && organization) {
+        var in_org = false;
+        var date = new Date().toString();
+        var user_update = {
+          theme: organization.theme,
+          $push: {org_status: {status: 'pending', organization: organization._id}}
+        };
+        var owner_update = {};
+        this.folllow(organization.owner._id, function(err, res){
+          if (err) console.log(err);
+        });
+        this.joinOrganization(organization, function(err, saved, sendPush){
+          next(err, saved);
+          if (saved) {
+            if (sendPush){
+              notifyOwnerJoined(organization.owner, saved, false);
+            }
+          }
+        });
+      }
+    });
+  }
+};
+
+var notifyOwnerJoined = function(owner, user, joined){
+  var bodyp = joined?ownerBody1Alt:ownerBody1;
+  var pushp = joined?ownerPushAlt:ownerPush;
+  var subject = joined?'New Member Added':'New Member Pending';
+  var params = {
+    body: [
+      util.format(ownerGreeting, owner.name),
+      util.format(bodyp, user.first_name + ' ' + user.last_name, owner.name)
+    ],
+    closing: ownerClosing
+  };
+  var mail = jade.renderFile(baseMail, params);
+  mandrill(mandrillEndpointSend, {
+    message: {
+      to: [{email: owner.email}],
+      from_email: 'info@prizmapp.com',
+      from_name: 'Prizm',
+      subject: subject,
+      html: mail}
+    }, function (err, response){
+      if (err) console.log(err); 
+    }); 
+    notify.sendNote(owner, {
+      title: user.name,
+      body: pushp,
+      icon: 'notificationlgx_icon'
+    }); 
+
+};
+
+
 
 var limitUsers = function(users, limit, skip) {
   users = _.reject(users, function(user){return user?false:true;});
