@@ -28,7 +28,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
   var value = req.body.value;
   var user = req.body.user;
 
-  var next = req.query.next || false;
+  var q = req.query.next || false;
   var answer;
 
   Question.find({_id: qid})
@@ -57,11 +57,11 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
       });
     }
     if (next) {
-      Survey.fetchSurveyQuestion(sid, next, function(err, survey){
+      Survey.fetchSurveyQuestion(sid, q, function(err, sq){
         if (err) Server.serverError(res);
         else {
-          console.log(survey);
-          res.status(200).json(survey);
+          console.log(sq);
+          res.status(200).json(sq);
         }
       });
     }
