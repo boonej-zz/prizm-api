@@ -59,7 +59,10 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
     if (next) {
       Survey.fetchSurveyQuestion(sid, next, function(err, survey){
         if (err) Server.serverError(res);
-        else res.status(200).json(survey);
+        else {
+          console.log(survey);
+          res.status(200).json(survey);
+        }
       });
     }
   });
