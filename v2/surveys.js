@@ -56,7 +56,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
         });
       });
     }
-    if (next) {
+    if (q) {
       Survey.fetchSurveyQuestion(sid, q, function(err, sq){
         if (err) Server.serverError(res);
         else {
