@@ -46,7 +46,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
     } else {
       answer = new Answer({user: user, value: value});
       console.log(answer);
-      console.log(next);
+      console.log(q);
       answer.save(function(err, a){
         Question.findOne({_id: qid}, function(err, qq){
           qq.answers.push(a._id);
