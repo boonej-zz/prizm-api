@@ -17,6 +17,7 @@ var moment = require('moment');
 var _ = require('underscore');
 var path = require('path');
 var fs = require('fs');
+var jade = require('jade');
 var config = require('config');
 var welcomeMail = fs.readFileSync(path.join(__dirname + 
       '/../views/welcome.jade'), 'utf8');
