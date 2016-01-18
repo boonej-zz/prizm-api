@@ -122,6 +122,9 @@ app.put('/:uid', gateway, function(req, res) {
       console.log(err);
       res.status(500).json(err);
     } else {
+      user.checkAndUpdateOrg(function(err, user){
+        if (err) console.log(err);
+      });
       console.log('user updated');
       User.findOneCore(uid, "", function(err, user){
         if (err) {
