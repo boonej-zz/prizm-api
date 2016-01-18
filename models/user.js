@@ -1194,6 +1194,7 @@ userSchema.statics.unfollowUser = function(uid, requestor, next){
 };
 
 userSchema.methods.checkAndUpdateOrg = function(next) {
+  var $this = this;
   var Organization = _mongoose.model('Organization');
   var model = this.model('User');
   if (this.program_code) {
@@ -1208,10 +1209,7 @@ userSchema.methods.checkAndUpdateOrg = function(next) {
           $push: {org_status: {status: 'pending', organization: organization._id}}
         };
         var owner_update = {};
-        this.follow(organization.owner._id, function(err, res){
-          if (err) console.log(err);
-        });
-        this.joinOrganization(organization, function(err, saved, sendPush){
+        $this.joinOrganization(organization, function(err, saved, sendPush){
           next(err, saved);
           if (saved) {
             if (sendPush){
