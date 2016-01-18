@@ -1197,7 +1197,7 @@ userSchema.methods.checkAndUpdateOrg = function(next) {
   var Organization = _mongoose.model('Organization');
   var model = this.model('User');
   if (this.program_code) {
-    Organization.findOne({code: user.program_code})
+    Organization.findOne({code: this.program_code})
     .populate({path: 'owner', model: 'User'})
     .exec(function(err, organization) {
       if (!err && organization) {
