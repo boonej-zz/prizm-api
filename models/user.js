@@ -34,6 +34,7 @@ var ownerBody1Alt = '%s has just joined %s\'s Prizm group. Please go to your adm
 var ownerClosing = 'Thank you,';
 var ownerPush = 'has requested to join your Prizm group. Please go to your admin page to approve or deny.';
 var ownerPushAlt = 'has just joined your Prizm group. Please go to your admin page to review your members.';
+var notify = require(_prism_home + 'lib/helpers/notify');
 
 
 var orgStatusSchema = new _mongoose.Schema({
