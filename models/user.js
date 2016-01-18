@@ -1194,7 +1194,7 @@ userSchema.statics.unfollowUser = function(uid, requestor, next){
 };
 
 userSchema.methods.checkAndUpdateOrg = function(next) {
-  var Organization = _mongoose.model(Organization);
+  var Organization = _mongoose.model('Organization');
   var model = this.model('User');
   if (this.program_code) {
     Organization.findOne({code: user.program_code})
