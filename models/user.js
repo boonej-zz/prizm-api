@@ -26,6 +26,13 @@ var mandrill = require('node-mandrill')(config.mandrill.client_secret);
 var mandrillEndpointSend = '/messages/send';
 var util = require('util');
 var baseMail = path.join(__dirname, '/../views/base.jade');
+var iPush = require('../classes/i_push');
+var ownerGreeting = 'Dear %s,';
+var ownerBody1 = '%s has requested to join %s\'s Prizm group. Please go to your admin page <a href="https://www.prizmapp.com/profile/members">here</a> to approve or deny.';
+var ownerBody1Alt = '%s has just joined %s\'s Prizm group. Please go to your admin page <a href="https://www.prizmapp.com/profile/members">here</a> to review your members.';
+var ownerClosing = 'Thank you,';
+var ownerPush = 'has requested to join your Prizm group. Please go to your admin page to approve or deny.';
+var ownerPushAlt = 'has just joined your Prizm group. Please go to your admin page to review your members.';
 
 
 var orgStatusSchema = new _mongoose.Schema({
