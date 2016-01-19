@@ -108,7 +108,7 @@ var flattenSurvey = function(survey, q){
     s.question_id = survey.questions[q - 1]._id;
     s.question_text = survey.questions[q - 1].text;
     s.question_type = survey.questions[q - 1].type;
-    s.question_number = q;
+    s.question_number = Number(q);
   }
   return s;
 }
