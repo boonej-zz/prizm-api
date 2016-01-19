@@ -105,11 +105,18 @@ var flattenSurvey = function(survey, q){
   s.organization_name = survey.organization.name;
   s.number_of_questions = survey.number_of_questions;
   if (survey.questions.length > q - 1) {
+    var question = survey.questions[q - 1];
     s.question_id = survey.questions[q - 1]._id;
     s.question_text = survey.questions[q - 1].text;
     s.question_type = survey.questions[q - 1].type;
     s.question_number = Number(q);
+    if (question.type == 'multiple') {
+      var items = _.pluck(question.values, 'question');
+      var qString = items.join('|');
+      s.values = qString;
+    }
   }
+ 
   return s;
 }
 
