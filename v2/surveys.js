@@ -35,7 +35,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
   .populate({path: 'answers', model: 'Answer'})
   .populate({path: 'survey', model: 'Survey'})
   .exec(function(err, question){
-    var finalize = question.order == survey.number_of_questions;
+    var finalize = question.order == question.survey.number_of_questions;
     _.each(question.answers, function(a){
       if (String(a.user) == String(user)) {
         answer = a;
