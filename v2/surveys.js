@@ -57,11 +57,11 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
       });
     }
     if (q) {
-      Survey.fetchSurveyQuestion(sid, q, function(err, sq){
+      Survey.fetchSurveyQuestion(sid, q, function(err, secQ){
         if (err) Server.serverError(res);
         else {
           console.log(sq);
-          res.status(200).json(sq);
+          res.status(200).json(secQ);
         }
       });
     }
