@@ -60,7 +60,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
       Survey.fetchSurveyQuestion(sid, q, function(err, secQ){
         if (err) Server.serverError(res);
         else {
-          console.log(sq);
+          console.log(secQ);
           res.status(200).json(secQ);
         }
       });
