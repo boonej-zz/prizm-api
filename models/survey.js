@@ -83,13 +83,14 @@ surveySchema.statics.fetchLatestSurveyForUser = function(uid, next){
 surveySchema.statics.fetchSurveyQuestion = function(sid, q, next){
 
   var model = this.model('Survey');
+  var $q = q;
   model.findOne({_id: sid})
   .populate({path: 'creator', model: 'User', select: {name: 1}})
   .populate({path: 'questions', model: 'Question'})
   .populate({path: 'organization', model: 'Organization', select: {name: 1}})
   .exec(function(err, survey){
     if (survey) {
-      survey = flattenSurvey(survey, q);
+      survey = flattenSurvey(survey, $q);
     }
     next(err, survey);
   });
