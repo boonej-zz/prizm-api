@@ -113,7 +113,7 @@ var flattenSurvey = function(survey, q){
     if (question.type == 'multiple') {
       var items = _.pluck(question.values, 'question');
       var qString = items.join('|');
-      s.values = qString;
+      s.value_string = qString;
     }
   }
  
