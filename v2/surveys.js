@@ -75,7 +75,9 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
           survey.save(function(err, s){
             if (err) console.log(err);
           });
+        
         }
+        res.status(200).json({complete: true});
       });
 
     }
