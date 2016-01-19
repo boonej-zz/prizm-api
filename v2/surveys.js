@@ -68,7 +68,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
       console.log('testing if final question');
       Survey.findOne({_id: sid}, function(err, survey) {
         console.log(survey.number_of_questions);
-        console.log(question.order);
+        console.log(question);
         if (survey.number_of_questions == question.order) {
           console.log('finalizing survey');
           survey.completed.push(user);
