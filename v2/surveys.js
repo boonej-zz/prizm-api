@@ -31,7 +31,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
   var q = req.query.next || false;
   var answer;
 
-  Question.find({_id: qid})
+  Question.findOne({_id: qid})
   .populate({path: 'answers', model: 'Answer'})
   .exec(function(err, question){
     _.each(question.answers, function(a){
@@ -46,7 +46,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
     } else {
       answer = new Answer({user: user, value: value});
       console.log(answer);
-      console.log(q);
+      console.log(q.order);
       answer.save(function(err, a){
         Question.findOne({_id: qid}, function(err, qq){
           qq.answers.push(a._id);
