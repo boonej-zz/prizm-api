@@ -460,13 +460,21 @@ app.delete('/:pid', gateway, function(req, res) {
   if (pid) {
     Post.findOne({_id: pid}, function(err, post) {
       if (post) {
-        post.active = false;
+        post.status = 'deleted';
+        post.delete_date = Date.now();
         post.save(function(err, result) {
           if (err) {
             Error.serverError(res);
           } else {
+            User.findOne({_id: req.body.creator}, function(err, user){
+              user.posts_count = user.posts_count -1;
+              user.save(function(err, user_saved){
+                if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
+                  _utils.prismResponse(res, {message: 'Post Successfully Removed'}, true);
+              });
+            });
             res.status(200).send();
-          }
+        }
         });
       } else {
         Error.serverError(res);
