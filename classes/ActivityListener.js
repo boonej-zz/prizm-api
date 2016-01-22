@@ -74,6 +74,7 @@ ActivityListener.prototype.activityHandler = function(activity){
   var self = this;
   if(activity.action && activity.to && activity.from){
     if(activity.to === activity.from) {
+      console.log('to is same as from');
       //activity is to & from same user. do not send activity event
       return;
 
@@ -120,7 +121,9 @@ ActivityListener.prototype.activityHandler = function(activity){
         _logger.log('info', 'Successfully created '+saved.action+' activity',
                     {saved_activity:saved});
 
+        console.log('sending push');
         new Push('activity', saved, function(result){
+          console.log('push sent');
           _logger.log('info', 'Push notification result', result);
         });
 
