@@ -463,6 +463,7 @@ var notifyUsers = function(m){
       if (message.target) {
         criteria = {_id: criteria.target};
       }
+      console.log(message);
       
       User.find(criteria)
         .populate({path: 'org_status.organization', model: 'Organization'})

@@ -131,7 +131,7 @@ module.exports.sendMessageToUser = function(message, user, badge){
       var messageString = '#';
       var messageTitle;
       var groupName = message.group?'#' + message.group.name:'#all';
-      var groupId = message.group._id?message.group._id:'all';
+      var groupId = message.group?message.group._id:'all';
       messageTitle = groupName + ': ' + message.creator.name;
       if (message.text) {
         messageString =  prettyText;
