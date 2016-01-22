@@ -126,7 +126,7 @@ PushNotification.prototype.activity = function activity(){
 };
 
 module.exports.sendMessageToUser = function(message, user, badge){
-  if (user.device_token) {
+  if (user.device_token || (user.google_devices && user.google_devices.length > 0 )) {
     message.prettyText(function(prettyText){
       var messageString = '#';
       var messageTitle;
@@ -137,7 +137,7 @@ module.exports.sendMessageToUser = function(message, user, badge){
       } else {
         messageString = 'just posted an image in ' + groupName + '.';
       }
-      Notify.sendNote(user, {title: messageTitle, body: messageString, icon: 'notificationlgx_icon', group: message.group._id});
+      Notify.sendNote(user, {title: messageTitle, body: messageString, icon: 'notificationlgx_icon', group: message.group});
          });
    
   } else {
