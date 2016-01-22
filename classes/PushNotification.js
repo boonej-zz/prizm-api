@@ -137,7 +137,7 @@ module.exports.sendMessageToUser = function(message, user, badge){
       } else {
         messageString = 'just posted an image in ' + groupName + '.';
       }
-      Notify.sendNote(user, {title: messageTitle, body: messageString, icon: 'notificationlgx_icon'});
+      Notify.sendNote(user, {title: messageTitle, body: messageString, icon: 'notificationlgx_icon', group: message.group._id});
          });
    
   } else {
