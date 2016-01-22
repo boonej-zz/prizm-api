@@ -35,6 +35,7 @@ function ActivityListener(options){
   this.options = (!options) ? {} : options;
 
   process.on('activity', function(object){
+    console.log('received activity event');
     if(typeof object.action !== 'undefined'){
       _logger.log('info', 'activity event emitted', object);
       self.activityHandler(object);
