@@ -469,8 +469,6 @@ app.delete('/:pid', gateway, function(req, res) {
             User.findOne({_id: post.creator}, function(err, user){
               user.posts_count = user.posts_count -1;
               user.save(function(err, user_saved){
-                if(err) _utils.prismResponse(res, null, false, PrismError.serverError);
-                  _utils.prismResponse(res, {message: 'Post Successfully Removed'}, true);
               });
             });
             res.status(200).send();
