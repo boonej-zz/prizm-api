@@ -1137,11 +1137,11 @@ exports.createUserPost = function(req, res){
 
             }else{
               Post.findOne({_id: user_post._id})
-              .populate('creator', 'first_name last_name profile_photo_url')
+              .populate('creator', {first_name: 1, last_name:1,  profile_photo_url: 1, type: 1} )
               .exec(function(err, usr){
 
                 //update post count on creator object
-                User.findOne({_id: req.body.creator}, function(err, c_user){
+                User.findOne({_id: reddq.body.creator}, function(err, c_user){
                   if(err){
                     console.log(err);
                     _utils.prismResponse(res, null, false, PrismError.serverError);
@@ -1175,7 +1175,7 @@ exports.createUserPost = function(req, res){
                                                     user_post._id);
                           }
                           
-                          
+                         console.log(c_user); 
                           if (c_user.type == 'institution_verified'){
                             console.log('finding members');
                             Organization.findOne({owner: c_user._id}, function(err, org){
