@@ -234,9 +234,10 @@ exports.registerActivityEvent = function(to, from, action, post_id, comment_id, 
       has_trust = false;
 
     //emit activity event
+    console.log('emitting activity');
     process.emit('activity', {
-      to: to.toString(),
-      from: from.toString(),
+      to: to,
+      from: from,
       action: action,
       post_id: post_id,
       comment_id: comment_id,
