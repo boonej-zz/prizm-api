@@ -67,6 +67,7 @@ PushNotification.prototype.activity = function activity(){
       this.object.action === 'trust_request'|| 
       this.object.action === 'insight' || 
       this.object.action === 'group_joined' ||
+      this.object.action === 'post' ||
       this.object.action === 'group_added' ||
       this.object.action === 'leader'){
 
