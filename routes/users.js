@@ -1141,7 +1141,7 @@ exports.createUserPost = function(req, res){
               .exec(function(err, usr){
 
                 //update post count on creator object
-                User.findOne({_id: reddq.body.creator}, function(err, c_user){
+                User.findOne({_id: req.body.creator}, function(err, c_user){
                   if(err){
                     console.log(err);
                     _utils.prismResponse(res, null, false, PrismError.serverError);
