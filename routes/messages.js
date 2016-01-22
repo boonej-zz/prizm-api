@@ -435,7 +435,7 @@ var notifyUsers = function(m){
   .populate({path: 'creator'})
   .populate({path: 'organization', select: '_id name owner mutes'})
   .populate({path: 'organization.owner', select: '_id name'})
-  .populate({path: 'group'})
+  .populate({path: 'group', model: 'Group'})
   .populate({path: 'creator', select: {
     id: 1,
     name: 1,
