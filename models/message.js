@@ -192,7 +192,7 @@ var notifyUsers = function(message){
     model.populate(m, {path: 'group', model: 'Group'} ,function(err, m){
       model.populate(m, {path: 'creator', model: 'User', select: {_id: 1, name: 1,
       org_status: {$elemMatch: {
-      organization: message.organization,
+      organization: message.organization._id,
       status: 'active'
     }} }}, function(err, m){
         model.populate(m, {path: 'target', model: 'User', select: {first_name: 1, google_devices: 1, device_token: 1, badge_count: 1}}, function(err, m){
