@@ -354,12 +354,17 @@ app.post('/', function(req, res) {
   var location_latitude = req.body.location_latitude;
   var location_longitude = req.body.location_longitude;
   var hash_tags = req.body.hash_tags || [];
+  var origin_post_id = req.body.origin_post_id || false;
 
   if (creator && scope && category) {
     var post = new Post({creator: creator, scope: scope, category: category, 
       text: text, file_path: file_path, location_latitude: location_latitude,
       location_longitude: location_longitude, hash_tags: hash_tags, 
       hash_tags_count: hash_tags.length});
+    if (origin_post_id) {
+      post.origin_post_id = origin_post_id;
+      post.is_repost = true;
+    }
     if (!file_path) {
       var at = post.text;
       User.resolvePostTags(post, function(err, users) {
