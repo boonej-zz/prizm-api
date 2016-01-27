@@ -509,6 +509,8 @@ app.put('/:pid/flags', function(req, res){
         } else {
           res.status(200).json(post);
         }
+      } else {
+        Error.invalidRequest('No such post', res);
       }
     }); 
   } else {
