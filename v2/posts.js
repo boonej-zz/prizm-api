@@ -502,19 +502,21 @@ app.put('/:pid/flags', function(req, res){
         });
         
         if (!flagged) {
+          console.log('flagging post');
           post.flagged_reporters.push({reporter_id: pid, create_date: Date.now()});
           post.save(function(err, saved){
+            if (err) console.log(err);
             res.status(200).json(saved);
           });
         } else {
           res.status(200).json(post);
         }
       } else {
-        Error.invalidRequest('No such post', res);
+        Error.invalidRequest(res, 'No such post');
       }
     }); 
   } else {
-    Error.invalidRequest('Must provide a post id and reporter id', res);
+    Error.invalidRequest(res, 'Must provide a post id and reporter id');
   }
 });
 
