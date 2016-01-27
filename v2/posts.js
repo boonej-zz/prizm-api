@@ -488,5 +488,32 @@ app.delete('/:pid', gateway, function(req, res) {
   }
 });
 
+app.put('/:pid/flags', function(req, res){
+  var pid = req.params.pid || false;
+  var reporter = req.body.reporter || false;
+  if (pid && reporter) {
+    Post.findOne({_id: pid}, function(err, post){
+      if (post) {
+        var flagged = false;
+        _.each(post.flagged_reporters, function(r){
+          if (String(r.reporter_id) == String(pid)) {
+            flagged = true;
+          }
+        });
+        
+        if (!flagged) {
+          post.flagged_reporters.push({reporter_id: pid, create_date: Date.now()});
+          post.save(function(err, saved){
+            res.status(200).json(saved);
+          });
+        } else {
+          res.status(200).json(post);
+        }
+      }
+    }); 
+  } else {
+    Error.invalidRequest('Must provide a post id and reporter id', res);
+  }
+});
 
 module.exports = app;
