@@ -512,7 +512,7 @@ app.put('/:pid/flags', function(req, res){
           res.status(200).json(post);
         }
       } else {
-        Error.invalidRequest(res, 'No such post');
+        Error.invalidRequest(res, 'No such post: ' + pid);
       }
     }); 
   } else {
