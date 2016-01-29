@@ -361,11 +361,11 @@ var flattenStats = function(stats, startDate){
       formatted.overall.total += Number(stat.count);
       formatted.overall[stat._id.category] += Number(stat.count);
       var targetDate = new _moment();
-      targetDate.week = stat._id.week + 1;
+      targetDate.week = stat._id.week;
       targetDate.weekYear = stat._id.year;
-      var diff = targetDate.diff(startDate);
+      var diff = startDate.diff(targetDate);
       console.log(diff);
-      var key = Math.floor(diff/(1000*60*60*24*7)) - 1;
+      var key = Math.floor(diff/(1000*60*60*24*7));
       console.log(key);
       if (key >=0 && key < 7) {
         formatted.individual[key].total += stat.count;
