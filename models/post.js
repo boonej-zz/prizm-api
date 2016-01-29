@@ -360,7 +360,7 @@ var flattenStats = function(stats, startWeek){
       console.log(stat);
       formatted.overall.total += Number(stat.count);
       formatted.overall[stat._id.category] += Number(stat.count);
-      var targetDate = new moment();
+      var targetDate = new _moment();
       targetDate.week = stat._id.week + 1;
       targetDate.weekYear = stat._id.year;
       var diff = targetDate.diff(startDate);
