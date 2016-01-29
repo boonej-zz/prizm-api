@@ -374,7 +374,7 @@ var flattenStats = function(stats, startDate){
       }
     });
   }
-  formatted.reverse();
+  formatted.individual.reverse();
   return formatted;
 };
 
