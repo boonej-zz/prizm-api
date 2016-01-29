@@ -323,6 +323,7 @@ postSchema.static('fetchPostStatsByCategory', function(uid, week, year, offset, 
     { $sort: {count: -1}}
   ], function(err, posts){
     if (err) console.log(err);
+    console.log(posts);
     next(err, flattenStats(posts));
   });
 
