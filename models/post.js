@@ -365,6 +365,7 @@ var flattenStats = function(stats, startDate){
       targetDate.week = stat._id.week;
       targetDate.weekYear = stat._id.year;
       targetDate.startOf('week');
+      console.log(targetDate);
       var diff = targetDate.diff(startDate);
       console.log(diff);
       diff = diff/1000;
