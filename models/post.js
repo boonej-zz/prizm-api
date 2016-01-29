@@ -342,7 +342,6 @@ var itemLayout = function() {
 };
 
 var flattenStats = function(stats, startDate){
-  console.log(startDate);
   var formatted = {
     overall: itemLayout(),
     individual: [
@@ -365,13 +364,10 @@ var flattenStats = function(stats, startDate){
       targetDate.week(stat._id.week);
       targetDate.weekYear(stat._id.year);
       targetDate.startOf('week');
-      console.log(targetDate);
       var diff = targetDate.diff(startDate);
-      console.log(diff);
       diff = diff/(1000*60*60*24*7);
       console.log(diff);
       var key = Math.floor(diff) - 1;
-      console.log(key);
       if (key >=0 && key < 7) {
         formatted.individual[key].total += stat.count;
         formatted.individual[key][stat._id.category] += stat.count; 
