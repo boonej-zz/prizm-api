@@ -341,17 +341,26 @@ var itemLayout = function() {
   }
 };
 
-var flattenStats = function(stats){
+var flattenStats = function(stats, startWeek){
   var formatted = {
     overall: itemLayout(),
-    individual: {}
+    individual: [
+      itemLayout(),
+      itemLayout(),
+      itemLayout(),
+      itemLayout(),
+      itemLayout(),
+      itemLayout(),
+      itemLayout()
+    ]
   };
+  
   if (_.isArray(stats) && stats.length > 0) {
     _.each(stats, function(stat, i) {
       console.log(stat);
       formatted.overall.total += Number(stat.count);
       formatted.overall[stat._id.category] += Number(stat.count);
-      var key = (Number(stat._id.week) + 1) + '-' + stat._id.year;
+      var key = (Number(stat._id.week) + 1) - Number(startWeek);
       if (!formatted[key]) formatted[key] = itemLayout();
       formatted[key].total += stat.count;
       formatted[key][stat._id.category] += stat.count; 
