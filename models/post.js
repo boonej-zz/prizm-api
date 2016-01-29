@@ -350,11 +350,11 @@ var flattenStats = function(stats){
     _.each(stats, function(stat, i) {
       console.log(stat);
       formatted.overall.total += Number(stat.count);
-      formatted.overall.category += Number(stat.count);
+      formatted.overall[stat._id.category] += Number(stat.count);
       var key = (Number(stat._id.week) + 1) + '-' + stat._id.year;
       if (!formatted[key]) formatted[key] = itemLayout();
       formatted[key].total += stat.count;
-      formatted[key][stat.category] += stat.count; 
+      formatted[key][stat._id.category] += stat.count; 
     });
   }
   return formatted;
