@@ -324,7 +324,7 @@ postSchema.static('fetchPostStatsByCategory', function(uid, week, year, offset, 
   ], function(err, posts){
     if (err) console.log(err);
     console.log(posts);
-    next(err, flattenStats(posts, startWeek.week));
+    next(err, flattenStats(posts, startWeek.getWeek()));
   });
 
 });
