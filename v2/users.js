@@ -547,4 +547,25 @@ app.get('/:uid/surveys', function(req, res){
 
 });
 
+app.get('/:uid/posts/stats', function(req, res) {
+  
+  var uid = req.params.uid;
+  var week = req.query.week;
+  var year = req.query.year;
+  var offset = req.query.offset || 7;
+
+  console.log(week + ':' + year + ':' + offset);
+
+  Post.fetchPostStatsByCategory(uid, week, year, offset , function(err, posts){
+    if (err) {
+      console.log(err);
+      Error.serverError(res);
+    } else {
+      res.status(200).json(posts);
+    }
+  });
+
+
+});
+
 module.exports = app;

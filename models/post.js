@@ -280,6 +280,72 @@ postSchema.statics.selectFields = function(type){
   }
 };
 
+
+
+postSchema.static('fetchPostStatsByCategory', function(uid, week, year, offset, next) {
+
+  var model = this.model('Post');
+
+  var startWeek = new _moment();
+  startWeek.weekYear(Number(year));
+  startWeek.week(Number(week) + 1);
+  startWeek.startOf('week');
+  var lastWeek = Number(week) + Number(offset);
+  var lastYear = year;
+  var endWeek = new _moment();
+  endWeek.weekYear(year);
+  endWeek.week(lastWeek);
+  endWeek.endOf("week");
+  var criteria = {
+    creator: mObjectId(uid),
+    create_date: {
+      $gt: startWeek.toDate(),
+      $lt: endWeek.toDate()
+    },
+    status: 'active'
+  };
+
+  var group = {
+    _id: {category: '$category', week: '$week', year: '$year'},
+    count: {$sum: 1}
+  };
+
+  var project = {
+    category: 1,
+    week: {$week: '$create_date'},
+    year: {$week: '$create_date'},
+  };
+  
+  model.aggregate([
+    { $match: criteria },
+    { $project: project },
+    { $group: group },
+    { $sort: {count: -1}}
+  ], function(err, posts){
+    if (err) console.log(err);
+    next(err, flattenStats(posts));
+  });
+
+});
+
+var flattenStats = function(stats){
+  var formatted = {
+    'inspiration': {total: 0, items: []},
+    'aspiration': {total: 0, items: []},
+    'passion': {total: 0, items: []},
+    'experience': {total: 0, items: []},
+    'achievement': {total: 0, items: []},
+    'personal': {total: 0, items: []}
+  };
+  if (_.isArray(stats) && stats.length > 0) {
+    _.each(stats, function(stat, i) {
+      formatted[stat._id.category].total += stat.count;
+      formatted[stat._id.category].items.push({week: stat._id.week + 1, year: stat._id.year, count: stat.count});
+    });
+  }
+  return formatted;
+};
+
 /**
  * Fetchs Post counts by category with a given date (week/year) & offset
  *
