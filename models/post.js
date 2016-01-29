@@ -353,7 +353,7 @@ var flattenStats = function(stats){
       formatted.overall.category += Number(stat.count);
       var key = (Number(stat._id.week) + 1) + '-' + stat._id.year;
       if (!formatted[key]) formatted[key] = itemLayout();
-      formatted[key][total] += stat.count;
+      formatted[key].total += stat.count;
       formatted[key][stat.category] += stat.count; 
     });
   }
