@@ -313,7 +313,7 @@ postSchema.static('fetchPostStatsByCategory', function(uid, week, year, offset, 
   var project = {
     category: 1,
     week: {$week: '$create_date'},
-    year: {$year: '$create_date'},
+    year: {$year: '$create_date'}
   };
   
   model.aggregate([
@@ -324,7 +324,7 @@ postSchema.static('fetchPostStatsByCategory', function(uid, week, year, offset, 
   ], function(err, posts){
     if (err) console.log(err);
     console.log(posts);
-    next(err, flattenStats(posts, startWeek.week()));
+    next(err, flattenStats(posts, startWeek));
   });
 
 });
@@ -360,9 +360,11 @@ var flattenStats = function(stats, startWeek){
       console.log(stat);
       formatted.overall.total += Number(stat.count);
       formatted.overall[stat._id.category] += Number(stat.count);
-      var week = stat._id.week < 0?stat._id.week += 53:stat._id.week + 1;
-      var key = (week - Number(startWeek));
-      console.log(week + '-' + startWeek + '=' + key);
+      var targetDate = new moment();
+      targetDate.week = stat._id.week + 1;
+      targetDate.weekYear = stat._id.year;
+      var diff = targetDate.diff(startDate);
+      var key = Math.floor(diff/(1000*60*60*24*7));
       if (!formatted[key]) formatted[key] = itemLayout();
       formatted[key].total += stat.count;
       formatted[key][stat._id.category] += stat.count; 
