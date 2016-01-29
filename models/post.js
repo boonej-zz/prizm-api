@@ -361,7 +361,7 @@ var flattenStats = function(stats, startWeek){
       formatted.overall.total += Number(stat.count);
       formatted.overall[stat._id.category] += Number(stat.count);
       var week = stat._id.week < 0?stat._id.week += 53:stat._id.week + 1;
-      var key = (week - Number(startWeek);
+      var key = (week - Number(startWeek));
       console.log(week + '-' + startWeek + '=' + key);
       if (!formatted[key]) formatted[key] = itemLayout();
       formatted[key].total += stat.count;
