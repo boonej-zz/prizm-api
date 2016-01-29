@@ -365,7 +365,7 @@ var flattenStats = function(stats, startDate){
       targetDate.weekYear = stat._id.year;
       var diff = targetDate.diff(startDate);
       console.log(diff);
-      var key = Math.floor(diff/(1000*60*60*24*7));
+      var key = Math.floor(diff/(1000*60*60*24*7)) - 1;
       console.log(key);
       if (key >=0 && key < 7) {
         formatted.individual[key].total += stat.count;
