@@ -554,6 +554,10 @@ app.get('/:uid/posts/stats', function(req, res) {
   var year = req.query.year;
   var offset = req.query.offset || 7;
 
+  if (week < 0) {
+    week = week + 52;
+    year = year - 1;
+  }
   console.log(week + ':' + year + ':' + offset);
 
   Post.fetchPostStatsByCategory(uid, week, year, offset , function(err, posts){
