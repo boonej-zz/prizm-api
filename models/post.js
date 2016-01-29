@@ -366,7 +366,7 @@ var flattenStats = function(stats, startDate){
       var diff = targetDate.diff(startDate);
       console.log(diff);
       var key = Math.floor(diff/(1000*60*60*24*7));
-      if (!formatted[key]) formatted[key] = itemLayout();
+      console.log(key);
       formatted[key].total += stat.count;
       formatted[key][stat._id.category] += stat.count; 
     });
