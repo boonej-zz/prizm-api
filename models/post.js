@@ -329,21 +329,32 @@ postSchema.static('fetchPostStatsByCategory', function(uid, week, year, offset, 
 
 });
 
+var itemLayout = function() {
+  return {
+    total: 0,
+    inspiration: 0,
+    aspiration: 0,
+    passion: 0,
+    experience: 0,
+    achievement: 0,
+    personal: 0
+  }
+};
+
 var flattenStats = function(stats){
   var formatted = {
-    'inspiration': {total: 0, items: []},
-    'aspiration': {total: 0, items: []},
-    'passion': {total: 0, items: []},
-    'experience': {total: 0, items: []},
-    'achievement': {total: 0, items: []},
-    'personal': {total: 0, items: []}
+    overall: itemLayout(),
+    individual: {}
   };
   if (_.isArray(stats) && stats.length > 0) {
     _.each(stats, function(stat, i) {
       console.log(stat);
-      formatted[stat._id.category].total += Number(stat.count);
-      formatted[stat._id.category].items.push({week: Number(stat._id.week) + Number(1),
-        year: stat._id.year, count: stat.count});
+      formatted.overall.total += Number(stat.count);
+      formatted.overall.category += Number(stat.count);
+      var key = (Number(stat._id.week) + 1) + '-' + stat._id.year;
+      if (!formatted[key]) formatted[key] = itemLayout();
+      formatted[key][total] += stat.count;
+      formatted[key][stat.category] += stat.count; 
     });
   }
   return formatted;
