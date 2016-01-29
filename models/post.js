@@ -342,6 +342,7 @@ var itemLayout = function() {
 };
 
 var flattenStats = function(stats, startDate){
+  console.log(startDate);
   var formatted = {
     overall: itemLayout(),
     individual: [
