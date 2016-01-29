@@ -339,8 +339,9 @@ var flattenStats = function(stats){
   };
   if (_.isArray(stats) && stats.length > 0) {
     _.each(stats, function(stat, i) {
-      formatted[stat._id.category].total += stat.count;
-      formatted[stat._id.category].items.push({week: stat._id.week + 1, year: stat._id.year, count: stat.count});
+      formatted[stat._id.category].total += Number(stat.count);
+      formatted[stat._id.category].items.push({week: Number(stat._id.week + 1),
+        year: stat._id.year, count: stat.count});
     });
   }
   return formatted;
