@@ -341,7 +341,7 @@ var itemLayout = function() {
   }
 };
 
-var flattenStats = function(stats, startWeek){
+var flattenStats = function(stats, startDate){
   var formatted = {
     overall: itemLayout(),
     individual: [
