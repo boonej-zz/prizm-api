@@ -339,6 +339,7 @@ var flattenStats = function(stats){
   };
   if (_.isArray(stats) && stats.length > 0) {
     _.each(stats, function(stat, i) {
+      console.log(stat);
       formatted[stat._id.category].total += Number(stat.count);
       formatted[stat._id.category].items.push({week: Number(stat._id.week) + Number(1),
         year: stat._id.year, count: stat.count});
