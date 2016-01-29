@@ -370,7 +370,7 @@ var flattenStats = function(stats, startDate){
       console.log(diff);
       diff = diff/(1000*60*60*24*7);
       console.log(diff);
-      var key = Math.floor(diff);
+      var key = Math.floor(diff) - 1;
       console.log(key);
       if (key >=0 && key < 7) {
         formatted.individual[key].total += stat.count;
