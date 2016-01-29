@@ -313,7 +313,7 @@ postSchema.static('fetchPostStatsByCategory', function(uid, week, year, offset, 
   var project = {
     category: 1,
     week: {$week: '$create_date'},
-    year: {$week: '$create_date'},
+    year: {$year: '$create_date'},
   };
   
   model.aggregate([
