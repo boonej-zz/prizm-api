@@ -323,8 +323,21 @@ postSchema.static('fetchPostStatsByCategory', function(uid, week, year, offset, 
     { $sort: {count: -1}}
   ], function(err, posts){
     if (err) console.log(err);
-    console.log(posts);
-    next(err, flattenStats(posts, startWeek));
+    var total_criteria = {
+      creator: mObjectId(uid),
+      status: 'active'
+    }; 
+    model.aggregate([
+      {$match: total_criteria},
+      {$project: {category: 1}},
+      {$group: {_id: '$category', count: {$sum: 1}}},
+      {$sort: {count: -1}}
+    ], function(err, totals){
+      if (!totals) {
+        totals = [];
+      }
+      next(err, flattenStats(posts, totals, startWeek));
+    });
   });
 
 });
@@ -341,7 +354,7 @@ var itemLayout = function() {
   }
 };
 
-var flattenStats = function(stats, startDate){
+var flattenStats = function(stats, totals, startDate){
   var formatted = {
     overall: itemLayout(),
     individual: [
@@ -356,10 +369,12 @@ var flattenStats = function(stats, startDate){
   };
   
   if (_.isArray(stats) && stats.length > 0) {
+    _.each(totals, function(total, i){
+      formatted.overall[total._id] += total.count;
+      formatted.total += total.count;
+    });
     _.each(stats, function(stat, i) {
       console.log(stat);
-      formatted.overall.total += Number(stat.count);
-      formatted.overall[stat._id.category] += Number(stat.count);
       var targetDate = new _moment();
       targetDate.week(stat._id.week + 1);
       targetDate.weekYear(stat._id.year);
