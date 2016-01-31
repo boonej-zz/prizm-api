@@ -367,12 +367,13 @@ var flattenStats = function(stats, totals, startDate){
       itemLayout()
     ]
   };
-  
-  if (_.isArray(stats) && stats.length > 0) {
-    _.each(totals, function(total, i){
+
+  _.each(totals, function(total, i){
       formatted.overall[total._id] += total.count;
       formatted.overall.total += total.count;
-    });
+  });
+  
+  if (_.isArray(stats) && stats.length > 0) {
     _.each(stats, function(stat, i) {
       console.log(stat);
       var targetDate = new _moment();
