@@ -371,7 +371,7 @@ var flattenStats = function(stats, totals, startDate){
   if (_.isArray(stats) && stats.length > 0) {
     _.each(totals, function(total, i){
       formatted.overall[total._id] += total.count;
-      formatted.total += total.count;
+      formatted.overall.total += total.count;
     });
     _.each(stats, function(stat, i) {
       console.log(stat);
