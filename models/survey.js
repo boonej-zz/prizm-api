@@ -201,21 +201,22 @@ surveySchema.statics.fetchLatestSurveyCompletionData = function(oid, next) {
             return -answer.create_date;
           });
 
-          var startDate = answers[0].create_date;
-          var startDay = answers[0].create_date.getDate();
-          var startMonth = answers[0].create_date.getMonth() + 1;
+          var startDate = moment(answers[0].create_date).utcOffset(-5);
+          var startDay = startDate.date();
+          var startMonth = startDate.month() + 1;
 
           for (var i = 0; i != 3; ++i) {
-            var compDate = new Date(startDate.getTime());
-            compDate.setDate(startDate.getDate() - i);
-            var dateString = compDate.getDate();
-            var monthString = compDate.getMonth() + 1;
+            var compDate = startDate; 
+            compDate.date(startDate.date() - i);
+            var dateString = compDate.date();
+            var monthString = compDate.month() + 1;
             var key = monthString + '/' + dateString;
             var item = {date: key, count: 0};
             results.push(item); 
             _.each(answers, function(answer) {
-              if (answer.create_date.getDate() == compDate.getDate() &&
-                answer.create_date.getMonth() == compDate.getMonth()){
+              var finalDate = moment(answer.create_date).utcOffset(-5);
+              if (finalDate.date() == compDate.date() &&
+                finalDate.month() == compDate.month()){
                 results[i].count += 1;  
               } 
             }); 
