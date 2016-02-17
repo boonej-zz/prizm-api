@@ -71,7 +71,15 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
         console.log(question);
         if (survey.number_of_questions == question.order) {
           console.log('finalizing survey');
-          survey.completed.push(user);
+          var completed = false;
+          _.each(survey.completed, function(u) {
+            if (String(u) == String(user)) {
+              completed = true;
+            }
+          });
+          if (!completed) {
+            survey.completed.push(user);
+          }
           survey.save(function(err, s){
             if (err) console.log(err);
           });
