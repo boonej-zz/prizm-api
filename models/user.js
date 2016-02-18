@@ -349,6 +349,10 @@ userSchema.post('init', function(user){
   if (user.cover_photo_url) {
     user.cover_photo_url = user.cover_photo_url.replace(r, 'https://s');
   }
+  var genabled = user.google_devices && user.google.devices.length > 0;
+  if (!user.device_token && !genabled) {
+    user.push_enabled = false;
+  }
 });
 
 userSchema.methods.format = function(type, add_fields, callback){

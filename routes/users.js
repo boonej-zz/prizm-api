@@ -439,7 +439,7 @@ var unregisterDeviceFromUsers = function(device, block){
   if(!device || !block) throw new Error('A device id & callback are required');
   User.update(
     {device: device},
-    {$set: {device_token: null}},
+    {$set: {device_token: null, push_enabled: false}},
     {multi: true},
     function(err, updated){
       block(err, updated);
