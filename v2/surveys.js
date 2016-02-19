@@ -67,17 +67,15 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
     } else {
       console.log('testing if final question');
       Survey.findOne({_id: sid}, function(err, survey) {
-        console.log(survey.number_of_questions);
-        console.log(question);
         if (survey.number_of_questions == question.order) {
           console.log('finalizing survey');
-          var completed = false;
+          var present = false;
           _.each(survey.completed, function(u) {
-            if (String(u) == String(user)) {
-              completed = true;
+            if (String(u) === String(user)) {
+              present = true;
             }
           });
-          if (!completed) {
+          if (!present) {
             survey.completed.push(user);
           }
           survey.save(function(err, s){
