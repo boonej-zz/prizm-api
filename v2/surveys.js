@@ -35,7 +35,7 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
   .populate({path: 'answers', model: 'Answer'})
   .exec(function(err, question){
     _.each(question.answers, function(a){
-      if (String(a.user) == String(user)) {
+      if (String(a.user) === String(user)) {
         answer = a;
       }
     });
@@ -45,8 +45,6 @@ app.post('/:sid/questions/:qid/answers', function(req, res) {
       });
     } else {
       answer = new Answer({user: user, value: value});
-      console.log(answer);
-      console.log(q.order);
       answer.save(function(err, a){
         Question.findOne({_id: qid}, function(err, qq){
           qq.answers.push(a._id);
