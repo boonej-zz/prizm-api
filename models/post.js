@@ -1320,14 +1320,18 @@ var doExplore = function(model, criteria, sort, limit, requestor, next){
   .select(homeFields(requestor))
   .sort(sort)
   .limit(limit || 20)
+  .populate({path: 'origin_post_id', model: 'Post', select: {creator: 1}})
   .exec(function(err, posts){
     model.populate(posts, {path: 'creator', model: 'User',
       select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
       function(err, posts){
         model.populate(posts, {path: 'tags._id', model: 'User',
          select: {_id: 1, name: 1}}, function(err, posts){ 
-          var returnData = flatten(posts, requestor);
-          next(err, returnData);
+          model.populate(posts, {path: 'origin_post_id.creator', model: 'User', 
+            select: {name: 1}}, function(err, posts){
+            var returnData = flatten(posts, requestor);
+            next(err, returnData);
+          });
          });
       });
   });
