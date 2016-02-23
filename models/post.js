@@ -764,6 +764,7 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
   .select(homeFields(uid))
   .sort({create_date: -1})
   .limit(10)
+  .populate({path: 'origin_post_id', model: 'Post', select: {creator: 1}})
   .exec(function(err, posts){
     if (err) console.log(err);
     model.populate(posts, {path: 'creator', model: 'User',
@@ -771,8 +772,11 @@ postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
       function(err, posts){
         model.populate(posts, {path: 'tags._id', model: 'User',
          select: {_id: 1, name: 1}}, function(err, posts){ 
-          var returnData = flatten(posts, uid);
-          next(err, returnData);
+           model.populate(posts, {path: 'origin_post_id.creator', model: 'User', 
+             select: {name: 1}}, function(err, posts){
+              var returnData = flatten(posts, uid);
+              next(err, returnData);
+           });
          });
       });
     
@@ -848,11 +852,15 @@ postSchema.statics.fetchPost = function(pid, requestor, next){
   var model = this.model('Post');
   model.findOne({_id: pid})
   .select(postFields(requestor))
+  .populate({path: 'origin_post_id', model: 'Post', select: {creator: 1}})
   .exec(function(err, post){
     if (post) {
       model.populate(post, {path: 'creator', model: 'User', select: userFields}, function(err, post){
         model.populate(post, {path: 'tags._id', model: 'User', select: {_id: 1, name: 1}}, function(err, post){
-        next(err, flatten([post], requestor)[0]);
+          model.populate(post, {path: 'origin_post_id.creator', model: 'User', 
+            select: {name: 1}}, function(err, post){
+            next(err, flatten([post], requestor)[0]);
+          });
         });
       }); 
     } else {
@@ -1062,6 +1070,10 @@ var flatten = function(posts, uid ){
     p.creator_profile_photo_url = p.creator.profile_photo_url;
     p.creator_type = p.creator.type;
     p.creator_subtype = p.creator.subtype;
+    p.original_creator = p.origin_post_id && p.origin_post_id.creator
+      ? p.origin_post_id.creator.name
+      : null;
+    delete p.origin_post_id;
     delete p.creator;
     p.is_liked = p.likes.length > 0;
     delete p.likes;
@@ -1212,15 +1224,19 @@ postSchema.statics.fetchUserPosts = function(user, trusted, requestor, limit,
   .select(homeFields(requestor))
   .sort({create_date: -1})
   .limit(limit)
+  .populate({path: 'origin_post_id', model: 'Post', select: {creator: 1}})
   .exec(function(err, posts){
     if (err) console.log(err);
     model.populate(posts, {path: 'creator', model: 'User',
       select: {_id: 1, name: 1, profile_photo_url: 1, type: 1, subtype: 1}}, 
       function(err, posts){
         model.populate(posts, {path: 'tags._id', model: 'User',
-         select: {_id: 1, name: 1}}, function(err, posts){ 
-          var returnData = flatten(posts, requestor);
-          next(err, returnData);
+         select: {_id: 1, name: 1}}, function(err, posts){
+          model.populate(posts, {path: 'origin_post_id.creator', model: 'User', 
+            select: {name: 1}}, function(err, posts){
+            var returnData = flatten(posts, requestor);
+            next(err, returnData);
+          });
          });
       });
     
