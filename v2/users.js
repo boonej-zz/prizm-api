@@ -221,7 +221,7 @@ app.put('/:uid/interests', gateway, function(req, res){
  * @apiSuccess {Object[]} posts List of home feed posts
  * @apiUse Error
  **/
-app.get('/:uid/home',  function(req, res) {
+app.get('/:uid/home', gateway, function(req, res) {
   var uid = req.params.uid;
   var last = req.query.last;
   User.fetchHomeFeedCriteria(uid, last, function(err, criteria){

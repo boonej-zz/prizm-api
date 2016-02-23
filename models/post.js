@@ -217,7 +217,7 @@ var homeFields = function(creator){
   return {id: 1, creator: 1, text: 1, file_path: 1, likes_count: 1, scope: 1, 
     likes: {$elemMatch: {_id: creator}}, category: 1, external_provider: 1,
     comments_count:1 , create_date: 1, location_latitude: 1, location_longitude: 1,
-    hash_tags: 1, status: 1, tags: 1
+    hash_tags: 1, status: 1, tags: 1, origin_post_id: 1
   };
 }
 
