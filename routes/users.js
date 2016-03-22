@@ -31,6 +31,7 @@ var fs = require('fs');
 var config = require('config');
 var welcomeMail = fs.readFileSync(path.join(__dirname + 
       '/../views/welcome.jade'), 'utf8');
+var orgWelcomeMail = path.join(__dirname + '/../views/welcome_org.jade');
 var consentMail = path.join(__dirname + '/../views/consent.jade');
 var nonOrgConsentMail = path.join(__dirname + '/../views/non_org_consent.jade');
 var mandrill = require('node-mandrill')(config.mandrill.client_secret);
@@ -698,8 +699,12 @@ exports.register = function(req, res){
             var mail = new Mail();
             mail.institutionReview(result.toObject());
           }
-          
-          var html = jade.render(welcomeMail, {user: result});
+          var html = false;
+          if (result.type == 'institution_verified') {
+            html = jade.renderFile(orgWelcomeMail, {user: result});
+          } else {
+            html = jade.render(welcomeMail, {user: result});
+          }
           mandrill(mandrillEndpointSend,{message: {
             to: [{email: result.email}],
             from_email: 'info@prizmapp.com',
