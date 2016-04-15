@@ -590,11 +590,8 @@ app.post('/password', gateway, function resetPassword(req, res) {
   var password = req.body.password;
   var confirmPassword = req.body.confirm_password;
   console.log('received request');
-  console.log(email);
-  console.log(password);
 
   if (email && password && confirmPassword) {
-    console.log('resetting');
     User.resetPassword({email: email, 
       password: password, 
       confirmPassword: confirmPassword}, function afterPassReset(err, user){
