@@ -1316,9 +1316,9 @@ userSchema.statics.resetPassword = function(params, next) {
     model.findOne({email: email}, function afterFind(err, user) {
       if (user) {
         user.password_reset = password;
-        result.reset_date = Date.now();
-        result.reset_key = uuid.v1();
-        result.save(function(err, saved) {
+        user.reset_date = Date.now();
+        user.reset_key = uuid.v1();
+        user.save(function(err, saved) {
           return next(err, saved);
         });
       } else {
