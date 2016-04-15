@@ -17,6 +17,8 @@ var Survey = mongoose.model('Survey');
 
 var InsightTarget = mongoose.model('InsightTarget');
 
+var Mail = require('../classes/Mail'); 
+
 
 
 app.get('/', function(req, res){
@@ -537,7 +539,7 @@ app.delete('/:uid/insights/:iid', function(req, res){
   }
 });
 
-app.get('/:uid/surveys', function(req, res){
+app.get('/:uid/surveys', gateway, function(req, res){
   
   var uid = req.params.uid;
   Survey.fetchLatestSurveyForUser(uid, function(err, survey){
@@ -547,7 +549,7 @@ app.get('/:uid/surveys', function(req, res){
 
 });
 
-app.get('/:uid/posts/stats', function(req, res) {
+app.get('/:uid/posts/stats', gateway, function(req, res) {
   
   var uid = req.params.uid;
   var week = req.query.week;
@@ -571,5 +573,52 @@ app.get('/:uid/posts/stats', function(req, res) {
 
 
 });
+
+/**
+ * @api {post} /users/password Request Password Reset
+ * @apiName Reset Password
+ * @apiDescription Requests a password reset for the user.
+ * @apiGroup Users
+ * @apiParam (Body) {String} email Email address for user
+ * @apiParam (Body) {String} password Password for user
+ * @apiParam (Body) {String) confirm_password Confirmation password - should 
+ *  match password
+ * @apiUse Error
+ */
+app.post('/password', gateway, function resetPassword(req, res) {
+  var email = req.params.email;
+  var password = req.params.password;
+  var confirmPassword = req.params.confirm_password;
+
+  if (email && password && confirmPassword) {
+    User.resetPassword({email: email, 
+      password: password, 
+      confirmPassword: confirmPassword}, function afterPassReset(err, user){
+        afterReset(res, err, user);
+      });
+  } else {
+    Error.invalidRequest(res, 'You must provide a user id, '
+      + 'email address, password, and password confirmation. ');
+  }
+});
+
+function afterReset(res, error, user) {
+  if (error) {
+    console.log(error);
+    Error.serverError(res);
+  } else {
+    var mail = new Mail();
+    mail.resetPassword(user, function afterEmail(err, response){
+      if (err) {
+        console.log(err);
+        Error.serverError(res);
+      } else {
+        res.status(200).json({message: 'Please verify reset in email'});
+      }
+    });
+  }
+}
+
+
 
 module.exports = app;

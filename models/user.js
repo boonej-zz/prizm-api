@@ -35,6 +35,7 @@ var ownerClosing = 'Thank you,';
 var ownerPush = 'has requested to join your Prizm group. Please go to your admin page to approve or deny.';
 var ownerPushAlt = 'has just joined your Prizm group. Please go to your admin page to review your members.';
 var notify = require(_prism_home + 'lib/helpers/notify');
+var uuid      = require('node-uuid');
 
 
 var orgStatusSchema = new _mongoose.Schema({
@@ -1303,6 +1304,34 @@ var flattenShortUsers = function(users, requestor){
     }
   });
   return returnData;
+}
+
+userSchema.methods.resetPassword = function(params, next) {
+  var email = params.email;
+  var password = params.password;
+  var confirmPassword = params.confirmPassword;
+
+  if (email && password && confirmPassword && passwordsMatch(password, confirmPassword)) {
+    var model = this.model('User');
+    model.findOne({email: email}, function afterFind(err, user) {
+      if (user) {
+        user.password_reset = password;
+        result.reset_date = Date.now();
+        result.reset_key = uuid.v1();
+        result.save(function(err, saved) {
+          return next(err, saved);
+        });
+      } else {
+        return next(err, user);
+      }
+    });
+  } else {
+    return next({err: 'Invalid request. '}, null);
+  }
+};
+
+function passwordsMatch(password, confirmPassword) {
+  return password === confirmPassword;
 }
 
 exports.User = _mongoose.model('User', userSchema);
