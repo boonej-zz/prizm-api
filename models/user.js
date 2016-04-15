@@ -1306,7 +1306,7 @@ var flattenShortUsers = function(users, requestor){
   return returnData;
 }
 
-userSchema.methods.resetPassword = function(params, next) {
+userSchema.statics.resetPassword = function(params, next) {
   var email = params.email;
   var password = params.password;
   var confirmPassword = params.confirmPassword;
