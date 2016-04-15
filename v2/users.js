@@ -586,9 +586,10 @@ app.get('/:uid/posts/stats', gateway, function(req, res) {
  * @apiUse Error
  */
 app.post('/password', gateway, function resetPassword(req, res) {
-  var email = req.params.email;
-  var password = req.params.password;
-  var confirmPassword = req.params.confirm_password;
+  var email = req.body.email;
+  var password = req.body.password;
+  var confirmPassword = req.body.confirm_password;
+
 
   if (email && password && confirmPassword) {
     User.resetPassword({email: email, 
