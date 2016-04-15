@@ -589,15 +589,19 @@ app.post('/password', gateway, function resetPassword(req, res) {
   var email = req.body.email;
   var password = req.body.password;
   var confirmPassword = req.body.confirm_password;
-
+  console.log('received request');
+  console.log(email);
+  console.log(password);
 
   if (email && password && confirmPassword) {
+    console.log('resetting');
     User.resetPassword({email: email, 
       password: password, 
       confirmPassword: confirmPassword}, function afterPassReset(err, user){
         afterReset(res, err, user);
       });
   } else {
+    console.log('Not all info provided. ');
     Error.invalidRequest(res, 'You must provide a user id, '
       + 'email address, password, and password confirmation. ');
   }
