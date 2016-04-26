@@ -758,6 +758,31 @@ postSchema.post('init', function(post){
   }
 });
 
+postSchema.statics.fetchLikes = function(uid, skip, limit, next) {
+  var model = this.model('Post');
+  var criteria = {
+    likes: {$elemMatch: {_id: uid}}
+  };
+  model.find(criteria)
+  .select(homeFields(uid))
+  .sort({create_date: -1})
+  .limit(limit)
+  .skip(skip)
+  .populate({path: 'origin_post_id', model: 'Post', select: {creator: 1}})
+  .exec(function afterSearchLikedPosts(err, posts){
+    if (err) console.log(err);
+    model.populate(posts, {path: 'tags._id', model: 'User', 
+      select: {_id: 1, name: 1}}, function(err, posts){
+      model.populate(posts, {path: 'origin_post_id.creator', model: 'User',
+        select: {name: 1}}, function(err, posts){
+          var returnData = flatten(posts, uid);
+          next(err, returnData);
+        });
+    });
+  });
+
+};
+
 postSchema.statics.fetchHomeFeed = function(uid, criteria, next) {
   var model = this.model('Post');
   model.find(criteria)

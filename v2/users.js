@@ -621,6 +621,24 @@ function afterReset(res, error, user) {
   }
 }
 
+app.get('/:uid/likes', function getUserLikes(req, res) {
+  var uid = req.params.uid;
+  var limit = req.query.limit || 10;
+  var skip = req.query.skip || 0;
+  
+  if (uid) {
+  Post.fetchLikes(uid, limit, skip, function afterFetch(err, posts) {
+    if (err) {
+      console.log(err);
+      Error.serverError(res);
+    } else {
+      res.status(200).json(posts);
+    }
+  });
+  } else {
+    Error.invalidRequest(res, 'Must provide user id. ');
+  }
+});
 
 
 module.exports = app;
