@@ -765,9 +765,9 @@ postSchema.statics.fetchLikes = function(uid, skip, limit, next) {
   };
   model.find(criteria)
   .select(homeFields(uid))
+  .limit(Number(limit))
+  .skip(Number(skip))
   .sort({create_date: -1})
-  .limit(limit)
-  .skip(skip)
   .populate({path: 'origin_post_id', model: 'Post', select: {creator: 1}})
   .populate({path: 'creator', model: 'User', select: {_id: 1, name: 1, 
     profile_photo_url: 1, type: 1, subtype: 1}})
