@@ -769,6 +769,8 @@ postSchema.statics.fetchLikes = function(uid, skip, limit, next) {
   .limit(limit)
   .skip(skip)
   .populate({path: 'origin_post_id', model: 'Post', select: {creator: 1}})
+  .populate({path: 'creator', model: 'User', select: {_id: 1, name: 1, 
+    profile_photo_url: 1, type: 1, subtype: 1}})
   .exec(function afterSearchLikedPosts(err, posts){
     if (err) console.log(err);
     model.populate(posts, {path: 'tags._id', model: 'User', 
