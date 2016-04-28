@@ -626,9 +626,6 @@ app.get('/:uid/likes', function getUserLikes(req, res) {
   var limit = req.query.limit || 10;
   var skip = req.query.skip || 0;
 
-  console.log(limit);
-  console.log(skip);
-  
   if (uid) {
   Post.fetchLikes(uid, skip, limit, function afterFetch(err, posts) {
     if (err) {
