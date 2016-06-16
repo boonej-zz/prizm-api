@@ -61,7 +61,7 @@ module.exports = {
     client_secret: '6b1ef1bcf668302af0252cc4afa1d6cc'
   },
   mandrill: {
-    client_secret: 'SHzM16s9ZKmo-5bbQCZXfA'
+    client_secret: 'A2atfUbZBGi5XiPdCbWavw'
   },
   push_server: 'http://ec2-54-186-223-100.us-west-2.compute.amazonaws.com/push',
   app_name: 'Prizm Dev'
